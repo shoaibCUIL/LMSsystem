@@ -26,7 +26,7 @@ def load_user(user_id):
 
 @app.route('/')
 def home():
-    return "LMS Running 🚀"
+    return redirect('/login')
 
 
 # ------------------ REGISTER ------------------
