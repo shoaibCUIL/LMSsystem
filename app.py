@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, abort
+from flask import Flask, render_template, request, redirect, flash, abort
 from flask_login import LoginManager, login_user, login_required, logout_user, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime
@@ -16,29 +16,57 @@ login_manager.init_app(app)
 login_manager.login_view = "login"
 
 
+# ================= LOAD USER =================
 @login_manager.user_loader
 def load_user(user_id):
     return User.query.get(int(user_id))
 
 
-# ------------------ INIT DB ------------------
-
+# ================= INIT DB =================
 with app.app_context():
     db.create_all()
 
 
-# ------------------ HOME ------------------
-
+# ================= HOME =================
 @app.route('/')
 def home():
-    return redirect('/login')
+    courses = Course.query.all()
+    return render_template('public/home.html', courses=courses)
 
 
-# ------------------ REGISTER ------------------
+# ================= COURSES =================
+@app.route('/courses')
+def courses():
+    courses = Course.query.all()
+    return render_template('public/courses.html', courses=courses)
 
+
+# ================= BLOGS =================
+@app.route('/blogs')
+def blogs():
+    return render_template('public/blogs.html', blogs=[])
+
+
+# ================= EVENTS =================
+@app.route('/events')
+def events():
+    return render_template('public/events.html', events=[])
+
+
+# ================= DISCUSSIONS =================
+@app.route('/discussions')
+def discussions():
+    return "<h2>Discussion forum coming soon 💬</h2>"
+
+
+# ================= REGISTER =================
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
+
+        if request.form['password'] != request.form['confirm_password']:
+            flash("Passwords do not match ❌")
+            return redirect('/register')
 
         hashed_password = generate_password_hash(request.form['password'])
 
@@ -50,13 +78,13 @@ def register():
         db.session.add(user)
         db.session.commit()
 
+        flash("Account created successfully ✅")
         return redirect('/login')
 
     return render_template('register.html')
 
 
-# ------------------ LOGIN ------------------
-
+# ================= LOGIN =================
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
@@ -66,21 +94,25 @@ def login():
         if user and check_password_hash(user.password, request.form['password']):
             login_user(user)
             return redirect('/dashboard')
+        else:
+            flash("Invalid email or password ❌")
 
     return render_template('login.html')
 
 
-# ------------------ DASHBOARD ------------------
-
+# ================= DASHBOARD =================
 @app.route('/dashboard')
 @login_required
 def dashboard():
-    courses = Course.query.all()
-    return render_template('dashboard.html', courses=courses)
+    courses = Course.query.all()  # later: enrolled courses only
+    return render_template(
+        'dashboard.html',
+        courses=courses,
+        now=datetime.utcnow
+    )
 
 
-# ------------------ COURSE ------------------
-
+# ================= COURSE PAGE =================
 @app.route('/course/<int:course_id>')
 @login_required
 def course(course_id):
@@ -94,8 +126,7 @@ def course(course_id):
     return render_template('course.html', course=course, lectures=lectures)
 
 
-# ------------------ ADMIN ------------------
-
+# ================= ADMIN PANEL =================
 @app.route('/admin', methods=['GET', 'POST'])
 @login_required
 def admin():
@@ -105,14 +136,18 @@ def admin():
 
     if request.method == 'POST':
 
-        if request.form['type'] == "course":
+        form_type = request.form.get('type')
+
+        # -------- COURSE --------
+        if form_type == "course":
             course = Course(
                 title=request.form['title'],
                 description=request.form['description']
             )
             db.session.add(course)
 
-        elif request.form['type'] == "lecture":
+        # -------- LECTURE --------
+        elif form_type == "lecture":
             lecture = Lecture(
                 title=request.form['title'],
                 video_url=request.form['video_url'],
@@ -120,15 +155,28 @@ def admin():
             )
             db.session.add(lecture)
 
+        # -------- BLOG (placeholder) --------
+        elif form_type == "blog":
+            flash("Blog feature coming soon ✍️")
+
+        # -------- EVENT (placeholder) --------
+        elif form_type == "event":
+            flash("Event feature coming soon 📅")
+
         db.session.commit()
+        flash("Action completed successfully ✅")
 
     return render_template('admin.html')
 
 
-# ------------------ LOGOUT ------------------
-
+# ================= LOGOUT =================
 @app.route('/logout')
 @login_required
 def logout():
     logout_user()
     return redirect('/login')
+
+
+# ================= RUN =================
+if __name__ == "__main__":
+    app.run(debug=True)

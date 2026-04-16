@@ -1,0 +1,83 @@
+{% extends "layout/base.html" %}
+{% block content %}
+
+<!-- PAGE HEADER -->
+<div class="mb-4">
+    <h2 class="fw-bold">Explore Courses 🎓</h2>
+    <p class="text-muted">Browse and enroll in high-quality courses</p>
+</div>
+
+<!-- SEARCH + FILTER -->
+<div class="row mb-4">
+
+    <div class="col-md-8">
+        <input type="text" class="form-control" placeholder="Search courses...">
+    </div>
+
+    <div class="col-md-4">
+        <select class="form-select">
+            <option selected>All Categories</option>
+            <option>Programming</option>
+            <option>AI / ML</option>
+            <option>Web Development</option>
+            <option>Business</option>
+        </select>
+    </div>
+
+</div>
+
+<!-- COURSES GRID -->
+<div class="row">
+
+{% for course in courses %}
+<div class="col-lg-4 col-md-6">
+
+    <div class="card course-card shadow-sm mb-4">
+
+        <!-- IMAGE (Placeholder) -->
+        <img src="https://via.placeholder.com/400x200" class="card-img-top">
+
+        <div class="card-body">
+
+            <!-- TITLE -->
+            <h5 class="fw-bold">{{ course.title }}</h5>
+
+            <!-- DESCRIPTION -->
+            <p class="text-muted">
+                {{ course.description[:100] }}...
+            </p>
+
+            <!-- RATING -->
+            <div class="mb-2 text-warning">
+                ★★★★☆ <small class="text-muted">(4.5)</small>
+            </div>
+
+            <!-- BUTTON -->
+            {% if current_user.is_authenticated %}
+                <a href="/course/{{ course.id }}" class="btn btn-primary w-100">
+                    View Course
+                </a>
+            {% else %}
+                <a href="/login" class="btn btn-outline-primary w-100">
+                    Login to Enroll
+                </a>
+            {% endif %}
+
+        </div>
+
+    </div>
+
+</div>
+{% endfor %}
+
+</div>
+
+<!-- EMPTY STATE -->
+{% if courses|length == 0 %}
+<div class="text-center mt-5">
+    <h5>No courses available yet 😔</h5>
+    <p class="text-muted">Admin will add courses soon</p>
+</div>
+{% endif %}
+
+{% endblock %}

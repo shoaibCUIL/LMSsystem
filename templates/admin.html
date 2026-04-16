@@ -1,44 +1,140 @@
-{% extends "base.html" %}
+{% extends "layout/base.html" %}
 {% block content %}
 
-<h2>Admin Panel ⚙️</h2>
+<div class="container-fluid">
 
-<hr>
+    <h2 class="fw-bold mb-4">Admin Panel ⚙️</h2>
 
-<h4>Add Course</h4>
-<form method="POST">
-    <input type="hidden" name="type" value="course">
+    <!-- TABS -->
+    <ul class="nav nav-tabs mb-4" id="adminTabs">
+        <li class="nav-item">
+            <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#courses">Courses</button>
+        </li>
+        <li class="nav-item">
+            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#lectures">Lectures</button>
+        </li>
+        <li class="nav-item">
+            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#blogs">Blogs</button>
+        </li>
+        <li class="nav-item">
+            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#events">Events</button>
+        </li>
+    </ul>
 
-    <div class="mb-2">
-        <input type="text" name="title" placeholder="Course Title" class="form-control" required>
+    <div class="tab-content">
+
+        <!-- ================= COURSES ================= -->
+        <div class="tab-pane fade show active" id="courses">
+
+            <div class="card p-4 shadow-sm mb-4">
+                <h4>Add New Course 🎓</h4>
+
+                <form method="POST">
+                    <input type="hidden" name="type" value="course">
+
+                    <div class="mb-3">
+                        <label>Course Title</label>
+                        <input type="text" name="title" class="form-control" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label>Description</label>
+                        <textarea name="description" class="form-control" required></textarea>
+                    </div>
+
+                    <button class="btn btn-primary">Add Course</button>
+                </form>
+            </div>
+
+        </div>
+
+        <!-- ================= LECTURES ================= -->
+        <div class="tab-pane fade" id="lectures">
+
+            <div class="card p-4 shadow-sm mb-4">
+                <h4>Add Lecture 🎥</h4>
+
+                <form method="POST">
+                    <input type="hidden" name="type" value="lecture">
+
+                    <div class="mb-3">
+                        <label>Lecture Title</label>
+                        <input type="text" name="title" class="form-control" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label>Video URL (Embed)</label>
+                        <input type="text" name="video_url" class="form-control" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label>Course ID</label>
+                        <input type="number" name="course_id" class="form-control" required>
+                    </div>
+
+                    <button class="btn btn-success">Add Lecture</button>
+                </form>
+            </div>
+
+        </div>
+
+        <!-- ================= BLOGS ================= -->
+        <div class="tab-pane fade" id="blogs">
+
+            <div class="card p-4 shadow-sm mb-4">
+                <h4>Add Blog ✍️</h4>
+
+                <form method="POST">
+                    <input type="hidden" name="type" value="blog">
+
+                    <div class="mb-3">
+                        <label>Blog Title</label>
+                        <input type="text" name="title" class="form-control" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label>Content</label>
+                        <textarea name="content" class="form-control" rows="5" required></textarea>
+                    </div>
+
+                    <button class="btn btn-warning">Add Blog</button>
+                </form>
+            </div>
+
+        </div>
+
+        <!-- ================= EVENTS ================= -->
+        <div class="tab-pane fade" id="events">
+
+            <div class="card p-4 shadow-sm mb-4">
+                <h4>Add Event / Webinar 📅</h4>
+
+                <form method="POST">
+                    <input type="hidden" name="type" value="event">
+
+                    <div class="mb-3">
+                        <label>Event Title</label>
+                        <input type="text" name="title" class="form-control" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label>Description</label>
+                        <textarea name="description" class="form-control" required></textarea>
+                    </div>
+
+                    <div class="mb-3">
+                        <label>Date</label>
+                        <input type="date" name="date" class="form-control" required>
+                    </div>
+
+                    <button class="btn btn-danger">Add Event</button>
+                </form>
+            </div>
+
+        </div>
+
     </div>
 
-    <div class="mb-2">
-        <textarea name="description" placeholder="Description" class="form-control" required></textarea>
-    </div>
-
-    <button class="btn btn-primary">Add Course</button>
-</form>
-
-<hr>
-
-<h4>Add Lecture</h4>
-<form method="POST">
-    <input type="hidden" name="type" value="lecture">
-
-    <div class="mb-2">
-        <input type="text" name="title" placeholder="Lecture Title" class="form-control" required>
-    </div>
-
-    <div class="mb-2">
-        <input type="text" name="video_url" placeholder="Video URL" class="form-control" required>
-    </div>
-
-    <div class="mb-2">
-        <input type="number" name="course_id" placeholder="Course ID" class="form-control" required>
-    </div>
-
-    <button class="btn btn-success">Add Lecture</button>
-</form>
+</div>
 
 {% endblock %}

@@ -1,15 +1,38 @@
 import os
 
+
 class Config:
-    SECRET_KEY = os.getenv("SECRET_KEY", "secret123")
+    # ================= SECRET KEY =================
+    SECRET_KEY = os.getenv("SECRET_KEY", "supersecretkey")
 
-    db_url = os.getenv("DATABASE_URL")
 
-    if db_url:
-        if db_url.startswith("postgres://"):
-            db_url = db_url.replace("postgres://", "postgresql://", 1)
-        SQLALCHEMY_DATABASE_URI = db_url
+    # ================= DATABASE =================
+    DATABASE_URL = os.getenv("DATABASE_URL")
+
+    if DATABASE_URL:
+        # Fix for Railway / Heroku postgres URL
+        if DATABASE_URL.startswith("postgres://"):
+            DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
+
+        SQLALCHEMY_DATABASE_URI = DATABASE_URL
     else:
+        # Local development fallback
         SQLALCHEMY_DATABASE_URI = "sqlite:///lms.db"
 
+
+    # ================= SQLALCHEMY =================
     SQLALCHEMY_TRACK_MODIFICATIONS = False
+
+
+    # ================= OPTIONAL SETTINGS =================
+    # (for future features)
+
+    # Upload folder (for course thumbnails later)
+    UPLOAD_FOLDER = "static/uploads"
+
+    # Max upload size (16MB)
+    MAX_CONTENT_LENGTH = 16 * 1024 * 1024
+
+
+    # ================= DEBUG MODE =================
+    DEBUG = True
