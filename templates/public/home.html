@@ -2,65 +2,69 @@
 {% block content %}
 
 <!-- HERO -->
-<div class="hero-modern text-center p-5 mb-5">
+<section class="hero-premium text-center p-5 mb-5">
 
-    <h1 class="fw-bold display-4 mb-3">
-        Learn Smarter, Grow Faster 🚀
+    <h1 class="display-4 fw-bold mb-3">
+        Build Skills That Matter 🚀
     </h1>
 
     <p class="lead mb-4">
-        Master Python, Linguistics, Data Analysis & More — All in One Platform
+        Learn Python, Linguistics, Data Analysis & More — All in One Platform
     </p>
 
     <div>
-        <a href="/courses" class="btn btn-light btn-lg me-2">
-            Explore Courses
-        </a>
+        <a href="/courses" class="btn btn-light btn-lg me-2">Explore Courses</a>
 
         {% if not current_user.is_authenticated %}
-        <a href="/register" class="btn btn-outline-light btn-lg">
-            Get Started
-        </a>
+        <a href="/register" class="btn btn-outline-light btn-lg">Get Started</a>
         {% endif %}
     </div>
 
-</div>
+</section>
 
 <!-- FEATURES -->
-<div class="row text-center mb-5">
+<section class="container mb-5">
 
-    <div class="col-md-3">
-        <div class="feature-modern p-4">
-            <h5>📚 Courses</h5>
-            <p>Structured professional learning paths</p>
+    <div class="row text-center">
+
+        <div class="col-md-3">
+            <div class="feature-card">
+                <h4>📚</h4>
+                <h6>Courses</h6>
+                <p>Structured professional learning</p>
+            </div>
         </div>
+
+        <div class="col-md-3">
+            <div class="feature-card">
+                <h4>✍️</h4>
+                <h6>Blogs</h6>
+                <p>Insights & research guides</p>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="feature-card">
+                <h4>🎥</h4>
+                <h6>Webinars</h6>
+                <p>Live interactive sessions</p>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="feature-card">
+                <h4>💬</h4>
+                <h6>Community</h6>
+                <p>Discussions & collaboration</p>
+            </div>
+        </div>
+
     </div>
 
-    <div class="col-md-3">
-        <div class="feature-modern p-4">
-            <h5>✍️ Blogs</h5>
-            <p>Insights, research & learning guides</p>
-        </div>
-    </div>
-
-    <div class="col-md-3">
-        <div class="feature-modern p-4">
-            <h5>🎥 Webinars</h5>
-            <p>Live sessions & workshops</p>
-        </div>
-    </div>
-
-    <div class="col-md-3">
-        <div class="feature-modern p-4">
-            <h5>💬 Community</h5>
-            <p>Discussions & collaboration</p>
-        </div>
-    </div>
-
-</div>
+</section>
 
 <!-- COURSES -->
-<div class="mb-5">
+<section class="container mb-5">
 
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h3 class="fw-bold">Top Courses 🎓</h3>
@@ -71,7 +75,7 @@
 
         {% for course in courses[:3] %}
         <div class="col-md-4">
-            <div class="card modern-card mb-4">
+            <div class="card premium-card">
 
                 <img src="https://via.placeholder.com/400x200" class="card-img-top">
 
@@ -101,23 +105,46 @@
 
     </div>
 
-</div>
+</section>
+
+<!-- TRUST SECTION -->
+<section class="container text-center mb-5">
+
+    <h4 class="fw-bold mb-4">Why Choose This Platform?</h4>
+
+    <div class="row">
+
+        <div class="col-md-4">
+            <p>✔ Practical, real-world courses</p>
+        </div>
+
+        <div class="col-md-4">
+            <p>✔ Research-based learning</p>
+        </div>
+
+        <div class="col-md-4">
+            <p>✔ Custom learning paths</p>
+        </div>
+
+    </div>
+
+</section>
 
 <!-- EXPLORE -->
-<div class="text-center mb-5">
+<section class="text-center mb-5">
 
-    <h4 class="fw-bold mb-3">Explore More</h4>
+    <h5 class="fw-bold mb-3">Explore More</h5>
 
     <a href="/blogs" class="btn btn-outline-dark m-2">Blogs</a>
     <a href="/events" class="btn btn-outline-secondary m-2">Events</a>
 
-</div>
+</section>
 
 <!-- CTA -->
-<div class="cta-modern text-center p-5">
+<section class="cta-premium text-center p-5">
 
-    <h2 class="mb-3">Start Your Learning Journey 🚀</h2>
-    <p>Build skills that matter in today's world</p>
+    <h2 class="mb-3">Start Building Your Skills Today 🚀</h2>
+    <p>Join learners who are upgrading their careers</p>
 
     {% if not current_user.is_authenticated %}
     <a href="/register" class="btn btn-primary btn-lg mt-2">
@@ -125,9 +152,9 @@
     </a>
     {% endif %}
 
-</div>
+</section>
 
-<!-- FOOTER CREDIT -->
+<!-- FOOTER -->
 <div class="text-center mt-5 mb-3">
     <small class="text-muted">
         Developed by <strong>Muhammad Shoaib Tahir</strong>
