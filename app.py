@@ -4,7 +4,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime
 
 from config import Config
-from models import db, User, Course, Lecture
+from models import db, User, Course, Lecture, Enrollment
 
 app = Flask(__name__)
 app.config.from_object(Config)
@@ -104,7 +104,10 @@ def login():
 @app.route('/dashboard')
 @login_required
 def dashboard():
-    courses = Course.query.all()  # later: enrolled courses only
+
+    enrollments = Enrollment.query.filter_by(user_id=current_user.id).all()
+    courses = [e.course for e in enrollments]
+
     return render_template(
         'dashboard.html',
         courses=courses,
@@ -112,13 +115,47 @@ def dashboard():
     )
 
 
+# ================= ENROLL =================
+@app.route('/enroll/<int:course_id>')
+@login_required
+def enroll(course_id):
+
+    existing = Enrollment.query.filter_by(
+        user_id=current_user.id,
+        course_id=course_id
+    ).first()
+
+    if existing:
+        flash("Already enrolled ✅")
+        return redirect('/dashboard')
+
+    enrollment = Enrollment(
+        user_id=current_user.id,
+        course_id=course_id
+    )
+
+    db.session.add(enrollment)
+    db.session.commit()
+
+    flash("Enrolled successfully 🎉")
+    return redirect('/dashboard')
+
+
 # ================= COURSE PAGE =================
 @app.route('/course/<int:course_id>')
 @login_required
 def course(course_id):
 
-    if current_user.expiry_date < datetime.utcnow():
-        return "Access expired ⛔"
+    enrollment = Enrollment.query.filter_by(
+        user_id=current_user.id,
+        course_id=course_id
+    ).first()
+
+    if not enrollment:
+        return "You are not enrolled in this course ❌"
+
+    if enrollment.expiry_date < datetime.utcnow():
+        return "Your course access expired ⛔"
 
     course = Course.query.get_or_404(course_id)
     lectures = Lecture.query.filter_by(course_id=course.id).all()
@@ -155,11 +192,11 @@ def admin():
             )
             db.session.add(lecture)
 
-        # -------- BLOG (placeholder) --------
+        # -------- BLOG --------
         elif form_type == "blog":
             flash("Blog feature coming soon ✍️")
 
-        # -------- EVENT (placeholder) --------
+        # -------- EVENT --------
         elif form_type == "event":
             flash("Event feature coming soon 📅")
 
