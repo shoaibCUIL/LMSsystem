@@ -1,70 +1,82 @@
 {% extends "layout/base.html" %}
 {% block content %}
 
-<!-- HERO SECTION -->
-<div class="hero-section text-center p-5 mb-5">
-    <h1 class="fw-bold display-5">Learn Without Limits 🚀</h1>
-    <p class="lead">Courses, Blogs, Webinars, and More — All in One Platform</p>
+<!-- HERO -->
+<div class="hero-modern text-center p-5 mb-5">
 
-    <div class="mt-4">
-        <a href="/courses" class="btn btn-primary btn-lg me-2">Explore Courses</a>
+    <h1 class="fw-bold display-4 mb-3">
+        Learn Smarter, Grow Faster 🚀
+    </h1>
+
+    <p class="lead mb-4">
+        Master Python, Linguistics, Data Analysis & More — All in One Platform
+    </p>
+
+    <div>
+        <a href="/courses" class="btn btn-light btn-lg me-2">
+            Explore Courses
+        </a>
 
         {% if not current_user.is_authenticated %}
-        <a href="/register" class="btn btn-outline-light btn-lg">Get Started</a>
+        <a href="/register" class="btn btn-outline-light btn-lg">
+            Get Started
+        </a>
         {% endif %}
     </div>
+
 </div>
 
 <!-- FEATURES -->
 <div class="row text-center mb-5">
 
     <div class="col-md-3">
-        <div class="feature-box p-3 shadow-sm">
+        <div class="feature-modern p-4">
             <h5>📚 Courses</h5>
-            <p>High quality learning content</p>
+            <p>Structured professional learning paths</p>
         </div>
     </div>
 
     <div class="col-md-3">
-        <div class="feature-box p-3 shadow-sm">
+        <div class="feature-modern p-4">
             <h5>✍️ Blogs</h5>
-            <p>Latest articles & insights</p>
+            <p>Insights, research & learning guides</p>
         </div>
     </div>
 
     <div class="col-md-3">
-        <div class="feature-box p-3 shadow-sm">
+        <div class="feature-modern p-4">
             <h5>🎥 Webinars</h5>
-            <p>Live learning sessions</p>
+            <p>Live sessions & workshops</p>
         </div>
     </div>
 
     <div class="col-md-3">
-        <div class="feature-box p-3 shadow-sm">
-            <h5>💬 Discussions</h5>
-            <p>Engage with community</p>
+        <div class="feature-modern p-4">
+            <h5>💬 Community</h5>
+            <p>Discussions & collaboration</p>
         </div>
     </div>
 
 </div>
 
-<!-- POPULAR COURSES -->
+<!-- COURSES -->
 <div class="mb-5">
 
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h3 class="fw-bold">Popular Courses 🎓</h3>
-        <a href="/courses" class="btn btn-sm btn-outline-primary">View All</a>
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h3 class="fw-bold">Top Courses 🎓</h3>
+        <a href="/courses" class="btn btn-outline-primary btn-sm">View All</a>
     </div>
 
     <div class="row">
 
         {% for course in courses[:3] %}
         <div class="col-md-4">
-            <div class="card shadow-sm mb-4 course-card">
+            <div class="card modern-card mb-4">
 
                 <img src="https://via.placeholder.com/400x200" class="card-img-top">
 
                 <div class="card-body">
+
                     <h5 class="fw-bold">{{ course.title }}</h5>
 
                     <p class="text-muted">
@@ -80,6 +92,7 @@
                             Login to Access
                         </a>
                     {% endif %}
+
                 </div>
 
             </div>
@@ -90,31 +103,35 @@
 
 </div>
 
-<!-- EXPLORE MORE -->
-<div class="text-center mt-5 mb-5">
+<!-- EXPLORE -->
+<div class="text-center mb-5">
 
-    <h4 class="fw-bold mb-3">Explore More 🚀</h4>
+    <h4 class="fw-bold mb-3">Explore More</h4>
 
-    <a href="/blogs" class="btn btn-outline-primary m-2">
-        Blogs
-    </a>
-
-    <a href="/events" class="btn btn-outline-secondary m-2">
-        Events
-    </a>
+    <a href="/blogs" class="btn btn-outline-dark m-2">Blogs</a>
+    <a href="/events" class="btn btn-outline-secondary m-2">Events</a>
 
 </div>
 
-<!-- CTA SECTION -->
-<div class="cta-section text-center p-5 mt-5">
-    <h2>Start Learning Today 🚀</h2>
-    <p>Join thousands of students improving their skills</p>
+<!-- CTA -->
+<div class="cta-modern text-center p-5">
+
+    <h2 class="mb-3">Start Your Learning Journey 🚀</h2>
+    <p>Build skills that matter in today's world</p>
 
     {% if not current_user.is_authenticated %}
-    <a href="/register" class="btn btn-primary btn-lg">
+    <a href="/register" class="btn btn-primary btn-lg mt-2">
         Join Now
     </a>
     {% endif %}
+
+</div>
+
+<!-- FOOTER CREDIT -->
+<div class="text-center mt-5 mb-3">
+    <small class="text-muted">
+        Developed by <strong>Muhammad Shoaib Tahir</strong>
+    </small>
 </div>
 
 {% endblock %}
