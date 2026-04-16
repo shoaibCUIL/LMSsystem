@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block content %}
+
+<h2>Admin Panel ⚙️</h2>
+
+<hr>
+
+<h4>Add Course</h4>
+<form method="POST">
+    <input type="hidden" name="type" value="course">
+
+    <div class="mb-2">
+        <input type="text" name="title" placeholder="Course Title" class="form-control" required>
+    </div>
+
+    <div class="mb-2">
+        <textarea name="description" placeholder="Description" class="form-control" required></textarea>
+    </div>
+
+    <button class="btn btn-primary">Add Course</button>
+</form>
+
+<hr>
+
+<h4>Add Lecture</h4>
+<form method="POST">
+    <input type="hidden" name="type" value="lecture">
+
+    <div class="mb-2">
+        <input type="text" name="title" placeholder="Lecture Title" class="form-control" required>
+    </div>
+
+    <div class="mb-2">
+        <input type="text" name="video_url" placeholder="Video URL" class="form-control" required>
+    </div>
+
+    <div class="mb-2">
+        <input type="number" name="course_id" placeholder="Course ID" class="form-control" required>
+    </div>
+
+    <button class="btn btn-success">Add Lecture</button>
+</form>
+
+{% endblock %}

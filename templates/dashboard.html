@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block content %}
+
+<h2>Dashboard 🎓</h2>
+
+<div class="row">
+
+    {% for course in courses %}
+    <div class="col-md-4">
+        <div class="card mb-3">
+            <div class="card-body">
+                <h5>{{ course.title }}</h5>
+                <p>{{ course.description }}</p>
+
+                <a href="/course/{{ course.id }}" class="btn btn-primary">
+                    View Course
+                </a>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+
+</div>
+
+{% endblock %}
