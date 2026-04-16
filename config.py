@@ -1,14 +1,14 @@
 import os
 
 class Config:
-    SECRET_KEY = "secret123"
+    SECRET_KEY = os.getenv("SECRET_KEY", "secret123")
 
-    DATABASE_URL = os.getenv("DATABASE_URL")
+    db_url = os.getenv("DATABASE_URL")
 
-    if DATABASE_URL:
-        if DATABASE_URL.startswith("postgres://"):
-            DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
-        SQLALCHEMY_DATABASE_URI = DATABASE_URL
+    if db_url:
+        if db_url.startswith("postgres://"):
+            db_url = db_url.replace("postgres://", "postgresql://", 1)
+        SQLALCHEMY_DATABASE_URI = db_url
     else:
         SQLALCHEMY_DATABASE_URI = "sqlite:///lms.db"
 
