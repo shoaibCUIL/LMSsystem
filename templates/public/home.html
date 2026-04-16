@@ -8,6 +8,7 @@
 
     <div class="mt-4">
         <a href="/courses" class="btn btn-primary btn-lg me-2">Explore Courses</a>
+
         {% if not current_user.is_authenticated %}
         <a href="/register" class="btn btn-outline-light btn-lg">Get Started</a>
         {% endif %}
@@ -47,8 +48,9 @@
 
 </div>
 
-<!-- COURSES SECTION -->
+<!-- POPULAR COURSES -->
 <div class="mb-5">
+
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h3 class="fw-bold">Popular Courses 🎓</h3>
         <a href="/courses" class="btn btn-sm btn-outline-primary">View All</a>
@@ -56,7 +58,7 @@
 
     <div class="row">
 
-        {% for course in courses[:6] %}
+        {% for course in courses[:3] %}
         <div class="col-md-4">
             <div class="card shadow-sm mb-4 course-card">
 
@@ -64,13 +66,10 @@
 
                 <div class="card-body">
                     <h5 class="fw-bold">{{ course.title }}</h5>
+
                     <p class="text-muted">
                         {{ course.description[:100] }}...
                     </p>
-
-                    <div class="text-warning mb-2">
-                        ★★★★☆ <small class="text-muted">(4.5)</small>
-                    </div>
 
                     {% if current_user.is_authenticated %}
                         <a href="/course/{{ course.id }}" class="btn btn-primary w-100">
@@ -81,7 +80,6 @@
                             Login to Access
                         </a>
                     {% endif %}
-
                 </div>
 
             </div>
@@ -89,50 +87,22 @@
         {% endfor %}
 
     </div>
+
 </div>
 
-<!-- BLOG / ARTICLES -->
-<div class="mb-5">
-    <h3 class="fw-bold mb-3">Latest Articles ✍️</h3>
+<!-- EXPLORE MORE -->
+<div class="text-center mt-5 mb-5">
 
-    <div class="row">
+    <h4 class="fw-bold mb-3">Explore More 🚀</h4>
 
-        {% for i in range(3) %}
-        <div class="col-md-4">
-            <div class="card shadow-sm mb-4">
-                <div class="card-body">
-                    <h5>Sample Blog Title</h5>
-                    <p class="text-muted">
-                        This is a sample blog description preview...
-                    </p>
-                    <a href="#" class="btn btn-sm btn-outline-primary">Read More</a>
-                </div>
-            </div>
-        </div>
-        {% endfor %}
+    <a href="/blogs" class="btn btn-outline-primary m-2">
+        Blogs
+    </a>
 
-    </div>
-</div>
+    <a href="/events" class="btn btn-outline-secondary m-2">
+        Events
+    </a>
 
-<!-- EVENTS -->
-<div class="mb-5">
-    <h3 class="fw-bold mb-3">Upcoming Events 📅</h3>
-
-    <div class="row">
-
-        {% for i in range(3) %}
-        <div class="col-md-4">
-            <div class="card shadow-sm mb-4">
-                <div class="card-body">
-                    <h5>Webinar on AI</h5>
-                    <p class="text-muted">Join our live session</p>
-                    <p><strong>Date:</strong> Coming Soon</p>
-                </div>
-            </div>
-        </div>
-        {% endfor %}
-
-    </div>
 </div>
 
 <!-- CTA SECTION -->
@@ -141,7 +111,9 @@
     <p>Join thousands of students improving their skills</p>
 
     {% if not current_user.is_authenticated %}
-    <a href="/register" class="btn btn-primary btn-lg">Join Now</a>
+    <a href="/register" class="btn btn-primary btn-lg">
+        Join Now
+    </a>
     {% endif %}
 </div>
 
