@@ -4,10 +4,13 @@
 
 {% block content %}
 <div class="container my-5">
+    <!-- Page Header -->
     <div class="row mb-4">
         <div class="col-md-12">
-            <h1 class="mb-3">Explore Our Courses</h1>
-            <p class="lead text-secondary">Find the perfect course to advance your career</p>
+            <h1 class="mb-3">
+                <i class="fas fa-book-open text-primary"></i> Explore Our Courses
+            </h1>
+            <p class="lead text-secondary">Find the perfect course to advance your career and achieve your goals</p>
         </div>
     </div>
     
@@ -17,7 +20,10 @@
             <div class="row g-3">
                 <!-- Search -->
                 <div class="col-md-4">
-                    <input type="text" class="form-control" name="search" placeholder="Search courses..." value="{{ search }}">
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="fas fa-search"></i></span>
+                        <input type="text" class="form-control" name="search" placeholder="Search courses..." value="{{ search if search else '' }}">
+                    </div>
                 </div>
                 
                 <!-- Category Filter -->
@@ -53,7 +59,7 @@
                 
                 <!-- Search Button -->
                 <div class="col-md-1">
-                    <button type="submit" class="btn btn-primary w-100">
+                    <button type="submit" class="btn btn-primary w-100" title="Search">
                         <i class="fas fa-search"></i>
                     </button>
                 </div>
@@ -63,28 +69,28 @@
         <!-- Active Filters -->
         {% if category or level or search %}
         <div class="mt-3">
-            <strong>Active Filters:</strong>
+            <strong><i class="fas fa-filter"></i> Active Filters:</strong>
             {% if category %}
                 <span class="badge badge-primary me-2">
-                    {{ category }}
-                    <a href="{{ url_for('courses', level=level, search=search, sort=sort) }}" style="color: inherit; text-decoration: none;">
-                        <i class="fas fa-times"></i>
+                    <i class="fas fa-tag"></i> {{ category }}
+                    <a href="{{ url_for('courses', level=level, search=search, sort=sort) }}" style="color: inherit; text-decoration: none;" title="Remove filter">
+                        <i class="fas fa-times ms-1"></i>
                     </a>
                 </span>
             {% endif %}
             {% if level %}
                 <span class="badge badge-info me-2">
-                    {{ level }}
-                    <a href="{{ url_for('courses', category=category, search=search, sort=sort) }}" style="color: inherit; text-decoration: none;">
-                        <i class="fas fa-times"></i>
+                    <i class="fas fa-signal"></i> {{ level }}
+                    <a href="{{ url_for('courses', category=category, search=search, sort=sort) }}" style="color: inherit; text-decoration: none;" title="Remove filter">
+                        <i class="fas fa-times ms-1"></i>
                     </a>
                 </span>
             {% endif %}
             {% if search %}
                 <span class="badge badge-warning me-2">
-                    Search: "{{ search }}"
-                    <a href="{{ url_for('courses', category=category, level=level, sort=sort) }}" style="color: inherit; text-decoration: none;">
-                        <i class="fas fa-times"></i>
+                    <i class="fas fa-search"></i> "{{ search }}"
+                    <a href="{{ url_for('courses', category=category, level=level, sort=sort) }}" style="color: inherit; text-decoration: none;" title="Remove filter">
+                        <i class="fas fa-times ms-1"></i>
                     </a>
                 </span>
             {% endif %}
@@ -95,11 +101,18 @@
         {% endif %}
     </div>
     
-    <!-- Course Count -->
+    <!-- Course Count & Results -->
     <div class="d-flex justify-content-between align-items-center my-4">
         <p class="mb-0 text-secondary">
-            <strong>{{ pagination.total }}</strong> course(s) found
+            <i class="fas fa-graduation-cap"></i> 
+            <strong>{{ pagination.total }}</strong> course{% if pagination.total != 1 %}s{% endif %} found
         </p>
+        
+        {% if pagination.total > 0 %}
+        <p class="mb-0 text-muted small">
+            Showing {{ ((pagination.page - 1) * pagination.per_page) + 1 }} - {{ [pagination.page * pagination.per_page, pagination.total] | min }} of {{ pagination.total }}
+        </p>
+        {% endif %}
     </div>
     
     <!-- Courses Grid -->
@@ -107,46 +120,80 @@
         <div class="course-grid">
             {% for course in courses %}
             <div class="card course-card">
+                <!-- Course Thumbnail with Multiple Gradient Options -->
                 {% if course.thumbnail_url %}
-                    <img src="{{ course.thumbnail_url }}" class="card-img-top" alt="{{ course.title }}">
+                    <img src="{{ course.thumbnail_url }}" class="card-img-top" alt="{{ course.title }}" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                    <div class="card-img-top gradient-placeholder" style="display:none; height: 200px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);"></div>
                 {% else %}
-                    <div class="card-img-top" style="height: 200px; background: linear-gradient(135deg, #{{ '%06x' % range(0, 16777216) | random }} 0%, #{{ '%06x' % range(0, 16777216) | random }} 100%);"></div>
+                    <!-- Use different gradients based on loop index -->
+                    {% set gradients = [
+                        'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                        'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
+                        'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
+                        'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)',
+                        'linear-gradient(135deg, #fa709a 0%, #fee140 100%)',
+                        'linear-gradient(135deg, #30cfd0 0%, #330867 100%)',
+                        'linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)',
+                        'linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%)'
+                    ] %}
+                    <div class="card-img-top" style="height: 200px; background: {{ gradients[loop.index0 % 8] }};"></div>
                 {% endif %}
                 
+                <!-- Price Badge -->
                 <div class="course-price {% if course.is_free %}free{% endif %}">
                     {% if course.is_free %}
-                        FREE
+                        <i class="fas fa-gift"></i> FREE
                     {% else %}
                         ${{ "%.2f"|format(course.price) }}
                     {% endif %}
                 </div>
                 
+                <!-- Card Body -->
                 <div class="card-body">
+                    <!-- Badges -->
                     <div class="mb-2">
-                        <span class="badge badge-primary">{{ course.category }}</span>
-                        <span class="badge badge-info">{{ course.level }}</span>
-                    </div>
-                    
-                    <h5 class="card-title">{{ course.title }}</h5>
-                    <p class="card-text">{{ course.description[:120] }}{% if course.description|length > 120 %}...{% endif %}</p>
-                    
-                    {% if course.instructor_name %}
-                    <p class="text-muted mb-2">
-                        <i class="fas fa-user"></i> {{ course.instructor_name }}
-                    </p>
-                    {% endif %}
-                    
-                    <div class="course-meta">
-                        <span><i class="fas fa-signal"></i> {{ course.level }}</span>
-                        <span><i class="fas fa-book"></i> {{ course.lecture_count }} lectures</span>
-                        {% if course.duration_hours > 0 %}
-                        <span><i class="fas fa-clock"></i> {{ course.duration_hours }}h</span>
+                        <span class="badge badge-primary"><i class="fas fa-folder"></i> {{ course.category }}</span>
+                        <span class="badge badge-info"><i class="fas fa-signal"></i> {{ course.level }}</span>
+                        {% if course.featured %}
+                            <span class="badge badge-warning"><i class="fas fa-star"></i> Featured</span>
                         {% endif %}
                     </div>
                     
+                    <!-- Course Title -->
+                    <h5 class="card-title">{{ course.title }}</h5>
+                    
+                    <!-- Course Description -->
+                    <p class="card-text">
+                        {{ course.description[:120] }}{% if course.description|length > 120 %}...{% endif %}
+                    </p>
+                    
+                    <!-- Instructor -->
+                    {% if course.instructor_name %}
+                    <p class="text-muted mb-2 small">
+                        <i class="fas fa-chalkboard-teacher"></i> {{ course.instructor_name }}
+                    </p>
+                    {% endif %}
+                    
+                    <!-- Course Metadata -->
+                    <div class="course-meta">
+                        <span title="Level"><i class="fas fa-signal"></i> {{ course.level }}</span>
+                        <span title="Lectures"><i class="fas fa-book"></i> {{ course.lecture_count }}</span>
+                        {% if course.duration_hours > 0 %}
+                        <span title="Duration"><i class="fas fa-clock"></i> {{ course.duration_hours }}h</span>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Enrollment Count -->
+                    {% if course.enrollment_count > 0 %}
+                    <p class="text-muted small mt-2 mb-2">
+                        <i class="fas fa-users"></i> {{ course.enrollment_count }} student{% if course.enrollment_count != 1 %}s{% endif %} enrolled
+                    </p>
+                    {% endif %}
+                    
+                    <!-- View Details Button -->
                     <div class="d-grid mt-3">
                         <a href="{{ url_for('course_detail', course_id=course.id) }}" class="btn btn-primary">
-                            View Details <i class="fas fa-arrow-right"></i>
+                            <i class="fas fa-eye"></i> View Details
                         </a>
                     </div>
                 </div>
@@ -160,8 +207,8 @@
             <ul class="pagination justify-content-center">
                 <!-- Previous -->
                 <li class="page-item {% if not pagination.has_prev %}disabled{% endif %}">
-                    <a class="page-link" href="{% if pagination.has_prev %}{{ url_for('courses', page=pagination.prev_num, category=category, level=level, search=search, sort=sort) }}{% else %}#{% endif %}">
-                        <i class="fas fa-chevron-left"></i>
+                    <a class="page-link" href="{% if pagination.has_prev %}{{ url_for('courses', page=pagination.prev_num, category=category, level=level, search=search, sort=sort) }}{% else %}#{% endif %}" {% if not pagination.has_prev %}tabindex="-1" aria-disabled="true"{% endif %}>
+                        <i class="fas fa-chevron-left"></i> Previous
                     </a>
                 </li>
                 
@@ -182,35 +229,58 @@
                 
                 <!-- Next -->
                 <li class="page-item {% if not pagination.has_next %}disabled{% endif %}">
-                    <a class="page-link" href="{% if pagination.has_next %}{{ url_for('courses', page=pagination.next_num, category=category, level=level, search=search, sort=sort) }}{% else %}#{% endif %}">
-                        <i class="fas fa-chevron-right"></i>
+                    <a class="page-link" href="{% if pagination.has_next %}{{ url_for('courses', page=pagination.next_num, category=category, level=level, search=search, sort=sort) }}{% else %}#{% endif %}" {% if not pagination.has_next %}tabindex="-1" aria-disabled="true"{% endif %}>
+                        Next <i class="fas fa-chevron-right"></i>
                     </a>
                 </li>
             </ul>
         </nav>
         {% endif %}
+        
     {% else %}
         <!-- No Courses Found -->
         <div class="text-center py-5">
             <i class="fas fa-search fa-4x text-muted mb-3"></i>
             <h3>No courses found</h3>
-            <p class="text-secondary">Try adjusting your filters or search criteria</p>
+            <p class="text-secondary">
+                {% if search or category or level %}
+                    No courses match your current filters. Try adjusting your search criteria.
+                {% else %}
+                    There are no courses available at the moment. Check back soon!
+                {% endif %}
+            </p>
+            {% if search or category or level %}
             <a href="{{ url_for('courses') }}" class="btn btn-primary">
                 <i class="fas fa-redo"></i> View All Courses
             </a>
+            {% endif %}
         </div>
     {% endif %}
     
     <!-- Categories Quick Links -->
-    <div class="mt-5 p-4 bg-light rounded">
-        <h4 class="mb-3">Browse by Category</h4>
+    <div class="mt-5 p-4 bg-light rounded shadow-sm">
+        <h4 class="mb-3"><i class="fas fa-th"></i> Browse by Category</h4>
         <div class="d-flex flex-wrap gap-2">
             {% for cat in categories %}
                 <a href="{{ url_for('courses', category=cat) }}" class="filter-button {% if category == cat %}active{% endif %}">
-                    {{ cat }}
+                    <i class="fas fa-tag"></i> {{ cat }}
                 </a>
             {% endfor %}
         </div>
     </div>
+    
+    <!-- Call to Action -->
+    {% if not current_user.is_authenticated %}
+    <div class="mt-5 p-4 text-center" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 12px; color: white;">
+        <h3 class="mb-3" style="color: white;">Ready to Start Learning?</h3>
+        <p class="lead mb-4" style="color: rgba(255,255,255,0.9);">Join thousands of students achieving their goals</p>
+        <a href="{{ url_for('register') }}" class="btn btn-light btn-lg me-2">
+            <i class="fas fa-user-plus"></i> Create Free Account
+        </a>
+        <a href="{{ url_for('login') }}" class="btn btn-outline-light btn-lg">
+            <i class="fas fa-sign-in-alt"></i> Login
+        </a>
+    </div>
+    {% endif %}
 </div>
 {% endblock %}
