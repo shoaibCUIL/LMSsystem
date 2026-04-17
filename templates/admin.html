@@ -1,140 +1,414 @@
 {% extends "layout/base.html" %}
+
+{% block title %}Admin Panel - {{ app_name }}{% endblock %}
+
 {% block content %}
-
-<div class="container-fluid">
-
-    <h2 class="fw-bold mb-4">Admin Panel ⚙️</h2>
-
-    <!-- TABS -->
-    <ul class="nav nav-tabs mb-4" id="adminTabs">
+<div class="container-fluid my-5">
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <h1><i class="fas fa-cog text-primary"></i> Admin Panel</h1>
+            <p class="lead text-secondary">Manage your LMS platform</p>
+        </div>
+    </div>
+    
+    <!-- Stats Dashboard -->
+    <div class="dashboard-stats mb-4">
+        <div class="stat-card">
+            <h3>{{ stats.total_users }}</h3>
+            <p><i class="fas fa-users"></i> Total Users</p>
+        </div>
+        <div class="stat-card" style="border-color: var(--primary-color);">
+            <h3 style="color: var(--primary-color);">{{ stats.total_courses }}</h3>
+            <p><i class="fas fa-book"></i> Total Courses</p>
+        </div>
+        <div class="stat-card" style="border-color: var(--success-color);">
+            <h3 style="color: var(--success-color);">{{ stats.total_enrollments }}</h3>
+            <p><i class="fas fa-graduation-cap"></i> Total Enrollments</p>
+        </div>
+        <div class="stat-card" style="border-color: var(--info-color);">
+            <h3 style="color: var(--info-color);">{{ stats.total_blogs }}</h3>
+            <p><i class="fas fa-newspaper"></i> Blog Posts</p>
+        </div>
+        <div class="stat-card" style="border-color: var(--warning-color);">
+            <h3 style="color: var(--warning-color);">{{ stats.total_lectures }}</h3>
+            <p><i class="fas fa-video"></i> Total Lectures</p>
+        </div>
+        <div class="stat-card" style="border-color: var(--secondary-color);">
+            <h3 style="color: var(--secondary-color);">{{ stats.active_bundles }}</h3>
+            <p><i class="fas fa-layer-group"></i> Active Bundles</p>
+        </div>
+    </div>
+    
+    <!-- Tabs -->
+    <ul class="nav nav-tabs mb-4" id="adminTabs" role="tablist">
         <li class="nav-item">
-            <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#courses">Courses</button>
+            <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#courses-tab">
+                <i class="fas fa-book"></i> Courses
+            </button>
         </li>
         <li class="nav-item">
-            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#lectures">Lectures</button>
+            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#lectures-tab">
+                <i class="fas fa-video"></i> Lectures
+            </button>
         </li>
         <li class="nav-item">
-            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#blogs">Blogs</button>
+            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#blogs-tab">
+                <i class="fas fa-newspaper"></i> Blogs
+            </button>
         </li>
         <li class="nav-item">
-            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#events">Events</button>
+            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#users-tab">
+                <i class="fas fa-users"></i> Users
+            </button>
         </li>
     </ul>
-
+    
+    <!-- Tab Content -->
     <div class="tab-content">
-
-        <!-- ================= COURSES ================= -->
-        <div class="tab-pane fade show active" id="courses">
-
-            <div class="card p-4 shadow-sm mb-4">
-                <h4>Add New Course 🎓</h4>
-
-                <form method="POST">
-                    <input type="hidden" name="type" value="course">
-
-                    <div class="mb-3">
-                        <label>Course Title</label>
-                        <input type="text" name="title" class="form-control" required>
+        <!-- Courses Tab -->
+        <div class="tab-pane fade show active" id="courses-tab">
+            <div class="admin-section">
+                <h3><i class="fas fa-plus-circle"></i> Add New Course</h3>
+                <form method="POST" action="{{ url_for('admin_add_course') }}" class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label">Course Title *</label>
+                        <input type="text" class="form-control" name="title" required>
                     </div>
-
-                    <div class="mb-3">
-                        <label>Description</label>
-                        <textarea name="description" class="form-control" required></textarea>
+                    
+                    <div class="col-md-3">
+                        <label class="form-label">Category *</label>
+                        <select class="form-select" name="category" required>
+                            {% for cat in categories %}
+                                <option value="{{ cat }}">{{ cat }}</option>
+                            {% endfor %}
+                        </select>
                     </div>
-
-                    <button class="btn btn-primary">Add Course</button>
+                    
+                    <div class="col-md-3">
+                        <label class="form-label">Level</label>
+                        <select class="form-select" name="level">
+                            {% for level in levels %}
+                                <option value="{{ level }}">{{ level }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="col-md-12">
+                        <label class="form-label">Description *</label>
+                        <textarea class="form-control" name="description" rows="3" required></textarea>
+                    </div>
+                    
+                    <div class="col-md-3">
+                        <label class="form-label">Price ($)</label>
+                        <input type="number" class="form-control" name="price" step="0.01" value="0">
+                    </div>
+                    
+                    <div class="col-md-3">
+                        <label class="form-label">Duration (hours)</label>
+                        <input type="number" class="form-control" name="duration_hours" value="0">
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <label class="form-label">Instructor Name</label>
+                        <input type="text" class="form-control" name="instructor_name">
+                    </div>
+                    
+                    <div class="col-md-9">
+                        <label class="form-label">Thumbnail URL</label>
+                        <input type="url" class="form-control" name="thumbnail_url" placeholder="https://...">
+                    </div>
+                    
+                    <div class="col-md-3">
+                        <label class="form-label">Featured</label>
+                        <div class="form-check mt-2">
+                            <input type="checkbox" class="form-check-input" name="featured" id="featured">
+                            <label class="form-check-label" for="featured">Mark as featured</label>
+                        </div>
+                    </div>
+                    
+                    <div class="col-12">
+                        <button type="submit" class="btn btn-success">
+                            <i class="fas fa-plus"></i> Add Course
+                        </button>
+                    </div>
                 </form>
             </div>
-
+            
+            <div class="admin-section">
+                <h3><i class="fas fa-list"></i> All Courses</h3>
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Title</th>
+                                <th>Category</th>
+                                <th>Price</th>
+                                <th>Level</th>
+                                <th>Lectures</th>
+                                <th>Enrollments</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for course in courses %}
+                            <tr>
+                                <td>{{ course.id }}</td>
+                                <td>
+                                    <strong>{{ course.title }}</strong>
+                                    {% if course.featured %}<span class="badge badge-warning ms-1">Featured</span>{% endif %}
+                                </td>
+                                <td><span class="badge badge-primary">{{ course.category }}</span></td>
+                                <td>${{ "%.2f"|format(course.price) if course.price else "Free" }}</td>
+                                <td><span class="badge badge-info">{{ course.level }}</span></td>
+                                <td>{{ course.lecture_count }}</td>
+                                <td>{{ course.enrollment_count }}</td>
+                                <td>
+                                    <a href="{{ url_for('course_detail', course_id=course.id) }}" class="btn btn-sm btn-info" target="_blank">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    <form method="POST" action="{{ url_for('admin_delete_course', course_id=course.id) }}" class="d-inline">
+                                        <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Delete this course?')">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
         </div>
-
-        <!-- ================= LECTURES ================= -->
-        <div class="tab-pane fade" id="lectures">
-
-            <div class="card p-4 shadow-sm mb-4">
-                <h4>Add Lecture 🎥</h4>
-
-                <form method="POST">
-                    <input type="hidden" name="type" value="lecture">
-
-                    <div class="mb-3">
-                        <label>Lecture Title</label>
-                        <input type="text" name="title" class="form-control" required>
+        
+        <!-- Lectures Tab -->
+        <div class="tab-pane fade" id="lectures-tab">
+            <div class="admin-section">
+                <h3><i class="fas fa-plus-circle"></i> Add New Lecture</h3>
+                <form method="POST" action="{{ url_for('admin_add_lecture') }}" class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label">Course *</label>
+                        <select class="form-select" name="course_id" required>
+                            <option value="">Select Course</option>
+                            {% for course in courses %}
+                                <option value="{{ course.id }}">{{ course.title }}</option>
+                            {% endfor %}
+                        </select>
                     </div>
-
-                    <div class="mb-3">
-                        <label>Video URL (Embed)</label>
-                        <input type="text" name="video_url" class="form-control" required>
+                    
+                    <div class="col-md-6">
+                        <label class="form-label">Lecture Title *</label>
+                        <input type="text" class="form-control" name="title" required>
                     </div>
-
-                    <div class="mb-3">
-                        <label>Course ID</label>
-                        <input type="number" name="course_id" class="form-control" required>
+                    
+                    <div class="col-md-12">
+                        <label class="form-label">Description</label>
+                        <textarea class="form-control" name="description" rows="2"></textarea>
                     </div>
-
-                    <button class="btn btn-success">Add Lecture</button>
+                    
+                    <div class="col-md-6">
+                        <label class="form-label">Video URL *</label>
+                        <input type="url" class="form-control" name="video_url" required placeholder="https://youtube.com/...">
+                    </div>
+                    
+                    <div class="col-md-2">
+                        <label class="form-label">Duration (min)</label>
+                        <input type="number" class="form-control" name="duration_minutes" value="0">
+                    </div>
+                    
+                    <div class="col-md-2">
+                        <label class="form-label">Order</label>
+                        <input type="number" class="form-control" name="order_index" value="0">
+                    </div>
+                    
+                    <div class="col-md-2">
+                        <label class="form-label">Preview</label>
+                        <div class="form-check mt-2">
+                            <input type="checkbox" class="form-check-input" name="is_preview" id="is_preview">
+                            <label class="form-check-label" for="is_preview">Allow preview</label>
+                        </div>
+                    </div>
+                    
+                    <div class="col-12">
+                        <button type="submit" class="btn btn-success">
+                            <i class="fas fa-plus"></i> Add Lecture
+                        </button>
+                    </div>
                 </form>
             </div>
-
         </div>
-
-        <!-- ================= BLOGS ================= -->
-        <div class="tab-pane fade" id="blogs">
-
-            <div class="card p-4 shadow-sm mb-4">
-                <h4>Add Blog ✍️</h4>
-
-                <form method="POST">
-                    <input type="hidden" name="type" value="blog">
-
-                    <div class="mb-3">
-                        <label>Blog Title</label>
-                        <input type="text" name="title" class="form-control" required>
+        
+        <!-- Blogs Tab -->
+        <div class="tab-pane fade" id="blogs-tab">
+            <div class="admin-section">
+                <h3><i class="fas fa-plus-circle"></i> Publish New Blog Post</h3>
+                <form method="POST" action="{{ url_for('admin_add_blog') }}" class="row g-3">
+                    <div class="col-md-8">
+                        <label class="form-label">Post Title *</label>
+                        <input type="text" class="form-control" name="title" required>
                     </div>
-
-                    <div class="mb-3">
-                        <label>Content</label>
-                        <textarea name="content" class="form-control" rows="5" required></textarea>
+                    
+                    <div class="col-md-4">
+                        <label class="form-label">Category</label>
+                        <select class="form-select" name="category">
+                            <option value="">Select Category</option>
+                            {% for cat in blog_categories %}
+                                <option value="{{ cat }}">{{ cat }}</option>
+                            {% endfor %}
+                        </select>
                     </div>
-
-                    <button class="btn btn-warning">Add Blog</button>
+                    
+                    <div class="col-md-12">
+                        <label class="form-label">Content *</label>
+                        <textarea class="form-control" name="content" rows="8" required></textarea>
+                    </div>
+                    
+                    <div class="col-md-12">
+                        <label class="form-label">Excerpt (Optional)</label>
+                        <textarea class="form-control" name="excerpt" rows="2"></textarea>
+                    </div>
+                    
+                    <div class="col-md-4">
+                        <label class="form-label">Author</label>
+                        <input type="text" class="form-control" name="author" value="{{ current_user.full_name }}">
+                    </div>
+                    
+                    <div class="col-md-4">
+                        <label class="form-label">Tags (comma-separated)</label>
+                        <input type="text" class="form-control" name="tags" placeholder="python, tutorial, beginner">
+                    </div>
+                    
+                    <div class="col-md-4">
+                        <label class="form-label">Featured Image URL</label>
+                        <input type="url" class="form-control" name="featured_image" placeholder="https://...">
+                    </div>
+                    
+                    <div class="col-12">
+                        <button type="submit" class="btn btn-success">
+                            <i class="fas fa-paper-plane"></i> Publish Blog Post
+                        </button>
+                    </div>
                 </form>
             </div>
-
-        </div>
-
-        <!-- ================= EVENTS ================= -->
-        <div class="tab-pane fade" id="events">
-
-            <div class="card p-4 shadow-sm mb-4">
-                <h4>Add Event / Webinar 📅</h4>
-
-                <form method="POST">
-                    <input type="hidden" name="type" value="event">
-
-                    <div class="mb-3">
-                        <label>Event Title</label>
-                        <input type="text" name="title" class="form-control" required>
-                    </div>
-
-                    <div class="mb-3">
-                        <label>Description</label>
-                        <textarea name="description" class="form-control" required></textarea>
-                    </div>
-
-                    <div class="mb-3">
-                        <label>Date</label>
-                        <input type="date" name="date" class="form-control" required>
-                    </div>
-
-                    <button class="btn btn-danger">Add Event</button>
-                </form>
+            
+            <div class="admin-section">
+                <h3><i class="fas fa-list"></i> All Blog Posts</h3>
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Title</th>
+                                <th>Author</th>
+                                <th>Category</th>
+                                <th>Views</th>
+                                <th>Published</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for blog in blogs %}
+                            <tr>
+                                <td>{{ blog.id }}</td>
+                                <td><strong>{{ blog.title }}</strong></td>
+                                <td>{{ blog.author or 'Unknown' }}</td>
+                                <td>{% if blog.category %}<span class="badge badge-primary">{{ blog.category }}</span>{% endif %}</td>
+                                <td>{{ blog.views_count }}</td>
+                                <td>{{ blog.published_at.strftime('%b %d, %Y') if blog.published_at else 'Draft' }}</td>
+                                <td>
+                                    <a href="{{ url_for('blog_detail', slug=blog.slug) }}" class="btn btn-sm btn-info" target="_blank">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    <form method="POST" action="{{ url_for('admin_delete_blog', blog_id=blog.id) }}" class="d-inline">
+                                        <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Delete this blog post?')">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
             </div>
-
         </div>
-
+        
+        <!-- Users Tab -->
+        <div class="tab-pane fade" id="users-tab">
+            <div class="admin-section">
+                <h3><i class="fas fa-users"></i> Recent Users</h3>
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Username</th>
+                                <th>Email</th>
+                                <th>Full Name</th>
+                                <th>Admin</th>
+                                <th>Registered</th>
+                                <th>Last Login</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for user in recent_users %}
+                            <tr>
+                                <td>{{ user.id }}</td>
+                                <td><strong>{{ user.username }}</strong></td>
+                                <td>{{ user.email }}</td>
+                                <td>{{ user.full_name }}</td>
+                                <td>
+                                    {% if user.is_admin %}
+                                        <span class="badge badge-danger">Admin</span>
+                                    {% else %}
+                                        <span class="badge badge-secondary">User</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ user.created_at.strftime('%b %d, %Y') }}</td>
+                                <td>{{ user.last_login.strftime('%b %d, %Y') if user.last_login else 'Never' }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <div class="admin-section">
+                <h3><i class="fas fa-graduation-cap"></i> Recent Enrollments</h3>
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>User</th>
+                                <th>Course</th>
+                                <th>Enrolled</th>
+                                <th>Progress</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for enrollment in recent_enrollments %}
+                            <tr>
+                                <td>{{ enrollment.id }}</td>
+                                <td>{{ enrollment.user.username }}</td>
+                                <td>{{ enrollment.course.title }}</td>
+                                <td>{{ enrollment.enrolled_at.strftime('%b %d, %Y') }}</td>
+                                <td>{{ enrollment.progress_percentage|int }}%</td>
+                                <td>
+                                    {% if enrollment.is_active %}
+                                        <span class="badge badge-success">Active</span>
+                                    {% else %}
+                                        <span class="badge badge-secondary">Inactive</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
     </div>
-
 </div>
-
 {% endblock %}

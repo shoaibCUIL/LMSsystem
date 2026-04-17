@@ -1,0 +1,207 @@
+{% extends "layout/base.html" %}
+
+{% block title %}Create Custom Bundle - {{ app_name }}{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="mb-4">
+                <h1 class="mb-2"><i class="fas fa-layer-group text-primary"></i> Create Custom Course Bundle</h1>
+                <p class="lead text-secondary">Select multiple courses and get a discount!</p>
+            </div>
+            
+            <div class="bundle-creator">
+                <form method="POST" action="{{ url_for('create_bundle') }}" id="bundleForm">
+                    <!-- Bundle Info -->
+                    <div class="card mb-4">
+                        <div class="card-body">
+                            <h4 class="mb-3">Bundle Information</h4>
+                            
+                            <div class="form-group mb-3">
+                                <label for="bundle_name" class="form-label">Bundle Name *</label>
+                                <input type="text" class="form-control" id="bundle_name" name="bundle_name" required placeholder="e.g., Full Stack Developer Bundle">
+                            </div>
+                            
+                            <div class="form-group mb-3">
+                                <label for="description" class="form-label">Description (Optional)</label>
+                                <textarea class="form-control" id="description" name="description" rows="3" placeholder="Describe what this bundle will help you achieve..."></textarea>
+                            </div>
+                            
+                            <div class="form-group mb-3">
+                                <label for="duration_days" class="form-label">Access Duration (Days) *</label>
+                                <input type="number" class="form-control" id="duration_days" name="duration_days" min="1" value="30" required>
+                                <small class="form-text text-muted">How long will you have access to these courses?</small>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Course Selection -->
+                    <div class="card mb-4">
+                        <div class="card-body">
+                            <h4 class="mb-3">Select Courses (Minimum 2)</h4>
+                            <p class="text-muted">Choose the courses you want in your custom bundle</p>
+                            
+                            {% if courses %}
+                            <div class="course-selection-grid" id="courseGrid">
+                                {% for course in courses %}
+                                <div class="selectable-course" data-course-id="{{ course.id }}" data-price="{{ course.price }}" onclick="toggleCourseSelection(this)">
+                                    <input type="checkbox" name="course_ids" value="{{ course.id }}" style="display: none;">
+                                    
+                                    <div class="d-flex justify-content-between align-items-start mb-2">
+                                        <div class="flex-grow-1">
+                                            <h6 class="mb-1">{{ course.title }}</h6>
+                                            <span class="badge badge-primary small">{{ course.category }}</span>
+                                            <span class="badge badge-info small">{{ course.level }}</span>
+                                        </div>
+                                        
+                                        <div class="text-end ms-2">
+                                            {% if course.is_free %}
+                                                <strong class="text-success">FREE</strong>
+                                            {% else %}
+                                                <strong class="text-primary">${{ "%.2f"|format(course.price) }}</strong>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    
+                                    <p class="small text-muted mb-2">{{ course.description[:100] }}...</p>
+                                    
+                                    <div class="small text-muted">
+                                        <i class="fas fa-book"></i> {{ course.lecture_count }} lectures •
+                                        <i class="fas fa-users"></i> {{ course.enrollment_count }} students
+                                    </div>
+                                    
+                                    <div class="mt-2 text-center">
+                                        <span class="selection-indicator" style="display: none;">
+                                            <i class="fas fa-check-circle text-success"></i> Selected
+                                        </span>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                            {% else %}
+                            <div class="text-center py-5">
+                                <p class="text-muted">No courses available</p>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <!-- Submit -->
+                    <div class="text-center">
+                        <button type="submit" class="btn btn-success btn-lg" id="createBundleBtn" disabled>
+                            <i class="fas fa-check"></i> Create Bundle
+                        </button>
+                        <a href="{{ url_for('dashboard') }}" class="btn btn-outline-secondary btn-lg">
+                            <i class="fas fa-times"></i> Cancel
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <!-- Bundle Summary Sidebar -->
+        <div class="col-lg-4">
+            <div class="bundle-summary" style="position: sticky; top: 100px;">
+                <h4 class="mb-3">Bundle Summary</h4>
+                
+                <div id="selectedCount" class="mb-3">
+                    <i class="fas fa-book"></i> 
+                    <strong><span id="courseCount">0</span></strong> courses selected
+                </div>
+                
+                <div class="price-breakdown mb-3">
+                    <span>Total Price:</span>
+                    <span id="totalPrice">$0.00</span>
+                </div>
+                
+                <div class="price-breakdown mb-3" style="color: var(--success-color);">
+                    <span>Bundle Discount (15%):</span>
+                    <span id="discount">-$0.00</span>
+                </div>
+                
+                <div class="price-breakdown mb-3" style="border-top: 2px solid var(--border-color); padding-top: var(--spacing-sm);">
+                    <span><strong>Final Price:</strong></span>
+                    <span class="final-price" id="finalPrice">$0.00</span>
+                </div>
+                
+                <div class="alert alert-info">
+                    <small>
+                        <i class="fas fa-info-circle"></i>
+                        Save 15% when you bundle 2 or more courses together!
+                    </small>
+                </div>
+                
+                <div id="selectedCoursesList" class="mt-3">
+                    <h6 class="mb-2">Selected Courses:</h6>
+                    <ul id="courseList" class="list-unstyled small text-muted">
+                        <li>No courses selected yet</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+let selectedCourses = [];
+const discountPercentage = 15;
+
+function toggleCourseSelection(element) {
+    const courseId = element.getAttribute('data-course-id');
+    const price = parseFloat(element.getAttribute('data-price'));
+    const checkbox = element.querySelector('input[type="checkbox"]');
+    const indicator = element.querySelector('.selection-indicator');
+    
+    if (element.classList.contains('selected')) {
+        // Deselect
+        element.classList.remove('selected');
+        checkbox.checked = false;
+        indicator.style.display = 'none';
+        selectedCourses = selectedCourses.filter(c => c.id !== courseId);
+    } else {
+        // Select
+        if (selectedCourses.length >= 10) {
+            alert('Maximum 10 courses allowed per bundle');
+            return;
+        }
+        element.classList.add('selected');
+        checkbox.checked = true;
+        indicator.style.display = 'block';
+        selectedCourses.push({
+            id: courseId,
+            price: price,
+            name: element.querySelector('h6').textContent
+        });
+    }
+    
+    updateSummary();
+}
+
+function updateSummary() {
+    const count = selectedCourses.length;
+    const total = selectedCourses.reduce((sum, course) => sum + course.price, 0);
+    const discount = total * (discountPercentage / 100);
+    const final = total - discount;
+    
+    document.getElementById('courseCount').textContent = count;
+    document.getElementById('totalPrice').textContent = '$' + total.toFixed(2);
+    document.getElementById('discount').textContent = '-$' + discount.toFixed(2);
+    document.getElementById('finalPrice').textContent = '$' + final.toFixed(2);
+    
+    // Update course list
+    const courseList = document.getElementById('courseList');
+    if (count === 0) {
+        courseList.innerHTML = '<li>No courses selected yet</li>';
+    } else {
+        courseList.innerHTML = selectedCourses.map(c => 
+            `<li><i class="fas fa-check text-success"></i> ${c.name}</li>`
+        ).join('');
+    }
+    
+    // Enable/disable submit button
+    const submitBtn = document.getElementById('createBundleBtn');
+    submitBtn.disabled = count < 2;
+}
+</script>
+{% endblock %}

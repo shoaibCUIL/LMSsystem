@@ -1,6 +1,8 @@
-flask
-flask_sqlalchemy
-flask_login
-psycopg2-binary
-gunicorn
-werkzeug
+Flask==3.0.0
+Flask-SQLAlchemy==3.1.1
+Flask-Login==0.6.3
+Werkzeug==3.0.1
+SQLAlchemy==2.0.23
+python-dotenv==1.0.0
+gunicorn==21.2.0
+email-validator==2.1.0

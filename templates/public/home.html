@@ -1,164 +1,320 @@
 {% extends "layout/base.html" %}
+
+{% block title %}Home - {{ app_name }}{% endblock %}
+
 {% block content %}
-
-<!-- HERO -->
-<section class="hero-premium text-center p-5 mb-5">
-
-    <h1 class="display-4 fw-bold mb-3">
-        Build Skills That Matter 🚀
-    </h1>
-
-    <p class="lead mb-4">
-        Learn Python, Linguistics, Data Analysis & More — All in One Platform
-    </p>
-
-    <div>
-        <a href="/courses" class="btn btn-light btn-lg me-2">Explore Courses</a>
-
-        {% if not current_user.is_authenticated %}
-        <a href="/register" class="btn btn-outline-light btn-lg">Get Started</a>
-        {% endif %}
-    </div>
-
-</section>
-
-<!-- FEATURES -->
-<section class="container mb-5">
-
-    <div class="row text-center">
-
-        <div class="col-md-3">
-            <div class="feature-card">
-                <h4>📚</h4>
-                <h6>Courses</h6>
-                <p>Structured professional learning</p>
-            </div>
-        </div>
-
-        <div class="col-md-3">
-            <div class="feature-card">
-                <h4>✍️</h4>
-                <h6>Blogs</h6>
-                <p>Insights & research guides</p>
-            </div>
-        </div>
-
-        <div class="col-md-3">
-            <div class="feature-card">
-                <h4>🎥</h4>
-                <h6>Webinars</h6>
-                <p>Live interactive sessions</p>
-            </div>
-        </div>
-
-        <div class="col-md-3">
-            <div class="feature-card">
-                <h4>💬</h4>
-                <h6>Community</h6>
-                <p>Discussions & collaboration</p>
-            </div>
-        </div>
-
-    </div>
-
-</section>
-
-<!-- COURSES -->
-<section class="container mb-5">
-
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h3 class="fw-bold">Top Courses 🎓</h3>
-        <a href="/courses" class="btn btn-outline-primary btn-sm">View All</a>
-    </div>
-
-    <div class="row">
-
-        {% for course in courses[:3] %}
-        <div class="col-md-4">
-            <div class="card premium-card">
-
-                <img src="https://via.placeholder.com/400x200" class="card-img-top">
-
-                <div class="card-body">
-
-                    <h5 class="fw-bold">{{ course.title }}</h5>
-
-                    <p class="text-muted">
-                        {{ course.description[:100] }}...
-                    </p>
-
-                    {% if current_user.is_authenticated %}
-                        <a href="/course/{{ course.id }}" class="btn btn-primary w-100">
-                            View Course
-                        </a>
-                    {% else %}
-                        <a href="/login" class="btn btn-outline-primary w-100">
-                            Login to Access
-                        </a>
+<!-- Hero Section -->
+<section class="hero-section">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-6">
+                <h1 class="fade-in">Learn Without Limits</h1>
+                <p class="lead">Transform your career with expert-led courses in technology, business, and creative skills.</p>
+                <div class="d-flex gap-3 mt-4">
+                    <a href="{{ url_for('courses') }}" class="btn btn-primary btn-lg">
+                        <i class="fas fa-book"></i> Explore Courses
+                    </a>
+                    {% if not current_user.is_authenticated %}
+                    <a href="{{ url_for('register') }}" class="btn btn-outline-light btn-lg">
+                        <i class="fas fa-user-plus"></i> Get Started Free
+                    </a>
                     {% endif %}
-
                 </div>
-
+                
+                <div class="mt-5">
+                    <div class="row text-center">
+                        <div class="col-4">
+                            <h3 class="mb-0">{{ stats.total_courses }}+</h3>
+                            <small>Courses</small>
+                        </div>
+                        <div class="col-4">
+                            <h3 class="mb-0">{{ stats.total_students }}+</h3>
+                            <small>Students</small>
+                        </div>
+                        <div class="col-4">
+                            <h3 class="mb-0">{{ stats.total_enrollments }}+</h3>
+                            <small>Enrollments</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-lg-6 d-none d-lg-block">
+                <img src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=600" alt="Students learning" class="img-fluid rounded" style="box-shadow: var(--shadow-xl);">
             </div>
         </div>
-        {% endfor %}
-
     </div>
-
 </section>
 
-<!-- TRUST SECTION -->
-<section class="container text-center mb-5">
-
-    <h4 class="fw-bold mb-4">Why Choose This Platform?</h4>
-
-    <div class="row">
-
-        <div class="col-md-4">
-            <p>✔ Practical, real-world courses</p>
+<!-- Features Section -->
+<section class="section bg-light">
+    <div class="container">
+        <div class="section-title">
+            <h2>Why Choose {{ app_name }}?</h2>
+            <p>Everything you need to succeed in your learning journey</p>
         </div>
-
-        <div class="col-md-4">
-            <p>✔ Research-based learning</p>
+        
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-chalkboard-teacher"></i>
+                    </div>
+                    <h4>Expert Instructors</h4>
+                    <p>Learn from industry professionals with years of real-world experience</p>
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <h4>Learn at Your Pace</h4>
+                    <p>Access courses 24/7 and learn on your own schedule</p>
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-certificate"></i>
+                    </div>
+                    <h4>Get Certified</h4>
+                    <p>Earn certificates upon completion to showcase your skills</p>
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-mobile-alt"></i>
+                    </div>
+                    <h4>Mobile Learning</h4>
+                    <p>Learn anywhere with our mobile-optimized platform</p>
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <h4>Community Support</h4>
+                    <p>Join a vibrant community of learners and share knowledge</p>
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-infinity"></i>
+                    </div>
+                    <h4>Lifetime Access</h4>
+                    <p>Once enrolled, access your courses forever with free updates</p>
+                </div>
+            </div>
         </div>
-
-        <div class="col-md-4">
-            <p>✔ Custom learning paths</p>
-        </div>
-
     </div>
-
 </section>
 
-<!-- EXPLORE -->
-<section class="text-center mb-5">
+<!-- Featured Courses -->
+{% if featured_courses %}
+<section class="section">
+    <div class="container">
+        <div class="section-title">
+            <h2>Featured Courses</h2>
+            <p>Handpicked courses to boost your career</p>
+        </div>
+        
+        <div class="course-grid">
+            {% for course in featured_courses %}
+            <div class="card course-card">
+                {% if course.thumbnail_url %}
+                    <img src="{{ course.thumbnail_url }}" class="card-img-top" alt="{{ course.title }}">
+                {% else %}
+                    <div class="card-img-top" style="height: 200px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);"></div>
+                {% endif %}
+                
+                <div class="course-price {% if course.is_free %}free{% endif %}">
+                    {% if course.is_free %}
+                        FREE
+                    {% else %}
+                        ${{ course.price }}
+                    {% endif %}
+                </div>
+                
+                <div class="card-body">
+                    <span class="badge badge-primary mb-2">{{ course.category }}</span>
+                    <h5 class="card-title">{{ course.title }}</h5>
+                    <p class="card-text">{{ course.description[:100] }}...</p>
+                    
+                    <div class="course-meta">
+                        <span><i class="fas fa-signal"></i> {{ course.level }}</span>
+                        <span><i class="fas fa-book"></i> {{ course.lecture_count }} lectures</span>
+                        <span><i class="fas fa-users"></i> {{ course.enrollment_count }}</span>
+                    </div>
+                    
+                    <a href="{{ url_for('course_detail', course_id=course.id) }}" class="btn btn-primary w-100 mt-3">
+                        View Course <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        
+        <div class="text-center mt-5">
+            <a href="{{ url_for('courses') }}" class="btn btn-outline-primary btn-lg">
+                View All Courses <i class="fas fa-arrow-right"></i>
+            </a>
+        </div>
+    </div>
+</section>
+{% endif %}
 
-    <h5 class="fw-bold mb-3">Explore More</h5>
+<!-- Recent Courses -->
+{% if recent_courses %}
+<section class="section bg-light">
+    <div class="container">
+        <div class="section-title">
+            <h2>Recently Added</h2>
+            <p>Fresh content to keep you ahead</p>
+        </div>
+        
+        <div class="course-grid">
+            {% for course in recent_courses[:4] %}
+            <div class="card course-card">
+                {% if course.thumbnail_url %}
+                    <img src="{{ course.thumbnail_url }}" class="card-img-top" alt="{{ course.title }}">
+                {% else %}
+                    <div class="card-img-top" style="height: 200px; background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);"></div>
+                {% endif %}
+                
+                <div class="course-price {% if course.is_free %}free{% endif %}">
+                    {% if course.is_free %}
+                        FREE
+                    {% else %}
+                        ${{ course.price }}
+                    {% endif %}
+                </div>
+                
+                <div class="card-body">
+                    <span class="badge badge-success mb-2">New</span>
+                    <span class="badge badge-primary mb-2">{{ course.category }}</span>
+                    <h5 class="card-title">{{ course.title }}</h5>
+                    <p class="card-text">{{ course.description[:100] }}...</p>
+                    
+                    <div class="course-meta">
+                        <span><i class="fas fa-signal"></i> {{ course.level }}</span>
+                        <span><i class="fas fa-clock"></i> {{ course.duration_hours }}h</span>
+                    </div>
+                    
+                    <a href="{{ url_for('course_detail', course_id=course.id) }}" class="btn btn-primary w-100 mt-3">
+                        Learn More <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endif %}
 
-    <a href="/blogs" class="btn btn-outline-dark m-2">Blogs</a>
-    <a href="/events" class="btn btn-outline-secondary m-2">Events</a>
+<!-- Blog Preview -->
+{% if recent_blogs %}
+<section class="section">
+    <div class="container">
+        <div class="section-title">
+            <h2>From Our Blog</h2>
+            <p>Insights, tips, and industry news</p>
+        </div>
+        
+        <div class="row g-4">
+            {% for blog in recent_blogs %}
+            <div class="col-md-4">
+                <div class="blog-card">
+                    {% if blog.featured_image %}
+                        <img src="{{ blog.featured_image }}" class="blog-featured-image" alt="{{ blog.title }}">
+                    {% else %}
+                        <div class="blog-featured-image" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);"></div>
+                    {% endif %}
+                    
+                    <div class="blog-content">
+                        <div class="blog-meta">
+                            <span><i class="fas fa-calendar"></i> {{ blog.published_at.strftime('%b %d, %Y') if blog.published_at else 'Recently' }}</span>
+                            <span><i class="fas fa-clock"></i> {{ blog.reading_time }} min read</span>
+                        </div>
+                        
+                        <h5>{{ blog.title }}</h5>
+                        <p class="blog-excerpt">{{ blog.excerpt or blog.content[:150] }}...</p>
+                        
+                        <a href="{{ url_for('blog_detail', slug=blog.slug) }}" class="btn btn-sm btn-outline-primary">
+                            Read More <i class="fas fa-arrow-right"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        
+        <div class="text-center mt-5">
+            <a href="{{ url_for('blogs') }}" class="btn btn-outline-primary btn-lg">
+                View All Posts <i class="fas fa-arrow-right"></i>
+            </a>
+        </div>
+    </div>
+</section>
+{% endif %}
 
+<!-- CTA Section -->
+<section class="section" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+    <div class="container text-center">
+        <h2 class="mb-4" style="color: white;">Ready to Start Learning?</h2>
+        <p class="lead mb-4" style="color: rgba(255,255,255,0.9);">Join thousands of students achieving their goals</p>
+        {% if not current_user.is_authenticated %}
+            <a href="{{ url_for('register') }}" class="btn btn-light btn-lg me-3">
+                <i class="fas fa-user-plus"></i> Create Free Account
+            </a>
+        {% endif %}
+        <a href="{{ url_for('courses') }}" class="btn btn-outline-light btn-lg">
+            <i class="fas fa-search"></i> Browse Courses
+        </a>
+    </div>
 </section>
 
-<!-- CTA -->
-<section class="cta-premium text-center p-5">
-
-    <h2 class="mb-3">Start Building Your Skills Today 🚀</h2>
-    <p>Join learners who are upgrading their careers</p>
-
-    {% if not current_user.is_authenticated %}
-    <a href="/register" class="btn btn-primary btn-lg mt-2">
-        Join Now
-    </a>
-    {% endif %}
-
+<!-- Trust Section -->
+<section class="section bg-light">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h3>Trusted by learners worldwide</h3>
+        </div>
+        
+        <div class="row text-center">
+            <div class="col-md-3 col-6 mb-4">
+                <div class="feature-card">
+                    <h2 class="mb-0" style="color: var(--primary-color);">100+</h2>
+                    <p class="mb-0">Courses Available</p>
+                </div>
+            </div>
+            <div class="col-md-3 col-6 mb-4">
+                <div class="feature-card">
+                    <h2 class="mb-0" style="color: var(--success-color);">50K+</h2>
+                    <p class="mb-0">Active Students</p>
+                </div>
+            </div>
+            <div class="col-md-3 col-6 mb-4">
+                <div class="feature-card">
+                    <h2 class="mb-0" style="color: var(--warning-color);">4.8/5</h2>
+                    <p class="mb-0">Average Rating</p>
+                </div>
+            </div>
+            <div class="col-md-3 col-6 mb-4">
+                <div class="feature-card">
+                    <h2 class="mb-0" style="color: var(--info-color);">24/7</h2>
+                    <p class="mb-0">Support Available</p>
+                </div>
+            </div>
+        </div>
+    </div>
 </section>
-
-<!-- FOOTER -->
-<div class="text-center mt-5 mb-3">
-    <small class="text-muted">
-        Developed by <strong>Muhammad Shoaib Tahir</strong>
-    </small>
-</div>
-
 {% endblock %}

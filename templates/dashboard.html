@@ -1,141 +1,212 @@
 {% extends "layout/base.html" %}
+
+{% block title %}Dashboard - {{ app_name }}{% endblock %}
+
 {% block content %}
-
-<div class="row">
-
-    <!-- ================= LEFT: PROFILE ================= -->
-    <div class="col-lg-3">
-
-        <div class="card shadow-sm p-3 mb-4 text-center">
-
-            <h5 class="fw-bold">👤 {{ current_user.email }}</h5>
-
-            <p class="text-muted mb-2">Student</p>
-
-            <hr>
-
-            <p>
-                <strong>Access Expiry:</strong><br>
-                {{ current_user.expiry_date.strftime('%Y-%m-%d') }}
-            </p>
-
-            {% if current_user.expiry_date < now() %}
-                <span class="badge bg-danger">Expired</span>
-            {% else %}
-                <span class="badge bg-success">Active</span>
-            {% endif %}
-
-        </div>
-
-        <!-- QUICK LINKS -->
-        <div class="card shadow-sm p-3">
-            <h6 class="fw-bold">Quick Actions ⚡</h6>
-
-            <a href="/courses" class="btn btn-outline-primary btn-sm w-100 mb-2">
-                Browse Courses
-            </a>
-
-            <a href="/events" class="btn btn-outline-secondary btn-sm w-100 mb-2">
-                View Events
-            </a>
-
-            <a href="/discussions" class="btn btn-outline-dark btn-sm w-100">
-                Discussions
-            </a>
-        </div>
-
+<div class="container my-5">
+    <!-- Dashboard Header -->
+    <div class="dashboard-header">
+        <h1 class="mb-2">Welcome back, {{ current_user.full_name }}!</h1>
+        <p class="mb-0">Continue your learning journey</p>
     </div>
-
-    <!-- ================= RIGHT: CONTENT ================= -->
-    <div class="col-lg-9">
-
-        <!-- HEADER -->
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <h3 class="fw-bold">My Dashboard 🎓</h3>
+    
+    <!-- Stats -->
+    <div class="dashboard-stats">
+        <div class="stat-card">
+            <h3>{{ stats.total_courses }}</h3>
+            <p>Enrolled Courses</p>
         </div>
-
-        <!-- STATS -->
-        <div class="row mb-4">
-
-            <div class="col-md-4">
-                <div class="card shadow-sm p-3 text-center">
-                    <h5>Total Courses</h5>
-                    <h3>{{ courses|length }}</h3>
-                </div>
-            </div>
-
-            <div class="col-md-4">
-                <div class="card shadow-sm p-3 text-center">
-                    <h5>Completed</h5>
-                    <h3>0</h3>
-                </div>
-            </div>
-
-            <div class="col-md-4">
-                <div class="card shadow-sm p-3 text-center">
-                    <h5>In Progress</h5>
-                    <h3>{{ courses|length }}</h3>
-                </div>
-            </div>
-
+        
+        <div class="stat-card" style="border-color: var(--success-color);">
+            <h3 style="color: var(--success-color);">{{ stats.completed_courses }}</h3>
+            <p>Completed</p>
         </div>
-
-        <!-- COURSES -->
-        <div>
-
-            <h4 class="fw-bold mb-3">My Courses 📚</h4>
-
-            <div class="row">
-
-                {% for course in courses %}
-                <div class="col-md-6">
-
-                    <div class="card shadow-sm mb-4 course-card">
-
-                        <img src="https://via.placeholder.com/400x200" class="card-img-top">
-
-                        <div class="card-body">
-
-                            <h5 class="fw-bold">{{ course.title }}</h5>
-                            <p class="text-muted">
-                                {{ course.description[:100] }}...
-                            </p>
-
-                            <!-- PROGRESS BAR -->
-                            <div class="progress mb-2">
-                                <div class="progress-bar" style="width: 50%"></div>
-                            </div>
-
-                            <small class="text-muted">Progress: 50%</small>
-
-                            <!-- BUTTON -->
-                            <a href="/course/{{ course.id }}" class="btn btn-primary w-100 mt-2">
-                                Continue Learning
-                            </a>
-
-                        </div>
-
-                    </div>
-
-                </div>
-                {% endfor %}
-
-            </div>
-
-            <!-- EMPTY STATE -->
-            {% if courses|length == 0 %}
-            <div class="text-center mt-5">
-                <h5>No courses enrolled yet 😔</h5>
-                <a href="/courses" class="btn btn-primary mt-2">
-                    Explore Courses
+        
+        <div class="stat-card" style="border-color: var(--warning-color);">
+            <h3 style="color: var(--warning-color);">{{ stats.in_progress }}</h3>
+            <p>In Progress</p>
+        </div>
+        
+        <div class="stat-card" style="border-color: var(--info-color);">
+            <h3 style="color: var(--info-color);">{{ stats.total_bundles }}</h3>
+            <p>Custom Bundles</p>
+        </div>
+    </div>
+    
+    <!-- Quick Actions -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <h4 class="card-title mb-3">Quick Actions</h4>
+            <div class="d-flex flex-wrap gap-2">
+                <a href="{{ url_for('courses') }}" class="btn btn-primary">
+                    <i class="fas fa-plus"></i> Browse Courses
+                </a>
+                <a href="{{ url_for('bundle_creator') }}" class="btn btn-success">
+                    <i class="fas fa-layer-group"></i> Create Custom Bundle
+                </a>
+                <a href="{{ url_for('blogs') }}" class="btn btn-outline-secondary">
+                    <i class="fas fa-newspaper"></i> Read Blog
                 </a>
             </div>
-            {% endif %}
-
         </div>
-
     </div>
-
+    
+    <!-- My Courses -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h4 class="card-title mb-0">My Courses</h4>
+                {% if enrollments %}
+                <span class="badge badge-primary">{{ enrollments|length }} active</span>
+                {% endif %}
+            </div>
+            
+            {% if enrollments %}
+                {% for enrollment in enrollments %}
+                <div class="enrollment-card">
+                    {% if enrollment.course.thumbnail_url %}
+                        <img src="{{ enrollment.course.thumbnail_url }}" class="enrollment-thumbnail" alt="{{ enrollment.course.title }}">
+                    {% else %}
+                        <div class="enrollment-thumbnail" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);"></div>
+                    {% endif %}
+                    
+                    <div class="enrollment-info">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <div>
+                                <h5 class="mb-1">{{ enrollment.course.title }}</h5>
+                                <p class="text-muted mb-2">
+                                    <span class="badge badge-primary me-2">{{ enrollment.course.category }}</span>
+                                    <span class="badge badge-info">{{ enrollment.course.level }}</span>
+                                </p>
+                            </div>
+                            
+                            <div class="text-end">
+                                {% if enrollment.expires_at %}
+                                <small class="text-muted d-block">
+                                    <i class="fas fa-calendar"></i>
+                                    {% if enrollment.is_expired %}
+                                        <span class="text-danger">Expired</span>
+                                    {% elif enrollment.days_remaining %}
+                                        {{ enrollment.days_remaining }} days left
+                                    {% endif %}
+                                </small>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <p class="text-secondary small mb-2">
+                            Enrolled on {{ enrollment.enrolled_at.strftime('%b %d, %Y') }}
+                        </p>
+                        
+                        <!-- Progress Bar -->
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between mb-1">
+                                <small>Progress</small>
+                                <small><strong>{{ enrollment.progress_percentage|int }}%</strong></small>
+                            </div>
+                            <div class="progress-bar-container">
+                                <div class="progress-bar" style="width: {{ enrollment.progress_percentage }}%"></div>
+                            </div>
+                        </div>
+                        
+                        <div class="d-flex gap-2">
+                            <a href="{{ url_for('course_detail', course_id=enrollment.course.id) }}" class="btn btn-primary btn-sm">
+                                <i class="fas fa-play"></i> Continue Learning
+                            </a>
+                            
+                            <form method="POST" action="{{ url_for('unenroll_course', enrollment_id=enrollment.id) }}" class="d-inline">
+                                <button type="submit" class="btn btn-outline-danger btn-sm" onclick="return confirm('Are you sure you want to unenroll?')">
+                                    <i class="fas fa-times"></i> Unenroll
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="text-center py-5">
+                    <i class="fas fa-book-open fa-4x text-muted mb-3"></i>
+                    <h5>No courses yet</h5>
+                    <p class="text-secondary mb-4">Start learning by enrolling in a course</p>
+                    <a href="{{ url_for('courses') }}" class="btn btn-primary">
+                        <i class="fas fa-search"></i> Browse Courses
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <!-- Custom Bundles -->
+    {% if bundles %}
+    <div class="card mb-4">
+        <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h4 class="card-title mb-0">My Custom Bundles</h4>
+                <span class="badge badge-success">{{ bundles|length }} bundles</span>
+            </div>
+            
+            <div class="row g-3">
+                {% for bundle in bundles %}
+                <div class="col-md-6">
+                    <div class="card border-primary">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <h5 class="card-title mb-0">{{ bundle.bundle_name }}</h5>
+                                {% if bundle.is_active %}
+                                    <span class="badge badge-success">Active</span>
+                                {% else %}
+                                    <span class="badge badge-secondary">Inactive</span>
+                                {% endif %}
+                            </div>
+                            
+                            {% if bundle.description %}
+                            <p class="text-muted small">{{ bundle.description }}</p>
+                            {% endif %}
+                            
+                            <div class="mb-3">
+                                <div class="d-flex justify-content-between mb-2">
+                                    <span><i class="fas fa-book"></i> {{ bundle.course_count }} courses</span>
+                                    <span><i class="fas fa-clock"></i> {{ bundle.duration_days }} days</span>
+                                </div>
+                                
+                                <div class="d-flex justify-content-between">
+                                    <span class="text-muted text-decoration-line-through">${{ "%.2f"|format(bundle.total_price) }}</span>
+                                    <span class="text-success fw-bold">${{ "%.2f"|format(bundle.final_price) }}</span>
+                                </div>
+                                <small class="text-success">{{ bundle.discount_percentage }}% discount applied</small>
+                            </div>
+                            
+                            {% if bundle.activated_at %}
+                            <p class="small text-muted mb-2">
+                                Activated: {{ bundle.activated_at.strftime('%b %d, %Y') }}
+                                {% if bundle.expires_at %}
+                                    <br>Expires: {{ bundle.expires_at.strftime('%b %d, %Y') }}
+                                {% endif %}
+                            </p>
+                            {% endif %}
+                            
+                            <div class="d-flex gap-2">
+                                {% if not bundle.activated_at %}
+                                    <form method="POST" action="{{ url_for('activate_bundle', bundle_id=bundle.id) }}" class="flex-grow-1">
+                                        <button type="submit" class="btn btn-success btn-sm w-100">
+                                            <i class="fas fa-check"></i> Activate Bundle
+                                        </button>
+                                    </form>
+                                {% endif %}
+                                
+                                <form method="POST" action="{{ url_for('delete_bundle', bundle_id=bundle.id) }}">
+                                    <button type="submit" class="btn btn-outline-danger btn-sm" onclick="return confirm('Delete this bundle?')">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
 </div>
-
 {% endblock %}
