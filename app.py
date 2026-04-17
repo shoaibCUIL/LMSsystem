@@ -16,13 +16,11 @@ login_manager.init_app(app)
 login_manager.login_view = "login"
 
 
-# ================= LOAD USER =================
 @login_manager.user_loader
 def load_user(user_id):
     return User.query.get(int(user_id))
 
 
-# ================= INIT DB =================
 with app.app_context():
     db.create_all()
 
@@ -34,40 +32,42 @@ def home():
     return render_template('public/home.html', courses=courses)
 
 
-# ================= COURSES =================
+# ================= COURSES (WITH FILTER) =================
 @app.route('/courses')
 def courses():
-    courses = Course.query.all()
-    return render_template('public/courses.html', courses=courses)
+
+    selected_category = request.args.get('category')
+
+    if selected_category:
+        courses = Course.query.filter_by(category=selected_category).all()
+    else:
+        courses = Course.query.all()
+
+    categories = db.session.query(Course.category).distinct().all()
+    categories = [c[0] for c in categories]
+
+    return render_template(
+        'public/courses.html',
+        courses=courses,
+        categories=categories,
+        selected_category=selected_category
+    )
 
 
-# ================= BLOG LIST =================
+# ================= BLOG SYSTEM =================
 @app.route('/blogs')
 def blogs():
     blogs = Blog.query.order_by(Blog.created_at.desc()).all()
     return render_template('public/blogs.html', blogs=blogs)
 
 
-# ================= BLOG DETAIL =================
 @app.route('/blog/<int:blog_id>')
 def blog_detail(blog_id):
     blog = Blog.query.get_or_404(blog_id)
     return render_template('public/blog_detail.html', blog=blog)
 
 
-# ================= EVENTS =================
-@app.route('/events')
-def events():
-    return render_template('public/events.html', events=[])
-
-
-# ================= DISCUSSIONS =================
-@app.route('/discussions')
-def discussions():
-    return "<h2>Discussion forum coming soon 💬</h2>"
-
-
-# ================= REGISTER =================
+# ================= AUTH =================
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
@@ -76,11 +76,9 @@ def register():
             flash("Passwords do not match ❌")
             return redirect('/register')
 
-        hashed_password = generate_password_hash(request.form['password'])
-
         user = User(
             email=request.form['email'],
-            password=hashed_password
+            password=generate_password_hash(request.form['password'])
         )
 
         db.session.add(user)
@@ -92,7 +90,6 @@ def register():
     return render_template('register.html')
 
 
-# ================= LOGIN =================
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
@@ -103,7 +100,7 @@ def login():
             login_user(user)
             return redirect('/dashboard')
         else:
-            flash("Invalid email or password ❌")
+            flash("Invalid credentials ❌")
 
     return render_template('login.html')
 
@@ -112,15 +109,10 @@ def login():
 @app.route('/dashboard')
 @login_required
 def dashboard():
-
     enrollments = Enrollment.query.filter_by(user_id=current_user.id).all()
     courses = [e.course for e in enrollments]
 
-    return render_template(
-        'dashboard.html',
-        courses=courses,
-        now=datetime.utcnow
-    )
+    return render_template('dashboard.html', courses=courses, now=datetime.utcnow)
 
 
 # ================= ENROLL =================
@@ -134,7 +126,7 @@ def enroll(course_id):
     ).first()
 
     if existing:
-        flash("Already enrolled ✅")
+        flash("Already enrolled")
         return redirect('/dashboard')
 
     enrollment = Enrollment(
@@ -149,7 +141,7 @@ def enroll(course_id):
     return redirect('/dashboard')
 
 
-# ================= COURSE PAGE =================
+# ================= COURSE =================
 @app.route('/course/<int:course_id>')
 @login_required
 def course(course_id):
@@ -160,10 +152,7 @@ def course(course_id):
     ).first()
 
     if not enrollment:
-        return "You are not enrolled in this course ❌"
-
-    if enrollment.expiry_date < datetime.utcnow():
-        return "Your course access expired ⛔"
+        return "You are not enrolled ❌"
 
     course = Course.query.get_or_404(course_id)
     lectures = Lecture.query.filter_by(course_id=course.id).all()
@@ -171,7 +160,7 @@ def course(course_id):
     return render_template('course.html', course=course, lectures=lectures)
 
 
-# ================= ADMIN PANEL =================
+# ================= ADMIN =================
 @app.route('/admin', methods=['GET', 'POST'])
 @login_required
 def admin():
@@ -183,15 +172,15 @@ def admin():
 
         form_type = request.form.get('type')
 
-        # -------- COURSE --------
         if form_type == "course":
             course = Course(
                 title=request.form['title'],
-                description=request.form['description']
+                description=request.form['description'],
+                category=request.form.get('category'),
+                price=request.form.get('price', 0)
             )
             db.session.add(course)
 
-        # -------- LECTURE --------
         elif form_type == "lecture":
             lecture = Lecture(
                 title=request.form['title'],
@@ -200,7 +189,6 @@ def admin():
             )
             db.session.add(lecture)
 
-        # -------- BLOG --------
         elif form_type == "blog":
             blog = Blog(
                 title=request.form['title'],
@@ -209,7 +197,7 @@ def admin():
             db.session.add(blog)
 
         db.session.commit()
-        flash("Action completed successfully ✅")
+        flash("Added successfully ✅")
 
     return render_template('admin.html')
 
@@ -222,6 +210,5 @@ def logout():
     return redirect('/login')
 
 
-# ================= RUN =================
 if __name__ == "__main__":
     app.run(debug=True)

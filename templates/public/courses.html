@@ -1,61 +1,48 @@
 {% extends "layout/base.html" %}
 {% block content %}
 
-<!-- PAGE HEADER -->
+<h2 class="fw-bold mb-4">Courses 🎓</h2>
+
+<!-- FILTER -->
 <div class="mb-4">
-    <h2 class="fw-bold">Explore Courses 🎓</h2>
-    <p class="text-muted">Browse and enroll in high-quality courses</p>
-</div>
 
-<!-- SEARCH + FILTER -->
-<div class="row mb-4">
+    <a href="/courses"
+       class="btn btn-sm {% if not selected_category %}btn-primary{% else %}btn-outline-primary{% endif %}">
+       All
+    </a>
 
-    <div class="col-md-8">
-        <input type="text" class="form-control" placeholder="Search courses...">
-    </div>
-
-    <div class="col-md-4">
-        <select class="form-select">
-            <option selected>All Categories</option>
-            <option>Programming</option>
-            <option>AI / ML</option>
-            <option>Web Development</option>
-            <option>Business</option>
-        </select>
-    </div>
+    {% for category in categories %}
+    <a href="/courses?category={{ category }}"
+       class="btn btn-sm {% if selected_category == category %}btn-primary{% else %}btn-outline-primary{% endif %}">
+       {{ category }}
+    </a>
+    {% endfor %}
 
 </div>
 
-<!-- COURSES GRID -->
+<!-- COURSES -->
 <div class="row">
 
 {% for course in courses %}
-<div class="col-lg-4 col-md-6">
+<div class="col-md-4">
 
-    <div class="card course-card shadow-sm mb-4">
+    <div class="card premium-card mb-4">
 
-        <!-- IMAGE (Placeholder) -->
         <img src="https://via.placeholder.com/400x200" class="card-img-top">
 
         <div class="card-body">
 
-            <!-- TITLE -->
-            <h5 class="fw-bold">{{ course.title }}</h5>
+            <span class="badge bg-secondary mb-2">{{ course.category }}</span>
 
-            <!-- DESCRIPTION -->
-            <p class="text-muted">
-                {{ course.description[:100] }}...
-            </p>
+            <h5>{{ course.title }}</h5>
 
-            <!-- RATING -->
-            <div class="mb-2 text-warning">
-                ★★★★☆ <small class="text-muted">(4.5)</small>
-            </div>
+            <p>{{ course.description[:100] }}...</p>
 
-            <!-- BUTTON -->
+            <p class="fw-bold text-primary">${{ course.price }}</p>
+
             {% if current_user.is_authenticated %}
-                <a href="/course/{{ course.id }}" class="btn btn-primary w-100">
-                    View Course
+                <a href="/enroll/{{ course.id }}" class="btn btn-success w-100">
+                    Enroll Now
                 </a>
             {% else %}
                 <a href="/login" class="btn btn-outline-primary w-100">
@@ -71,13 +58,5 @@
 {% endfor %}
 
 </div>
-
-<!-- EMPTY STATE -->
-{% if courses|length == 0 %}
-<div class="text-center mt-5">
-    <h5>No courses available yet 😔</h5>
-    <p class="text-muted">Admin will add courses soon</p>
-</div>
-{% endif %}
 
 {% endblock %}
