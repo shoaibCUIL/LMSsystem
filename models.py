@@ -14,13 +14,13 @@ class User(db.Model, UserMixin):
 
     is_admin = db.Column(db.Boolean, default=False)
 
-    # Access expiry (global access - can upgrade later per course)
+    # Global access expiry (optional)
     expiry_date = db.Column(
         db.DateTime,
         default=lambda: datetime.utcnow() + timedelta(days=7)
     )
 
-    # Relationship
+    # Relationships
     enrollments = db.relationship('Enrollment', backref='user', lazy=True)
 
 
@@ -31,7 +31,6 @@ class Course(db.Model):
     title = db.Column(db.String(200), nullable=False)
     description = db.Column(db.Text, nullable=False)
 
-    # NEW (for future business model)
     price = db.Column(db.Float, default=0.0)
     category = db.Column(db.String(100), default="General")
 
@@ -77,29 +76,32 @@ class Enrollment(db.Model):
         default=datetime.utcnow
     )
 
-    # Expiry per course (VERY IMPORTANT 🔥)
+    # Per-course expiry (important for LMS)
     expiry_date = db.Column(
         db.DateTime,
         default=lambda: datetime.utcnow() + timedelta(days=30)
     )
 
 
-# ================= BLOG ================= (future)
+# ================= BLOG =================
 class Blog(db.Model):
     id = db.Column(db.Integer, primary_key=True)
 
-    title = db.Column(db.String(200))
-    content = db.Column(db.Text)
+    title = db.Column(db.String(200), nullable=False)
+    content = db.Column(db.Text, nullable=False)
+
+    author = db.Column(db.String(100), default="Admin")
 
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
 
-# ================= EVENT ================= (future)
+# ================= EVENT =================
 class Event(db.Model):
     id = db.Column(db.Integer, primary_key=True)
 
-    title = db.Column(db.String(200))
-    description = db.Column(db.Text)
+    title = db.Column(db.String(200), nullable=False)
+    description = db.Column(db.Text, nullable=False)
 
-    date = db.Column(db.DateTime)
+    date = db.Column(db.DateTime, nullable=True)
+
     created_at = db.Column(db.DateTime, default=datetime.utcnow)

@@ -4,7 +4,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime
 
 from config import Config
-from models import db, User, Course, Lecture, Enrollment
+from models import db, User, Course, Lecture, Enrollment, Blog
 
 app = Flask(__name__)
 app.config.from_object(Config)
@@ -41,10 +41,18 @@ def courses():
     return render_template('public/courses.html', courses=courses)
 
 
-# ================= BLOGS =================
+# ================= BLOG LIST =================
 @app.route('/blogs')
 def blogs():
-    return render_template('public/blogs.html', blogs=[])
+    blogs = Blog.query.order_by(Blog.created_at.desc()).all()
+    return render_template('public/blogs.html', blogs=blogs)
+
+
+# ================= BLOG DETAIL =================
+@app.route('/blog/<int:blog_id>')
+def blog_detail(blog_id):
+    blog = Blog.query.get_or_404(blog_id)
+    return render_template('public/blog_detail.html', blog=blog)
 
 
 # ================= EVENTS =================
@@ -194,11 +202,11 @@ def admin():
 
         # -------- BLOG --------
         elif form_type == "blog":
-            flash("Blog feature coming soon ✍️")
-
-        # -------- EVENT --------
-        elif form_type == "event":
-            flash("Event feature coming soon 📅")
+            blog = Blog(
+                title=request.form['title'],
+                content=request.form['content']
+            )
+            db.session.add(blog)
 
         db.session.commit()
         flash("Action completed successfully ✅")
