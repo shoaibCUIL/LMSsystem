@@ -77,6 +77,7 @@ class Course(db.Model):
     level = db.Column(db.String(20), default='Beginner')  # Beginner, Intermediate, Advanced
     price = db.Column(db.Float, default=0.0)
     duration_hours = db.Column(db.Integer, default=0)
+    duration_days = db.Column(db.Integer, default=30)  # Recommended completion time in days
     thumbnail_url = db.Column(db.String(500))
     instructor_name = db.Column(db.String(100))
     is_published = db.Column(db.Boolean, default=True)
