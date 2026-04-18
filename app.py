@@ -1,6 +1,7 @@
 """
 Main Application File for LMS System
 Complete Flask application with all routes and logic
+UPDATED: Payment verification system, fixed enrollment, admin payment management
 """
 
 from flask import Flask, render_template, request, redirect, url_for, flash, jsonify, abort
@@ -194,10 +195,12 @@ def course_detail(course_id):
     if current_user.is_authenticated:
         enrollment = Enrollment.query.filter_by(
             user_id=current_user.id,
-            course_id=course_id,
-            is_active=True
+            course_id=course_id
         ).first()
-        is_enrolled = enrollment is not None
+        
+        # Only consider as enrolled if payment is verified or free
+        if enrollment and (enrollment.payment_status in ['verified', 'free']):
+            is_enrolled = True
     
     return render_template('public/course_detail.html',
                          course=course,
@@ -392,10 +395,11 @@ def logout():
 @login_required
 def dashboard():
     """User dashboard showing enrolled courses"""
-    # Get active enrollments
+    # Get active enrollments (verified or free)
     enrollments = Enrollment.query.filter_by(
-        user_id=current_user.id,
-        is_active=True
+        user_id=current_user.id
+    ).filter(
+        Enrollment.payment_status.in_(['verified', 'free'])
     ).order_by(Enrollment.enrolled_at.desc()).all()
     
     # Get custom bundles
@@ -418,6 +422,27 @@ def dashboard():
                          stats=stats)
 
 
+@app.route('/payment/<int:course_id>')
+@login_required
+def payment_instructions(course_id):
+    """Payment instructions page"""
+    course = Course.query.get_or_404(course_id)
+    
+    # Check if already enrolled with verified payment
+    existing_enrollment = Enrollment.query.filter_by(
+        user_id=current_user.id,
+        course_id=course_id
+    ).filter(
+        Enrollment.payment_status.in_(['verified', 'free'])
+    ).first()
+    
+    if existing_enrollment:
+        flash('You are already enrolled in this course.', 'info')
+        return redirect(url_for('course_detail', course_id=course_id))
+    
+    return render_template('public/payment_instructions.html', course=course)
+
+
 @app.route('/enroll/<int:course_id>', methods=['POST'])
 @login_required
 def enroll_course(course_id):
@@ -431,33 +456,47 @@ def enroll_course(course_id):
     ).first()
     
     if existing_enrollment:
-        if existing_enrollment.is_active:
+        if existing_enrollment.payment_status in ['verified', 'free']:
             flash('You are already enrolled in this course.', 'info')
             return redirect(url_for('course_detail', course_id=course_id))
-        else:
-            # Reactivate enrollment
-            existing_enrollment.is_active = True
-            existing_enrollment.enrolled_at = datetime.utcnow()
-            flash('Your enrollment has been reactivated!', 'success')
-    else:
-        # Create new enrollment
-        try:
-            enrollment = Enrollment(
-                user_id=current_user.id,
-                course_id=course_id,
-                enrolled_at=datetime.utcnow(),
-                expires_at=datetime.utcnow() + timedelta(days=app.config['DEFAULT_COURSE_DURATION'])
-            )
-            db.session.add(enrollment)
-            flash(f'Successfully enrolled in {course.title}!', 'success')
-        except Exception as e:
-            db.session.rollback()
-            flash('An error occurred during enrollment. Please try again.', 'danger')
-            app.logger.error(f'Enrollment error: {str(e)}')
+        elif existing_enrollment.payment_status == 'pending':
+            flash('Your enrollment is pending payment verification. Please check your email or contact support.', 'warning')
             return redirect(url_for('course_detail', course_id=course_id))
     
-    db.session.commit()
-    return redirect(url_for('dashboard'))
+    # Create new enrollment
+    try:
+        # Determine payment status
+        if course.is_free:
+            payment_status = 'free'
+            is_active = True
+            flash(f'Successfully enrolled in {course.title}!', 'success')
+        else:
+            payment_status = 'pending'
+            is_active = False
+            flash(f'Enrollment created! Please complete payment to activate access.', 'warning')
+        
+        enrollment = Enrollment(
+            user_id=current_user.id,
+            course_id=course_id,
+            enrolled_at=datetime.utcnow(),
+            expires_at=datetime.utcnow() + timedelta(days=course.duration_days),
+            payment_status=payment_status,
+            is_active=is_active
+        )
+        db.session.add(enrollment)
+        db.session.commit()
+        
+    except Exception as e:
+        db.session.rollback()
+        flash('An error occurred during enrollment. Please try again.', 'danger')
+        app.logger.error(f'Enrollment error: {str(e)}')
+        return redirect(url_for('course_detail', course_id=course_id))
+    
+    # Redirect based on course type
+    if course.is_free:
+        return redirect(url_for('dashboard'))
+    else:
+        return redirect(url_for('payment_instructions', course_id=course_id))
 
 
 @app.route('/unenroll/<int:enrollment_id>', methods=['POST'])
@@ -615,27 +654,78 @@ def admin_panel():
     stats = {
         'total_users': User.query.count(),
         'total_courses': Course.query.count(),
-        'total_enrollments': Enrollment.query.filter_by(is_active=True).count(),
+        'total_enrollments': Enrollment.query.filter(Enrollment.payment_status.in_(['verified', 'free'])).count(),
         'total_blogs': Blog.query.count(),
         'total_lectures': Lecture.query.count(),
-        'active_bundles': CustomBundle.query.filter_by(is_active=True).count()
+        'active_bundles': CustomBundle.query.filter_by(is_active=True).count(),
+        'pending_payments': Enrollment.query.filter_by(payment_status='pending').count()
     }
     
     recent_users = User.query.order_by(User.created_at.desc()).limit(5).all()
     recent_enrollments = Enrollment.query.order_by(Enrollment.enrolled_at.desc()).limit(10).all()
     
-    courses = Course.query.order_by(Course.created_at.desc()).all()
-    blogs = Blog.query.order_by(Blog.created_at.desc()).all()
-    
     return render_template('admin/admin.html',
                          stats=stats,
                          recent_users=recent_users,
-                         recent_enrollments=recent_enrollments,
-                         courses=courses,
-                         blogs=blogs,
-                         categories=app.config['COURSE_CATEGORIES'],
-                         levels=app.config['COURSE_LEVELS'],
-                         blog_categories=app.config['BLOG_CATEGORIES'])
+                         recent_enrollments=recent_enrollments)
+
+
+@app.route('/admin/enrollments/pending')
+@login_required
+@admin_required
+def admin_pending_enrollments():
+    """View pending payment enrollments"""
+    pending_enrollments = Enrollment.query.filter_by(
+        payment_status='pending',
+        is_active=False
+    ).order_by(Enrollment.enrolled_at.desc()).all()
+    
+    return render_template('admin/admin_pending_payments.html', 
+                         enrollments=pending_enrollments)
+
+
+@app.route('/admin/enrollment/<int:enrollment_id>/verify', methods=['POST'])
+@login_required
+@admin_required
+def admin_verify_payment(enrollment_id):
+    """Verify and activate enrollment"""
+    enrollment = Enrollment.query.get_or_404(enrollment_id)
+    
+    enrollment.payment_status = 'verified'
+    enrollment.payment_verified_at = datetime.utcnow()
+    enrollment.is_active = True
+    
+    try:
+        db.session.commit()
+        flash(f'Payment verified for {enrollment.user.username} - {enrollment.course.title}!', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash('An error occurred while verifying payment.', 'danger')
+        app.logger.error(f'Payment verification error: {str(e)}')
+    
+    return redirect(url_for('admin_pending_enrollments'))
+
+
+@app.route('/admin/enrollment/<int:enrollment_id>/reject', methods=['POST'])
+@login_required
+@admin_required
+def admin_reject_payment(enrollment_id):
+    """Reject payment and delete enrollment"""
+    enrollment = Enrollment.query.get_or_404(enrollment_id)
+    
+    user_name = enrollment.user.username
+    course_name = enrollment.course.title
+    
+    try:
+        db.session.delete(enrollment)
+        db.session.commit()
+        flash(f'Enrollment rejected and deleted for {user_name} - {course_name}.', 'info')
+    except Exception as e:
+        db.session.rollback()
+        flash('An error occurred while rejecting enrollment.', 'danger')
+        app.logger.error(f'Payment rejection error: {str(e)}')
+    
+    return redirect(url_for('admin_pending_enrollments'))
 
 
 @app.route('/admin/course/add', methods=['POST'])
@@ -649,6 +739,7 @@ def admin_add_course():
     level = request.form.get('level', 'Beginner')
     price = request.form.get('price', type=float, default=0.0)
     duration_hours = request.form.get('duration_hours', type=int, default=0)
+    duration_days = request.form.get('duration_days', type=int, default=30)
     instructor_name = request.form.get('instructor_name', '').strip()
     thumbnail_url = request.form.get('thumbnail_url', '').strip()
     featured = request.form.get('featured') == 'on'
@@ -666,6 +757,7 @@ def admin_add_course():
             level=level,
             price=price,
             duration_hours=duration_hours,
+            duration_days=duration_days,
             instructor_name=instructor_name,
             thumbnail_url=thumbnail_url,
             featured=featured,
@@ -698,6 +790,7 @@ def admin_edit_course(course_id):
     course.level = request.form.get('level', 'Beginner')
     course.price = request.form.get('price', type=float, default=0.0)
     course.duration_hours = request.form.get('duration_hours', type=int, default=0)
+    course.duration_days = request.form.get('duration_days', type=int, default=30)
     course.instructor_name = request.form.get('instructor_name', '').strip()
     course.thumbnail_url = request.form.get('thumbnail_url', '').strip()
     course.featured = request.form.get('featured') == 'on'
@@ -831,7 +924,7 @@ def admin_add_blog():
             author=author,
             category=category,
             tags=tags,
-            featured_image=featured_image,
+            featured_image_url=featured_image,
             is_published=True,
             published_at=datetime.utcnow()
         )
@@ -867,151 +960,6 @@ def admin_delete_blog(blog_id):
     
     return redirect(url_for('admin_panel'))
 
-
-# ==================== API ENDPOINTS (for future frontend) ====================
-
-@app.route('/api/courses')
-def api_courses():
-    """API endpoint for courses"""
-    courses = Course.query.filter_by(is_published=True).all()
-    return jsonify([{
-        'id': c.id,
-        'title': c.title,
-        'description': c.description,
-        'category': c.category,
-        'price': c.price,
-        'level': c.level
-    } for c in courses])
-
-
-@app.route('/api/course/<int:course_id>')
-def api_course_detail(course_id):
-    """API endpoint for course detail"""
-    course = Course.query.get_or_404(course_id)
-    lectures = course.lectures.order_by(Lecture.order_index.asc()).all()
-    
-    return jsonify({
-        'id': course.id,
-        'title': course.title,
-        'description': course.description,
-        'category': course.category,
-        'price': course.price,
-        'level': course.level,
-        'lectures': [{
-            'id': l.id,
-            'title': l.title,
-            'duration': l.duration_minutes
-        } for l in lectures]
-    })
-
-
-# ==================== DATABASE INITIALIZATION ====================
-
-@app.cli.command('init-db')
-def init_db():
-    """Initialize database with tables"""
-    db.create_all()
-    print('Database initialized successfully!')
-
-
-@app.cli.command('create-admin')
-def create_admin():
-    """Create admin user"""
-    admin = User.query.filter_by(username='admin').first()
-    
-    if admin:
-        print('Admin user already exists!')
-        return
-    
-    admin = User(
-        username='admin',
-        email='admin@learnhub.com',
-        first_name='Admin',
-        last_name='User',
-        is_admin=True
-    )
-    admin.set_password('admin123')
-    
-    db.session.add(admin)
-    db.session.commit()
-    
-    print('Admin user created successfully!')
-    print('Username: admin')
-    print('Password: admin123')
-
-
-@app.cli.command('seed-data')
-def seed_data():
-    """Seed database with sample data"""
-    # Create sample courses
-    courses_data = [
-        {
-            'title': 'Complete Python Programming',
-            'description': 'Learn Python from scratch to advanced level with hands-on projects.',
-            'category': 'Programming',
-            'level': 'Beginner',
-            'price': 49.99,
-            'duration_hours': 40,
-            'instructor_name': 'John Doe',
-            'thumbnail_url': 'https://images.unsplash.com/photo-1526379095098-d400fd0bf935?w=500',
-            'featured': True
-        },
-        {
-            'title': 'Web Development Bootcamp',
-            'description': 'Master HTML, CSS, JavaScript, and modern frameworks.',
-            'category': 'Web Development',
-            'level': 'Intermediate',
-            'price': 59.99,
-            'duration_hours': 60,
-            'instructor_name': 'Jane Smith',
-            'thumbnail_url': 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=500',
-            'featured': True
-        },
-        {
-            'title': 'Data Science with Python',
-            'description': 'Learn data analysis, visualization, and machine learning.',
-            'category': 'Data Science',
-            'level': 'Advanced',
-            'price': 79.99,
-            'duration_hours': 50,
-            'instructor_name': 'Dr. Michael Chen',
-            'thumbnail_url': 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=500',
-            'featured': True
-        }
-    ]
-    
-    for course_data in courses_data:
-        if not Course.query.filter_by(title=course_data['title']).first():
-            course = Course(**course_data)
-            db.session.add(course)
-    
-    db.session.commit()
-    print('Sample data seeded successfully!')
-
-
-# Add this route after the enroll_course route (around line 450)
-
-@app.route('/payment/<int:course_id>')
-@login_required
-def payment_instructions(course_id):
-    """Payment instructions page"""
-    course = Course.query.get_or_404(course_id)
-    
-    # Check if already enrolled
-    existing_enrollment = Enrollment.query.filter_by(
-        user_id=current_user.id,
-        course_id=course_id,
-        is_active=True
-    ).first()
-    
-    if existing_enrollment:
-        flash('You are already enrolled in this course.', 'info')
-        return redirect(url_for('course_detail', course_id=course_id))
-    
-    return render_template('public/payment_instructions.html', course=course)
-
-
-# Add these routes after admin_delete_blog (around line 750)
 
 @app.route('/admin/blogs')
 @login_required
@@ -1174,8 +1122,6 @@ def admin_unpublish_blog(blog_id):
     return redirect(url_for('admin_blogs'))
 
 
-# Also add these placeholder routes for admin navigation (after admin_blogs)
-
 @app.route('/admin/users')
 @login_required
 @admin_required
@@ -1219,6 +1165,132 @@ def admin_lectures():
     """Lecture management page (placeholder)"""
     flash('Lecture management feature coming soon!', 'info')
     return redirect(url_for('admin_panel'))
+
+
+# ==================== API ENDPOINTS (for future frontend) ====================
+
+@app.route('/api/courses')
+def api_courses():
+    """API endpoint for courses"""
+    courses = Course.query.filter_by(is_published=True).all()
+    return jsonify([{
+        'id': c.id,
+        'title': c.title,
+        'description': c.description,
+        'category': c.category,
+        'price': c.price,
+        'level': c.level
+    } for c in courses])
+
+
+@app.route('/api/course/<int:course_id>')
+def api_course_detail(course_id):
+    """API endpoint for course detail"""
+    course = Course.query.get_or_404(course_id)
+    lectures = course.lectures.order_by(Lecture.order_index.asc()).all()
+    
+    return jsonify({
+        'id': course.id,
+        'title': course.title,
+        'description': course.description,
+        'category': course.category,
+        'price': course.price,
+        'level': course.level,
+        'lectures': [{
+            'id': l.id,
+            'title': l.title,
+            'duration': l.duration_minutes
+        } for l in lectures]
+    })
+
+
+# ==================== DATABASE INITIALIZATION ====================
+
+@app.cli.command('init-db')
+def init_db():
+    """Initialize database with tables"""
+    db.create_all()
+    print('Database initialized successfully!')
+
+
+@app.cli.command('create-admin')
+def create_admin():
+    """Create admin user"""
+    admin = User.query.filter_by(username='admin').first()
+    
+    if admin:
+        print('Admin user already exists!')
+        return
+    
+    admin = User(
+        username='admin',
+        email='admin@learnhub.com',
+        first_name='Admin',
+        last_name='User',
+        is_admin=True
+    )
+    admin.set_password('admin123')
+    
+    db.session.add(admin)
+    db.session.commit()
+    
+    print('Admin user created successfully!')
+    print('Username: admin')
+    print('Password: admin123')
+
+
+@app.cli.command('seed-data')
+def seed_data():
+    """Seed database with sample data"""
+    # Create sample courses
+    courses_data = [
+        {
+            'title': 'Complete Python Programming',
+            'description': 'Learn Python from scratch to advanced level with hands-on projects.',
+            'category': 'Programming',
+            'level': 'Beginner',
+            'price': 49.99,
+            'duration_hours': 40,
+            'duration_days': 60,
+            'instructor_name': 'John Doe',
+            'thumbnail_url': 'https://images.unsplash.com/photo-1526379095098-d400fd0bf935?w=500',
+            'featured': True
+        },
+        {
+            'title': 'Web Development Bootcamp',
+            'description': 'Master HTML, CSS, JavaScript, and modern frameworks.',
+            'category': 'Web Development',
+            'level': 'Intermediate',
+            'price': 59.99,
+            'duration_hours': 60,
+            'duration_days': 90,
+            'instructor_name': 'Jane Smith',
+            'thumbnail_url': 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=500',
+            'featured': True
+        },
+        {
+            'title': 'Data Science with Python',
+            'description': 'Learn data analysis, visualization, and machine learning.',
+            'category': 'Data Science',
+            'level': 'Advanced',
+            'price': 79.99,
+            'duration_hours': 50,
+            'duration_days': 90,
+            'instructor_name': 'Dr. Michael Chen',
+            'thumbnail_url': 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=500',
+            'featured': True
+        }
+    ]
+    
+    for course_data in courses_data:
+        if not Course.query.filter_by(title=course_data['title']).first():
+            course = Course(**course_data)
+            db.session.add(course)
+    
+    db.session.commit()
+    print('Sample data seeded successfully!')
+
+
 # ==================== APPLICATION ENTRY POINT ====================
 
 if __name__ == '__main__':

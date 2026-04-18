@@ -126,23 +126,21 @@
                                 <strong>Send payment proof</strong> to our email with your details:
                                 <div class="email-box mt-2">
                                     <i class="fas fa-envelope"></i>
-                                    <a href="mailto:shoaibtahir411@gmail.com?subject=Payment for {{ course.title }}&body=Name: [Your Name]%0D%0AEmail: [Your Email]%0D%0ACourse: {{ course.title }}%0D%0AAmount Paid: ${{ course.price }}">
-                                        shoaibtahir411@gmail.com
+                                    <a href="mailto:shoaibtahir411@gmail.com?subject=Payment Proof - {{ course.title|urlencode }} - {{ current_user.username|urlencode }}&body=Hi Team,%0D%0A%0D%0AI have completed the payment for the course.%0D%0A%0D%0ADetails:%0D%0A- Name: {{ current_user.full_name|urlencode }}%0D%0A- Email: {{ current_user.email|urlencode }}%0D%0A- Course: {{ course.title|urlencode }}%0D%0A- Amount Paid: ${{ course.price }}%0D%0A%0D%0APlease find my payment receipt attached.%0D%0A%0D%0AThank you!" class="btn btn-primary">
+                                        <i class="fas fa-paper-plane"></i> Send Payment Proof via Gmail
                                     </a>
                                 </div>
                             </li>
                             <li>
-                                <strong>Include in your email:</strong>
+                                <strong>What to include in your email:</strong>
                                 <ul>
-                                    <li>Your full name</li>
-                                    <li>Your registered email</li>
-                                    <li>Course name: <strong>{{ course.title }}</strong></li>
-                                    <li>Payment receipt/screenshot</li>
+                                    <li>Payment receipt/screenshot (attached)</li>
                                     <li>Transaction ID (if available)</li>
+                                    <li>Your registered email: <strong>{{ current_user.email }}</strong></li>
                                 </ul>
                             </li>
                             <li>
-                                <strong>Wait for confirmation</strong> - We'll verify your payment and activate your enrollment within 24 hours
+                                <strong>Wait for confirmation</strong> - We'll verify your payment and activate your enrollment within 24 hours. You'll receive an email once verified.
                             </li>
                         </ol>
                     </div>
@@ -151,7 +149,8 @@
                     <div class="alert alert-warning mt-4">
                         <h6><i class="fas fa-exclamation-triangle"></i> Important Notes:</h6>
                         <ul class="mb-0">
-                            <li>Enrollment will be activated only after payment verification</li>
+                            <li>Your enrollment will be activated only after payment verification</li>
+                            <li>You will have view-only access until payment is verified</li>
                             <li>Please transfer the exact amount to avoid delays</li>
                             <li>Processing time: 24-48 hours (business days)</li>
                             <li>Keep your payment receipt until enrollment is confirmed</li>
@@ -174,7 +173,7 @@
                         <a href="{{ url_for('course_detail', course_id=course.id) }}" class="btn btn-outline-secondary">
                             <i class="fas fa-arrow-left"></i> Back to Course
                         </a>
-                        <a href="mailto:shoaibtahir411@gmail.com?subject=Payment for {{ course.title }}" class="btn btn-success">
+                        <a href="mailto:shoaibtahir411@gmail.com?subject=Payment Proof - {{ course.title|urlencode }} - {{ current_user.username|urlencode }}&body=Hi Team,%0D%0A%0D%0AI have completed the payment for the course.%0D%0A%0D%0ADetails:%0D%0A- Name: {{ current_user.full_name|urlencode }}%0D%0A- Email: {{ current_user.email|urlencode }}%0D%0A- Course: {{ course.title|urlencode }}%0D%0A- Amount Paid: ${{ course.price }}%0D%0A%0D%0APlease find my payment receipt attached.%0D%0A%0D%0AThank you!" class="btn btn-success">
                             <i class="fas fa-paper-plane"></i> Send Payment Proof
                         </a>
                     </div>
@@ -184,114 +183,6 @@
         </div>
     </div>
 </div>
-
-<style>
-.info-box {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    padding: 15px;
-    background: #f8f9fa;
-    border-radius: 8px;
-    margin-bottom: 15px;
-}
-
-.info-box i {
-    font-size: 2em;
-}
-
-.price-display {
-    background: linear-gradient(135deg, #f0fff4, #e8f5e9);
-    padding: 20px;
-    border-radius: 10px;
-    margin-top: 15px;
-}
-
-.bank-details-card {
-    background: #f8f9fa;
-    border: 2px solid #dee2e6;
-    border-radius: 10px;
-    padding: 25px;
-    margin-top: 20px;
-}
-
-.detail-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 12px;
-    border-bottom: 1px solid #dee2e6;
-    gap: 10px;
-}
-
-.detail-row:last-child {
-    border-bottom: none;
-}
-
-.detail-row .label {
-    font-weight: 600;
-    color: #666;
-}
-
-.detail-row .value {
-    font-family: 'Courier New', monospace;
-    font-size: 1.1em;
-    color: #000;
-}
-
-.detail-row .value.selectable {
-    background: #fff;
-    padding: 5px 10px;
-    border-radius: 4px;
-    border: 1px solid #dee2e6;
-}
-
-.payment-steps {
-    background: #fff;
-    padding: 20px 20px 20px 40px;
-    border-left: 4px solid #28a745;
-    border-radius: 5px;
-}
-
-.payment-steps li {
-    margin-bottom: 15px;
-    line-height: 1.6;
-}
-
-.payment-steps li ul {
-    margin-top: 10px;
-    margin-left: 20px;
-}
-
-.email-box {
-    background: #fff;
-    border: 2px solid #007bff;
-    border-radius: 8px;
-    padding: 12px;
-    display: inline-flex;
-    align-items: center;
-    gap: 10px;
-}
-
-.email-box a {
-    font-weight: bold;
-    font-size: 1.1em;
-}
-
-.support-box {
-    background: #e7f3ff;
-    border-left: 4px solid #007bff;
-    padding: 20px;
-    border-radius: 5px;
-}
-
-.contact-info {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    font-size: 1.1em;
-}
-</style>
 
 <script>
 function copyToClipboard(text) {
