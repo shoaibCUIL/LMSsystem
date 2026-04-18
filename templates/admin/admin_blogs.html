@@ -1,0 +1,223 @@
+{% extends "layout/base.html" %}
+
+{% block title %}Manage Blogs - Admin{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1><i class="fas fa-blog"></i> Blog Management</h1>
+        <a href="{{ url_for('admin_create_blog') }}" class="btn btn-success btn-lg">
+            <i class="fas fa-plus"></i> Create New Post
+        </a>
+    </div>
+    
+    <!-- Stats Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="stat-card">
+                <div class="stat-icon bg-primary">
+                    <i class="fas fa-file-alt"></i>
+                </div>
+                <div class="stat-details">
+                    <h3>{{ stats.total }}</h3>
+                    <p>Total Posts</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card">
+                <div class="stat-icon bg-success">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+                <div class="stat-details">
+                    <h3>{{ stats.published }}</h3>
+                    <p>Published</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card">
+                <div class="stat-icon bg-warning">
+                    <i class="fas fa-clock"></i>
+                </div>
+                <div class="stat-details">
+                    <h3>{{ stats.drafts }}</h3>
+                    <p>Drafts</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card">
+                <div class="stat-icon bg-info">
+                    <i class="fas fa-eye"></i>
+                </div>
+                <div class="stat-details">
+                    <h3>{{ stats.total_views }}</h3>
+                    <p>Total Views</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Filter Tabs -->
+    <ul class="nav nav-tabs mb-3">
+        <li class="nav-item">
+            <a class="nav-link active" href="?filter=all">All Posts ({{ stats.total }})</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" href="?filter=published">Published ({{ stats.published }})</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" href="?filter=drafts">Drafts ({{ stats.drafts }})</a>
+        </li>
+    </ul>
+    
+    <!-- Blog Posts Table -->
+    <div class="card shadow">
+        <div class="card-body">
+            {% if blogs %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Title</th>
+                            <th>Category</th>
+                            <th>Status</th>
+                            <th>Views</th>
+                            <th>Published</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for blog in blogs %}
+                        <tr>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    {% if blog.featured_image_url %}
+                                    <img src="{{ blog.featured_image_url }}" alt="{{ blog.title }}" class="blog-thumb me-2">
+                                    {% endif %}
+                                    <div>
+                                        <strong>{{ blog.title }}</strong>
+                                        <br>
+                                        <small class="text-muted">{{ blog.excerpt[:50] }}...</small>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="badge bg-secondary">{{ blog.category }}</span>
+                            </td>
+                            <td>
+                                {% if blog.is_published %}
+                                    <span class="badge bg-success">
+                                        <i class="fas fa-check"></i> Published
+                                    </span>
+                                {% else %}
+                                    <span class="badge bg-warning">
+                                        <i class="fas fa-clock"></i> Draft
+                                    </span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <i class="fas fa-eye text-muted"></i> {{ blog.view_count }}
+                            </td>
+                            <td>
+                                {% if blog.published_at %}
+                                    {{ blog.published_at.strftime('%b %d, %Y') }}
+                                {% else %}
+                                    <span class="text-muted">Not published</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="btn-group btn-group-sm">
+                                    <a href="{{ url_for('blog_detail', slug=blog.slug) }}" class="btn btn-outline-info" title="View">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    <a href="{{ url_for('admin_edit_blog', blog_id=blog.id) }}" class="btn btn-outline-primary" title="Edit">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    {% if blog.is_published %}
+                                    <form method="POST" action="{{ url_for('admin_unpublish_blog', blog_id=blog.id) }}" style="display:inline;">
+                                        <button type="submit" class="btn btn-outline-warning" title="Unpublish" onclick="return confirm('Unpublish this blog post?')">
+                                            <i class="fas fa-eye-slash"></i>
+                                        </button>
+                                    </form>
+                                    {% else %}
+                                    <form method="POST" action="{{ url_for('admin_publish_blog', blog_id=blog.id) }}" style="display:inline;">
+                                        <button type="submit" class="btn btn-outline-success" title="Publish">
+                                            <i class="fas fa-check"></i>
+                                        </button>
+                                    </form>
+                                    {% endif %}
+                                    <form method="POST" action="{{ url_for('admin_delete_blog', blog_id=blog.id) }}" style="display:inline;">
+                                        <button type="submit" class="btn btn-outline-danger" title="Delete" onclick="return confirm('Delete this blog post permanently?')">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="text-center py-5">
+                <i class="fas fa-blog fa-4x text-muted mb-3"></i>
+                <h4>No blog posts yet</h4>
+                <p class="text-muted">Create your first blog post to get started!</p>
+                <a href="{{ url_for('admin_create_blog') }}" class="btn btn-success mt-3">
+                    <i class="fas fa-plus"></i> Create First Post
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<style>
+.stat-card {
+    background: white;
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.stat-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.5em;
+}
+
+.stat-details h3 {
+    margin: 0;
+    font-size: 2em;
+    font-weight: bold;
+}
+
+.stat-details p {
+    margin: 0;
+    color: #666;
+}
+
+.blog-thumb {
+    width: 60px;
+    height: 60px;
+    object-fit: cover;
+    border-radius: 5px;
+}
+
+.nav-tabs .nav-link.active {
+    background: #007bff;
+    color: white;
+    border-color: #007bff;
+}
+</style>
+{% endblock %}

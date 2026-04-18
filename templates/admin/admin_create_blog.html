@@ -1,0 +1,176 @@
+{% extends "layout/base.html" %}
+
+{% block title %}Create Blog Post - Admin{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1><i class="fas fa-pen"></i> Create Blog Post</h1>
+                <a href="{{ url_for('admin_blogs') }}" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left"></i> Back to Blog Management
+                </a>
+            </div>
+            
+            <div class="card shadow">
+                <div class="card-body">
+                    <form method="POST" action="{{ url_for('admin_create_blog') }}" enctype="multipart/form-data">
+                        <!-- Title -->
+                        <div class="mb-3">
+                            <label for="title" class="form-label">Blog Title *</label>
+                            <input type="text" class="form-control form-control-lg" id="title" name="title" required placeholder="Enter an engaging title">
+                        </div>
+                        
+                        <!-- Slug -->
+                        <div class="mb-3">
+                            <label for="slug" class="form-label">URL Slug *</label>
+                            <div class="input-group">
+                                <span class="input-group-text">/blog/</span>
+                                <input type="text" class="form-control" id="slug" name="slug" required placeholder="url-friendly-slug">
+                            </div>
+                            <small class="form-text text-muted">URL-friendly version (lowercase, hyphens only). Example: how-to-learn-python</small>
+                        </div>
+                        
+                        <!-- Excerpt -->
+                        <div class="mb-3">
+                            <label for="excerpt" class="form-label">Excerpt/Summary *</label>
+                            <textarea class="form-control" id="excerpt" name="excerpt" rows="3" required placeholder="Brief summary shown in blog listings (150-200 characters)"></textarea>
+                            <small class="form-text text-muted" id="excerpt-count">0 characters</small>
+                        </div>
+                        
+                        <!-- Category -->
+                        <div class="mb-3">
+                            <label for="category" class="form-label">Category *</label>
+                            <select class="form-select" id="category" name="category" required>
+                                <option value="">Select Category</option>
+                                <option value="Technology">Technology</option>
+                                <option value="Programming">Programming</option>
+                                <option value="AI & Machine Learning">AI & Machine Learning</option>
+                                <option value="Web Development">Web Development</option>
+                                <option value="Data Science">Data Science</option>
+                                <option value="Career Advice">Career Advice</option>
+                                <option value="Student Success">Student Success</option>
+                                <option value="Linguistics">Linguistics</option>
+                                <option value="Tutorial">Tutorial</option>
+                                <option value="News & Updates">News & Updates</option>
+                            </select>
+                        </div>
+                        
+                        <!-- Tags -->
+                        <div class="mb-3">
+                            <label for="tags" class="form-label">Tags</label>
+                            <input type="text" class="form-control" id="tags" name="tags" placeholder="python, tutorial, beginners (comma-separated)">
+                            <small class="form-text text-muted">Separate tags with commas. Example: python, web development, tutorial</small>
+                        </div>
+                        
+                        <!-- Featured Image URL -->
+                        <div class="mb-3">
+                            <label for="featured_image_url" class="form-label">Featured Image URL</label>
+                            <input type="url" class="form-control" id="featured_image_url" name="featured_image_url" placeholder="https://example.com/image.jpg">
+                            <small class="form-text text-muted">Optional. Use image URL or upload to image hosting service</small>
+                        </div>
+                        
+                        <!-- Content -->
+                        <div class="mb-3">
+                            <label for="content" class="form-label">Blog Content *</label>
+                            <textarea class="form-control" id="content" name="content" rows="15" required placeholder="Write your blog post content here... (Supports HTML)"></textarea>
+                            <small class="form-text text-muted">You can use HTML formatting tags</small>
+                        </div>
+                        
+                        <!-- Formatting Help -->
+                        <div class="alert alert-info mb-3">
+                            <h6><i class="fas fa-info-circle"></i> Formatting Tips:</h6>
+                            <ul class="mb-0 small">
+                                <li><code>&lt;h2&gt;Heading&lt;/h2&gt;</code> - Subheadings</li>
+                                <li><code>&lt;p&gt;Paragraph&lt;/p&gt;</code> - Paragraphs</li>
+                                <li><code>&lt;strong&gt;Bold&lt;/strong&gt;</code> - Bold text</li>
+                                <li><code>&lt;em&gt;Italic&lt;/em&gt;</code> - Italic text</li>
+                                <li><code>&lt;ul&gt;&lt;li&gt;Item&lt;/li&gt;&lt;/ul&gt;</code> - Bullet lists</li>
+                                <li><code>&lt;code&gt;code&lt;/code&gt;</code> - Inline code</li>
+                                <li><code>&lt;pre&gt;&lt;code&gt;code block&lt;/code&gt;&lt;/pre&gt;</code> - Code blocks</li>
+                            </ul>
+                        </div>
+                        
+                        <!-- Publishing Options -->
+                        <div class="card bg-light mb-3">
+                            <div class="card-body">
+                                <h6><i class="fas fa-cog"></i> Publishing Options</h6>
+                                
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="checkbox" id="is_published" name="is_published" checked>
+                                    <label class="form-check-label" for="is_published">
+                                        <strong>Publish immediately</strong>
+                                        <small class="d-block text-muted">Uncheck to save as draft</small>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Submit Buttons -->
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-success btn-lg">
+                                <i class="fas fa-check"></i> Publish Blog Post
+                            </button>
+                            <button type="submit" name="save_draft" value="1" class="btn btn-outline-secondary btn-lg">
+                                <i class="fas fa-save"></i> Save as Draft
+                            </button>
+                            <a href="{{ url_for('admin_blogs') }}" class="btn btn-outline-danger btn-lg">
+                                <i class="fas fa-times"></i> Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Auto-generate slug from title
+document.getElementById('title').addEventListener('input', function() {
+    const slug = this.value
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-+|-+$/g, '');
+    document.getElementById('slug').value = slug;
+});
+
+// Character counter for excerpt
+document.getElementById('excerpt').addEventListener('input', function() {
+    const count = this.value.length;
+    const counter = document.getElementById('excerpt-count');
+    counter.textContent = count + ' characters';
+    
+    if (count < 100) {
+        counter.classList.remove('text-success', 'text-warning');
+        counter.classList.add('text-danger');
+    } else if (count < 150) {
+        counter.classList.remove('text-danger', 'text-success');
+        counter.classList.add('text-warning');
+    } else {
+        counter.classList.remove('text-danger', 'text-warning');
+        counter.classList.add('text-success');
+    }
+});
+</script>
+
+<style>
+.form-label {
+    font-weight: 600;
+    color: #333;
+}
+
+.form-control:focus, .form-select:focus {
+    border-color: #007bff;
+    box-shadow: 0 0 0 0.2rem rgba(0,123,255,.25);
+}
+
+code {
+    background: #f8f9fa;
+    padding: 2px 6px;
+    border-radius: 3px;
+    color: #e83e8c;
+}
+</style>
+{% endblock %}

@@ -989,6 +989,236 @@ def seed_data():
     print('Sample data seeded successfully!')
 
 
+# Add this route after the enroll_course route (around line 450)
+
+@app.route('/payment/<int:course_id>')
+@login_required
+def payment_instructions(course_id):
+    """Payment instructions page"""
+    course = Course.query.get_or_404(course_id)
+    
+    # Check if already enrolled
+    existing_enrollment = Enrollment.query.filter_by(
+        user_id=current_user.id,
+        course_id=course_id,
+        is_active=True
+    ).first()
+    
+    if existing_enrollment:
+        flash('You are already enrolled in this course.', 'info')
+        return redirect(url_for('course_detail', course_id=course_id))
+    
+    return render_template('public/payment_instructions.html', course=course)
+
+
+# Add these routes after admin_delete_blog (around line 750)
+
+@app.route('/admin/blogs')
+@login_required
+@admin_required
+def admin_blogs():
+    """Admin blog management page"""
+    filter_type = request.args.get('filter', 'all')
+    
+    query = Blog.query
+    
+    if filter_type == 'published':
+        query = query.filter_by(is_published=True)
+    elif filter_type == 'drafts':
+        query = query.filter_by(is_published=False)
+    
+    blogs = query.order_by(Blog.created_at.desc()).all()
+    
+    stats = {
+        'total': Blog.query.count(),
+        'published': Blog.query.filter_by(is_published=True).count(),
+        'drafts': Blog.query.filter_by(is_published=False).count(),
+        'total_views': db.session.query(db.func.sum(Blog.views_count)).scalar() or 0
+    }
+    
+    return render_template('admin/admin_blogs.html', 
+                         blogs=blogs, 
+                         stats=stats)
+
+
+@app.route('/admin/blog/create', methods=['GET', 'POST'])
+@login_required
+@admin_required
+def admin_create_blog():
+    """Create new blog post"""
+    if request.method == 'POST':
+        title = request.form.get('title', '').strip()
+        slug = request.form.get('slug', '').strip()
+        content = request.form.get('content', '').strip()
+        excerpt = request.form.get('excerpt', '').strip()
+        category = request.form.get('category', '').strip()
+        tags = request.form.get('tags', '').strip()
+        featured_image_url = request.form.get('featured_image_url', '').strip()
+        is_published = request.form.get('is_published') == 'on'
+        save_draft = request.form.get('save_draft')
+        
+        if not title or not content:
+            flash('Title and content are required.', 'danger')
+            return render_template('admin/admin_create_blog.html')
+        
+        # Create slug if not provided
+        if not slug:
+            slug = create_slug(title)
+        
+        # Ensure slug is unique
+        base_slug = slug
+        counter = 1
+        while Blog.query.filter_by(slug=slug).first():
+            slug = f'{base_slug}-{counter}'
+            counter += 1
+        
+        try:
+            blog = Blog(
+                title=title,
+                slug=slug,
+                content=content,
+                excerpt=excerpt or content[:200],
+                category=category,
+                tags=tags,
+                featured_image_url=featured_image_url,
+                author=current_user.full_name,
+                is_published=is_published if not save_draft else False,
+                published_at=datetime.utcnow() if (is_published and not save_draft) else None
+            )
+            
+            db.session.add(blog)
+            db.session.commit()
+            
+            if save_draft:
+                flash(f'Blog post "{title}" saved as draft.', 'success')
+            else:
+                flash(f'Blog post "{title}" published successfully!', 'success')
+            
+            return redirect(url_for('admin_blogs'))
+        
+        except Exception as e:
+            db.session.rollback()
+            flash('An error occurred while saving the blog post.', 'danger')
+            app.logger.error(f'Create blog error: {str(e)}')
+    
+    return render_template('admin/admin_create_blog.html')
+
+
+@app.route('/admin/blog/<int:blog_id>/edit', methods=['GET', 'POST'])
+@login_required
+@admin_required
+def admin_edit_blog(blog_id):
+    """Edit existing blog post"""
+    blog = Blog.query.get_or_404(blog_id)
+    
+    if request.method == 'POST':
+        blog.title = request.form.get('title', '').strip()
+        blog.slug = request.form.get('slug', '').strip()
+        blog.content = request.form.get('content', '').strip()
+        blog.excerpt = request.form.get('excerpt', '').strip()
+        blog.category = request.form.get('category', '').strip()
+        blog.tags = request.form.get('tags', '').strip()
+        blog.featured_image_url = request.form.get('featured_image_url', '').strip()
+        blog.updated_at = datetime.utcnow()
+        
+        try:
+            db.session.commit()
+            flash(f'Blog post "{blog.title}" updated successfully!', 'success')
+            return redirect(url_for('admin_blogs'))
+        except Exception as e:
+            db.session.rollback()
+            flash('An error occurred while updating the blog post.', 'danger')
+            app.logger.error(f'Edit blog error: {str(e)}')
+    
+    return render_template('admin/admin_edit_blog.html', blog=blog)
+
+
+@app.route('/admin/blog/<int:blog_id>/publish', methods=['POST'])
+@login_required
+@admin_required
+def admin_publish_blog(blog_id):
+    """Publish a draft blog post"""
+    blog = Blog.query.get_or_404(blog_id)
+    
+    blog.is_published = True
+    blog.published_at = datetime.utcnow()
+    
+    try:
+        db.session.commit()
+        flash(f'Blog post "{blog.title}" published successfully!', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash('An error occurred while publishing the blog post.', 'danger')
+        app.logger.error(f'Publish blog error: {str(e)}')
+    
+    return redirect(url_for('admin_blogs'))
+
+
+@app.route('/admin/blog/<int:blog_id>/unpublish', methods=['POST'])
+@login_required
+@admin_required
+def admin_unpublish_blog(blog_id):
+    """Unpublish a blog post"""
+    blog = Blog.query.get_or_404(blog_id)
+    
+    blog.is_published = False
+    
+    try:
+        db.session.commit()
+        flash(f'Blog post "{blog.title}" unpublished.', 'info')
+    except Exception as e:
+        db.session.rollback()
+        flash('An error occurred while unpublishing the blog post.', 'danger')
+        app.logger.error(f'Unpublish blog error: {str(e)}')
+    
+    return redirect(url_for('admin_blogs'))
+
+
+# Also add these placeholder routes for admin navigation (after admin_blogs)
+
+@app.route('/admin/users')
+@login_required
+@admin_required
+def admin_users():
+    """User management page (placeholder)"""
+    flash('User management feature coming soon!', 'info')
+    return redirect(url_for('admin_panel'))
+
+
+@app.route('/admin/courses')
+@login_required
+@admin_required
+def admin_courses():
+    """Course management page (placeholder)"""
+    flash('Course management feature coming soon!', 'info')
+    return redirect(url_for('admin_panel'))
+
+
+@app.route('/admin/enrollments')
+@login_required
+@admin_required
+def admin_enrollments():
+    """Enrollment management page (placeholder)"""
+    flash('Enrollment management feature coming soon!', 'info')
+    return redirect(url_for('admin_panel'))
+
+
+@app.route('/admin/bundles')
+@login_required
+@admin_required
+def admin_bundles():
+    """Bundle management page (placeholder)"""
+    flash('Bundle management feature coming soon!', 'info')
+    return redirect(url_for('admin_panel'))
+
+
+@app.route('/admin/lectures')
+@login_required
+@admin_required
+def admin_lectures():
+    """Lecture management page (placeholder)"""
+    flash('Lecture management feature coming soon!', 'info')
+    return redirect(url_for('admin_panel'))
 # ==================== APPLICATION ENTRY POINT ====================
 
 if __name__ == '__main__':
