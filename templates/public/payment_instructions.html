@@ -1,0 +1,305 @@
+{% extends "layout/base.html" %}
+
+{% block title %}Payment Instructions - {{ app_name }}{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <!-- Course Info Card -->
+            <div class="card mb-4 shadow">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0"><i class="fas fa-graduation-cap"></i> Enrollment Details</h4>
+                </div>
+                <div class="card-body">
+                    <h5 class="text-primary">{{ course.title }}</h5>
+                    <p class="text-muted mb-3">{{ course.category }} • {{ course.level }}</p>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="info-box">
+                                <i class="fas fa-clock text-info"></i>
+                                <div>
+                                    <small class="text-muted">Duration</small>
+                                    <div class="fw-bold">{{ course.duration_hours }} hours ({{ course.duration_days }} days)</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="info-box">
+                                <i class="fas fa-book text-success"></i>
+                                <div>
+                                    <small class="text-muted">Lectures</small>
+                                    <div class="fw-bold">{{ course.lecture_count }} lectures</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <hr>
+                    
+                    <div class="price-display">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h4 class="mb-0">Course Fee:</h4>
+                            <h3 class="mb-0 text-success">
+                                {% if course.is_free %}
+                                    <span class="badge bg-success">FREE</span>
+                                {% else %}
+                                    ${{ "%.2f"|format(course.price) }}
+                                {% endif %}
+                            </h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            {% if course.is_free %}
+            <!-- Free Course - Direct Enrollment -->
+            <div class="card shadow">
+                <div class="card-body text-center p-5">
+                    <i class="fas fa-gift fa-4x text-success mb-3"></i>
+                    <h3>This Course is FREE!</h3>
+                    <p class="lead">You can enroll directly without any payment.</p>
+                    
+                    <form method="POST" action="{{ url_for('enroll_course', course_id=course.id) }}">
+                        <button type="submit" class="btn btn-success btn-lg mt-3">
+                            <i class="fas fa-check"></i> Enroll Now for Free
+                        </button>
+                    </form>
+                </div>
+            </div>
+            
+            {% else %}
+            <!-- Paid Course - Payment Instructions -->
+            <div class="card shadow">
+                <div class="card-header bg-success text-white">
+                    <h4 class="mb-0"><i class="fas fa-credit-card"></i> Payment Instructions</h4>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle"></i>
+                        <strong>Important:</strong> Currently we accept manual bank transfers. Please follow the instructions below to complete your enrollment.
+                    </div>
+                    
+                    <!-- Bank Details -->
+                    <div class="bank-details-card">
+                        <h5 class="mb-3"><i class="fas fa-university"></i> Bank Account Details</h5>
+                        
+                        <div class="detail-row">
+                            <span class="label">Bank Name:</span>
+                            <span class="value">Meezan Bank</span>
+                        </div>
+                        
+                        <div class="detail-row">
+                            <span class="label">Account Number:</span>
+                            <span class="value selectable">04110104042981</span>
+                            <button class="btn btn-sm btn-outline-primary" onclick="copyToClipboard('04110104042981')">
+                                <i class="fas fa-copy"></i> Copy
+                            </button>
+                        </div>
+                        
+                        <div class="detail-row">
+                            <span class="label">IBAN Number:</span>
+                            <span class="value selectable">PK41MEZN0004110104042981</span>
+                            <button class="btn btn-sm btn-outline-primary" onclick="copyToClipboard('PK41MEZN0004110104042981')">
+                                <i class="fas fa-copy"></i> Copy
+                            </button>
+                        </div>
+                        
+                        <div class="detail-row">
+                            <span class="label">Amount to Transfer:</span>
+                            <span class="value text-success fw-bold">${{ "%.2f"|format(course.price) }}</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Payment Steps -->
+                    <div class="mt-4">
+                        <h5><i class="fas fa-list-ol"></i> How to Complete Payment</h5>
+                        <ol class="payment-steps">
+                            <li>
+                                <strong>Transfer the exact amount</strong> (${{ "%.2f"|format(course.price) }}) to the bank account above
+                            </li>
+                            <li>
+                                <strong>Keep your payment receipt/screenshot</strong> as proof of payment
+                            </li>
+                            <li>
+                                <strong>Send payment proof</strong> to our email with your details:
+                                <div class="email-box mt-2">
+                                    <i class="fas fa-envelope"></i>
+                                    <a href="mailto:shoaibtahir411@gmail.com?subject=Payment for {{ course.title }}&body=Name: [Your Name]%0D%0AEmail: [Your Email]%0D%0ACourse: {{ course.title }}%0D%0AAmount Paid: ${{ course.price }}">
+                                        shoaibtahir411@gmail.com
+                                    </a>
+                                </div>
+                            </li>
+                            <li>
+                                <strong>Include in your email:</strong>
+                                <ul>
+                                    <li>Your full name</li>
+                                    <li>Your registered email</li>
+                                    <li>Course name: <strong>{{ course.title }}</strong></li>
+                                    <li>Payment receipt/screenshot</li>
+                                    <li>Transaction ID (if available)</li>
+                                </ul>
+                            </li>
+                            <li>
+                                <strong>Wait for confirmation</strong> - We'll verify your payment and activate your enrollment within 24 hours
+                            </li>
+                        </ol>
+                    </div>
+                    
+                    <!-- Important Notes -->
+                    <div class="alert alert-warning mt-4">
+                        <h6><i class="fas fa-exclamation-triangle"></i> Important Notes:</h6>
+                        <ul class="mb-0">
+                            <li>Enrollment will be activated only after payment verification</li>
+                            <li>Please transfer the exact amount to avoid delays</li>
+                            <li>Processing time: 24-48 hours (business days)</li>
+                            <li>Keep your payment receipt until enrollment is confirmed</li>
+                        </ul>
+                    </div>
+                    
+                    <!-- Contact Support -->
+                    <div class="support-box mt-4">
+                        <h6><i class="fas fa-headset"></i> Need Help?</h6>
+                        <p class="mb-2">If you face any problems during payment, contact us:</p>
+                        <div class="contact-info">
+                            <i class="fas fa-envelope text-primary"></i>
+                            <a href="mailto:shoaibtahir411@gmail.com">shoaibtahir411@gmail.com</a>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card-footer">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <a href="{{ url_for('course_detail', course_id=course.id) }}" class="btn btn-outline-secondary">
+                            <i class="fas fa-arrow-left"></i> Back to Course
+                        </a>
+                        <a href="mailto:shoaibtahir411@gmail.com?subject=Payment for {{ course.title }}" class="btn btn-success">
+                            <i class="fas fa-paper-plane"></i> Send Payment Proof
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<style>
+.info-box {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 15px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    margin-bottom: 15px;
+}
+
+.info-box i {
+    font-size: 2em;
+}
+
+.price-display {
+    background: linear-gradient(135deg, #f0fff4, #e8f5e9);
+    padding: 20px;
+    border-radius: 10px;
+    margin-top: 15px;
+}
+
+.bank-details-card {
+    background: #f8f9fa;
+    border: 2px solid #dee2e6;
+    border-radius: 10px;
+    padding: 25px;
+    margin-top: 20px;
+}
+
+.detail-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px;
+    border-bottom: 1px solid #dee2e6;
+    gap: 10px;
+}
+
+.detail-row:last-child {
+    border-bottom: none;
+}
+
+.detail-row .label {
+    font-weight: 600;
+    color: #666;
+}
+
+.detail-row .value {
+    font-family: 'Courier New', monospace;
+    font-size: 1.1em;
+    color: #000;
+}
+
+.detail-row .value.selectable {
+    background: #fff;
+    padding: 5px 10px;
+    border-radius: 4px;
+    border: 1px solid #dee2e6;
+}
+
+.payment-steps {
+    background: #fff;
+    padding: 20px 20px 20px 40px;
+    border-left: 4px solid #28a745;
+    border-radius: 5px;
+}
+
+.payment-steps li {
+    margin-bottom: 15px;
+    line-height: 1.6;
+}
+
+.payment-steps li ul {
+    margin-top: 10px;
+    margin-left: 20px;
+}
+
+.email-box {
+    background: #fff;
+    border: 2px solid #007bff;
+    border-radius: 8px;
+    padding: 12px;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.email-box a {
+    font-weight: bold;
+    font-size: 1.1em;
+}
+
+.support-box {
+    background: #e7f3ff;
+    border-left: 4px solid #007bff;
+    padding: 20px;
+    border-radius: 5px;
+}
+
+.contact-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 1.1em;
+}
+</style>
+
+<script>
+function copyToClipboard(text) {
+    navigator.clipboard.writeText(text).then(function() {
+        alert('Copied to clipboard: ' + text);
+    }, function(err) {
+        console.error('Could not copy text: ', err);
+    });
+}
+</script>
+{% endblock %}
