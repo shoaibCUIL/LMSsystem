@@ -1,5 +1,5 @@
 """
-Enhanced Course Population Script with Customization Options
+Enhanced Course Population Script - FIXED VERSION
 Run this to populate your LMS with all 13 courses
 """
 
@@ -8,13 +8,11 @@ from models import Course
 from datetime import datetime
 
 def populate_courses():
-    """Add all 13 courses to the database with customizable options"""
+    """Add all 13 courses to the database"""
     
     with app.app_context():
         courses_data = [
-            # ==========================================
-            # A. LINGUISTICS (Theoretical + Applied)
-            # ==========================================
+            # A. LINGUISTICS
             {
                 'title': 'General Linguistics',
                 'description': 'Master the foundational principles of linguistics, including phonetics, phonology, morphology, syntax, and semantics. Perfect for beginners and those seeking a comprehensive understanding of language structure.',
@@ -22,11 +20,10 @@ def populate_courses():
                 'level': 'Beginner',
                 'price': 99.00,
                 'duration_hours': 40,
-                'duration_days': 60,  # Recommended completion time
+                'duration_days': 60,
                 'instructor_name': 'Dr. Language Expert',
                 'thumbnail_url': '',
-                'featured': True,
-                'is_free': False
+                'featured': True
             },
             {
                 'title': 'Corpus Linguistics',
@@ -38,8 +35,7 @@ def populate_courses():
                 'duration_days': 50,
                 'instructor_name': 'Dr. Language Expert',
                 'thumbnail_url': '',
-                'featured': True,
-                'is_free': False
+                'featured': True
             },
             {
                 'title': 'Computational Linguistics',
@@ -51,13 +47,10 @@ def populate_courses():
                 'duration_days': 70,
                 'instructor_name': 'Dr. Language Expert',
                 'thumbnail_url': '',
-                'featured': True,
-                'is_free': False
+                'featured': True
             },
             
-            # ==========================================
             # B. PROGRAMMING & DEVELOPMENT
-            # ==========================================
             {
                 'title': 'Python Programming',
                 'description': 'Complete Python course from basics to advanced. Learn data structures, OOP, file handling, error handling, and real-world application development.',
@@ -68,8 +61,7 @@ def populate_courses():
                 'duration_days': 90,
                 'instructor_name': 'Tech Instructor',
                 'thumbnail_url': '',
-                'featured': True,
-                'is_free': False
+                'featured': True
             },
             {
                 'title': 'Web App Development',
@@ -81,8 +73,7 @@ def populate_courses():
                 'duration_days': 90,
                 'instructor_name': 'Tech Instructor',
                 'thumbnail_url': '',
-                'featured': True,
-                'is_free': False
+                'featured': True
             },
             {
                 'title': 'Desktop App Development',
@@ -94,8 +85,7 @@ def populate_courses():
                 'duration_days': 60,
                 'instructor_name': 'Tech Instructor',
                 'thumbnail_url': '',
-                'featured': False,
-                'is_free': False
+                'featured': False
             },
             {
                 'title': 'Google Apps Script',
@@ -107,13 +97,10 @@ def populate_courses():
                 'duration_days': 45,
                 'instructor_name': 'Tech Instructor',
                 'thumbnail_url': '',
-                'featured': False,
-                'is_free': False
+                'featured': False
             },
             
-            # ==========================================
             # C. AI & AUTOMATION
-            # ==========================================
             {
                 'title': 'AI Automation',
                 'description': 'Harness AI tools and APIs to automate workflows. Learn to integrate ChatGPT, Claude, and other AI services into your applications and processes.',
@@ -124,8 +111,7 @@ def populate_courses():
                 'duration_days': 60,
                 'instructor_name': 'AI Specialist',
                 'thumbnail_url': '',
-                'featured': True,
-                'is_free': False
+                'featured': True
             },
             {
                 'title': 'Vibe Coding',
@@ -137,13 +123,10 @@ def populate_courses():
                 'duration_days': 30,
                 'instructor_name': 'AI Specialist',
                 'thumbnail_url': '',
-                'featured': True,
-                'is_free': False
+                'featured': True
             },
             
-            # ==========================================
-            # D. SPECIALIZED / NICHE COURSES
-            # ==========================================
+            # D. SPECIALIZED
             {
                 'title': 'Python for Linguists (Short Course)',
                 'description': 'Bridge course combining linguistics and programming. Learn Python specifically for text analysis, corpus processing, and linguistic research. Perfect for linguists entering computational work.',
@@ -154,13 +137,10 @@ def populate_courses():
                 'duration_days': 30,
                 'instructor_name': 'Dr. Language Expert',
                 'thumbnail_url': '',
-                'featured': True,
-                'is_free': False
+                'featured': True
             },
             
-            # ==========================================
-            # E. SYSTEMS & TOOLS DEVELOPMENT
-            # ==========================================
+            # E. SYSTEMS DEVELOPMENT
             {
                 'title': 'LMS Development',
                 'description': 'Build your own Learning Management System from scratch. Learn full-stack development, database design, user authentication, course management, and payment integration.',
@@ -171,13 +151,10 @@ def populate_courses():
                 'duration_days': 120,
                 'instructor_name': 'Tech Instructor',
                 'thumbnail_url': '',
-                'featured': True,
-                'is_free': False
+                'featured': True
             },
             
-            # ==========================================
-            # F. DEPLOYMENT & HOSTING
-            # ==========================================
+            # F. DEPLOYMENT
             {
                 'title': 'How to Deploy and Host Your Tools',
                 'description': 'Complete guide to deploying and hosting web apps, NLP tools, and APIs. Master deployment fundamentals, server management, domains, and scaling. Covers Render, Streamlit, Railway, and more.',
@@ -188,12 +165,10 @@ def populate_courses():
                 'duration_days': 50,
                 'instructor_name': 'DevOps Expert',
                 'thumbnail_url': '',
-                'featured': True,
-                'is_free': False
+                'featured': True
             },
         ]
         
-        # Add all courses
         added_count = 0
         skipped_count = 0
         
@@ -202,7 +177,6 @@ def populate_courses():
         print("="*60 + "\n")
         
         for course_data in courses_data:
-            # Check if course already exists
             existing = Course.query.filter_by(title=course_data['title']).first()
             if not existing:
                 course = Course(**course_data)
@@ -213,51 +187,17 @@ def populate_courses():
                 print(f"   Category: {course_data['category']} | Price: ${course_data['price']} | Duration: {course_data['duration_days']} days")
             else:
                 skipped_count += 1
-                print(f"⏭️  Skipped (exists): {course_data['title']}")
+                print(f"⏭️  Skipped: {course_data['title']}")
         
         db.session.commit()
         
-        # Print summary
         print("\n" + "="*60)
         print("✅ COURSE POPULATION COMPLETE!")
         print("="*60)
         print(f"✅ Added: {added_count} new courses")
         print(f"⏭️  Skipped: {skipped_count} existing courses")
-        print(f"📊 Total courses in database: {Course.query.count()}")
-        
-        # Category breakdown
-        print("\n📋 Courses by Category:")
-        categories = db.session.query(Course.category, db.func.count(Course.id)).group_by(Course.category).all()
-        for category, count in categories:
-            print(f"   • {category}: {count} courses")
-        
-        # Price breakdown
-        print("\n💰 Price Range:")
-        min_price = db.session.query(db.func.min(Course.price)).filter(Course.is_free == False).scalar()
-        max_price = db.session.query(db.func.max(Course.price)).filter(Course.is_free == False).scalar()
-        avg_price = db.session.query(db.func.avg(Course.price)).filter(Course.is_free == False).scalar()
-        print(f"   • Minimum: ${min_price:.2f}")
-        print(f"   • Maximum: ${max_price:.2f}")
-        print(f"   • Average: ${avg_price:.2f}")
-        
-        # Duration breakdown
-        print("\n⏱️  Duration Range:")
-        min_hours = db.session.query(db.func.min(Course.duration_hours)).scalar()
-        max_hours = db.session.query(db.func.max(Course.duration_hours)).scalar()
-        total_hours = db.session.query(db.func.sum(Course.duration_hours)).scalar()
-        print(f"   • Shortest: {min_hours} hours")
-        print(f"   • Longest: {max_hours} hours")
-        print(f"   • Total content: {total_hours} hours")
-        
-        print("\n" + "="*60)
-        print("🎓 Your LMS is now ready with all courses!")
-        print("="*60)
-        print("\n📍 Next Steps:")
-        print("   1. Visit: http://localhost:5000/courses")
-        print("   2. Browse all courses with filters")
-        print("   3. Sort by: Price, Duration, Level, Category")
-        print("   4. Create custom bundles (15% discount!)")
-        print("\n✨ Happy Learning!\n")
+        print(f"📊 Total: {Course.query.count()} courses")
+        print("\n✨ Visit: http://localhost:5000/courses\n")
 
 if __name__ == '__main__':
     populate_courses()
