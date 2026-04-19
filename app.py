@@ -1050,6 +1050,15 @@ def init_db():
     print('Database initialized successfully!')
 
 
+# ==================== DATABASE INITIALIZATION ====================
+
+@app.cli.command('init-db')
+def init_db():
+    """Initialize database with tables"""
+    db.create_all()
+    print('Database initialized successfully!')
+
+
 @app.cli.command('create-admin')
 def create_admin():
     """Create admin user"""
@@ -1076,14 +1085,17 @@ def create_admin():
     print('Password: admin123')
 
 
-# ==================== APPLICATION ENTRY POINT ====================
+# ==================== AUTO-INITIALIZE DATABASE ON STARTUP ====================
 
-if __name__ == '__main__':
-    with app.app_context():
+# This runs BEFORE the app starts (important for Railway)
+with app.app_context():
+    try:
         db.create_all()
+        print('✅ Database tables created/verified')
         
         # Create admin if not exists
-        if not User.query.filter_by(username='admin').first():
+        admin_exists = User.query.filter_by(username='admin').first()
+        if not admin_exists:
             admin = User(
                 username='admin',
                 email='admin@learnhub.com',
@@ -1094,6 +1106,16 @@ if __name__ == '__main__':
             admin.set_password('admin123')
             db.session.add(admin)
             db.session.commit()
-            print('Admin user created: username=admin, password=admin123')
-    
+            print('✅ Admin user created: username=admin, password=admin123')
+        else:
+            print('✅ Admin user already exists')
+    except Exception as e:
+        print(f'⚠️ Database initialization error: {str(e)}')
+
+
+# ==================== APPLICATION ENTRY POINT ====================
+
+if __name__ == '__main__':
+    # This runs only when running locally with `python app.py`
+    # Railway uses gunicorn, so this block is skipped in production
     app.run(debug=True, host='0.0.0.0', port=5000)
