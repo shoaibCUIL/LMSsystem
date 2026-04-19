@@ -3,126 +3,137 @@
 {% block title %}Create Bundle - {{ app_name }}{% endblock %}
 
 {% block content %}
-<div class="container my-5">
-    <div class="row">
+<div class="container" style="padding: 3rem 0;">
+    <div style="display: grid; grid-template-columns: 1fr 400px; gap: 2rem;">
         <!-- Left Column - Bundle Creation -->
-        <div class="col-lg-8">
-            <div class="page-header mb-4">
-                <h2><i class="fas fa-layer-group"></i> Create Custom Course Bundle</h2>
-                <p class="text-muted">Select your courses and choose a bundle plan</p>
+        <div>
+            <!-- Page Header -->
+            <div style="margin-bottom: 2rem;">
+                <h2 style="font-size: 2.5rem; font-weight: 900; color: #1a202c; margin-bottom: 0.5rem;">
+                    <i class="fas fa-layer-group"></i> Create Custom Bundle
+                </h2>
+                <p style="color: #718096; font-size: 1.125rem;">Select your courses and choose a bundle plan</p>
             </div>
 
             <form method="POST" action="{{ url_for('create_bundle') }}" id="bundleForm">
                 <!-- Bundle Information -->
-                <div class="card mb-4">
-                    <div class="card-header bg-white">
-                        <h5 class="mb-0">Bundle Information</h5>
+                <div class="card" style="margin-bottom: 2rem;">
+                    <div class="card-header">
+                        <h5 style="margin: 0; font-weight: 700;">Bundle Information</h5>
                     </div>
                     <div class="card-body">
-                        <div class="mb-3">
-                            <label for="bundle_name" class="form-label">Bundle Name <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control" id="bundle_name" name="bundle_name" required 
-                                   placeholder="e.g., My Learning Path">
+                        <div class="form-group">
+                            <label class="form-label">Bundle Name <span style="color: #EF4444;">*</span></label>
+                            <input 
+                                type="text" 
+                                class="form-control" 
+                                id="bundle_name" 
+                                name="bundle_name" 
+                                required 
+                                placeholder="e.g., My Learning Path"
+                            >
                         </div>
 
-                        <div class="mb-3">
-                            <label for="description" class="form-label">Description (Optional)</label>
-                            <textarea class="form-control" id="description" name="description" rows="3" 
-                                      placeholder="Describe what this bundle will help you achieve..."></textarea>
+                        <div class="form-group">
+                            <label class="form-label">Description (Optional)</label>
+                            <textarea 
+                                class="form-control" 
+                                id="description" 
+                                name="description" 
+                                rows="3" 
+                                placeholder="Describe what this bundle will help you achieve..."
+                                style="resize: vertical;"
+                            ></textarea>
                         </div>
                     </div>
                 </div>
 
                 <!-- Course Selection -->
-                <div class="card mb-4">
-                    <div class="card-header bg-white d-flex justify-content-between align-items-center">
-                        <h5 class="mb-0">Select Courses</h5>
-                        <span class="badge bg-primary" id="selectedCount">0 selected</span>
+                <div class="card" style="margin-bottom: 2rem;">
+                    <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
+                        <h5 style="margin: 0; font-weight: 700;">Select Courses</h5>
+                        <span class="badge badge-primary" id="selectedCount">0 selected</span>
                     </div>
                     <div class="card-body">
-                        <p class="text-muted mb-3">Choose 2-10 courses for your bundle</p>
+                        <p style="color: #718096; margin-bottom: 1.5rem;">Choose 2-10 courses for your bundle</p>
                         
-                        <div class="row g-3" id="courseGrid">
+                        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1rem;" id="courseGrid">
                             {% for course in courses %}
-                            <div class="col-md-6">
-                                <div class="course-card" data-course-id="{{ course.id }}" data-price="{{ course.price }}" data-days="{{ course.duration_days }}">
-                                    <input type="checkbox" class="course-checkbox" name="course_ids" value="{{ course.id }}" id="course{{ course.id }}">
-                                    <label for="course{{ course.id }}" class="course-label">
-                                        <div class="course-header">
-                                            <h6 class="course-title">{{ course.title }}</h6>
-                                            <div class="course-price">${{ "%.2f"|format(course.price) }}</div>
-                                        </div>
-                                        <div class="course-meta">
-                                            <small class="text-muted">{{ course.category }} • {{ course.level }}</small>
-                                        </div>
-                                        <div class="course-duration">
-                                            <small><i class="far fa-clock"></i> {{ course.duration_days }} days</small>
-                                        </div>
-                                    </label>
-                                </div>
+                            <div class="course-select-card" data-course-id="{{ course.id }}" data-price="{{ course.price }}" data-days="{{ course.duration_days }}">
+                                <input type="checkbox" class="course-checkbox" name="course_ids" value="{{ course.id }}" id="course{{ course.id }}">
+                                <label for="course{{ course.id }}" style="display: block; padding: 1rem; cursor: pointer; margin: 0;">
+                                    <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 0.5rem;">
+                                        <h6 style="font-size: 1rem; font-weight: 700; margin: 0; flex: 1;">{{ course.title }}</h6>
+                                        <div style="font-weight: 700; color: #667eea; white-space: nowrap; margin-left: 0.5rem;">${{ "%.0f"|format(course.price) }}</div>
+                                    </div>
+                                    <div style="margin-bottom: 0.25rem;">
+                                        <small style="color: #718096;">{{ course.category }} • {{ course.level }}</small>
+                                    </div>
+                                    <div>
+                                        <small style="color: #718096;"><i class="far fa-clock"></i> {{ course.duration_days }} days</small>
+                                    </div>
+                                </label>
                             </div>
                             {% endfor %}
                         </div>
                     </div>
                 </div>
 
-                <!-- Duration & Pricing Customization -->
-                <div class="card mb-4">
-                    <div class="card-header bg-white">
-                        <h5 class="mb-0">Customize Duration & Pricing</h5>
+                <!-- Duration & Pricing -->
+                <div class="card" style="margin-bottom: 2rem;">
+                    <div class="card-header">
+                        <h5 style="margin: 0; font-weight: 700;">Duration & Pricing</h5>
                     </div>
                     <div class="card-body">
-                        <div class="row">
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
                             <!-- Days Selector -->
-                            <div class="col-md-6 mb-3">
-                                <label for="duration_days" class="form-label">
-                                    Access Duration (Days)
-                                    <i class="fas fa-info-circle text-muted" data-bs-toggle="tooltip" 
-                                       title="Adjust the number of days you want access to all courses"></i>
-                                </label>
-                                <div class="input-group">
-                                    <input type="number" class="form-control" id="duration_days" name="duration_days" 
-                                           min="7" value="120" required>
-                                    <span class="input-group-text">days</span>
-                                </div>
-                                <small class="text-muted">Min: 7 days | Max: No limit</small>
+                            <div>
+                                <label class="form-label">Access Duration (Days)</label>
+                                <input 
+                                    type="number" 
+                                    class="form-control" 
+                                    id="duration_days" 
+                                    name="duration_days" 
+                                    min="7" 
+                                    value="120" 
+                                    required
+                                >
+                                <small style="color: #718096; font-size: 0.875rem;">Min: 7 days | Max: No limit</small>
                                 
                                 <!-- Quick Duration Buttons -->
-                                <div class="mt-2">
-                                    <button type="button" class="btn btn-sm btn-outline-secondary quick-duration" data-days="60">60 days</button>
-                                    <button type="button" class="btn btn-sm btn-outline-secondary quick-duration" data-days="120">120 days</button>
-                                    <button type="button" class="btn btn-sm btn-outline-secondary quick-duration" data-days="180">6 months</button>
-                                    <button type="button" class="btn btn-sm btn-outline-secondary quick-duration" data-days="365">1 year</button>
-                                    <button type="button" class="btn btn-sm btn-outline-secondary quick-duration" data-days="730">2 years</button>
+                                <div style="margin-top: 0.75rem; display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                                    <button type="button" class="btn btn-sm btn-outline quick-duration" data-days="60">60 days</button>
+                                    <button type="button" class="btn btn-sm btn-outline quick-duration" data-days="120">120 days</button>
+                                    <button type="button" class="btn btn-sm btn-outline quick-duration" data-days="180">6 months</button>
+                                    <button type="button" class="btn btn-sm btn-outline quick-duration" data-days="365">1 year</button>
                                 </div>
                             </div>
 
                             <!-- Custom Price -->
-                            <div class="col-md-6 mb-3">
-                                <label for="custom_price" class="form-label">
-                                    Custom Price (USD)
-                                    <i class="fas fa-info-circle text-muted" data-bs-toggle="tooltip" 
-                                       title="Adjust price - days will update automatically"></i>
-                                </label>
-                                <div class="input-group">
-                                    <span class="input-group-text">$</span>
-                                    <input type="number" class="form-control" id="custom_price" 
-                                           min="1" step="0.01" placeholder="Auto-calculated">
-                                </div>
-                                <small class="text-muted" id="priceHint">Suggested: Based on selected courses</small>
+                            <div>
+                                <label class="form-label">Custom Price (USD)</label>
+                                <input 
+                                    type="number" 
+                                    class="form-control" 
+                                    id="custom_price" 
+                                    min="1" 
+                                    step="0.01" 
+                                    placeholder="Auto-calculated"
+                                >
+                                <small style="color: #718096; font-size: 0.875rem;" id="priceHint">Suggested: Based on selected courses</small>
                             </div>
                         </div>
 
-                        <!-- AI Pricing Suggestion -->
-                        <div class="alert alert-info mb-0" id="pricingSuggestion" style="display: none;">
+                        <!-- Pricing Suggestion -->
+                        <div class="alert alert-info" id="pricingSuggestion" style="display: none; margin-top: 1.5rem; margin-bottom: 0;">
                             <i class="fas fa-lightbulb"></i> <strong>Pricing Tip:</strong> 
                             <span id="suggestionText"></span>
                         </div>
                     </div>
                 </div>
 
-                <div class="d-flex justify-content-between">
-                    <a href="{{ url_for('dashboard') }}" class="btn btn-outline-secondary">
+                <div style="display: flex; justify-content: space-between;">
+                    <a href="{{ url_for('dashboard') }}" class="btn btn-outline">
                         <i class="fas fa-arrow-left"></i> Cancel
                     </a>
                     <button type="submit" class="btn btn-primary" id="createBundleBtn" disabled>
@@ -133,76 +144,74 @@
         </div>
 
         <!-- Right Column - Bundle Summary -->
-        <div class="col-lg-4">
-            <div class="sticky-sidebar">
-                <div class="card shadow-sm">
-                    <div class="card-header bg-primary text-white">
-                        <h5 class="mb-0"><i class="fas fa-receipt"></i> Bundle Summary</h5>
+        <div>
+            <div style="position: sticky; top: 100px;">
+                <div class="card">
+                    <div class="card-header" style="background: var(--primary-gradient); color: white;">
+                        <h5 style="margin: 0; font-weight: 700;"><i class="fas fa-receipt"></i> Bundle Summary</h5>
                     </div>
                     <div class="card-body">
                         <div id="summaryContent">
-                            <div class="text-center text-muted py-5">
-                                <i class="fas fa-shopping-cart fa-3x mb-3"></i>
+                            <div style="text-align: center; padding: 3rem 0; color: #a0aec0;">
+                                <i class="fas fa-shopping-cart" style="font-size: 3rem; margin-bottom: 1rem; display: block;"></i>
                                 <p>Select courses to see summary</p>
                             </div>
                         </div>
 
                         <div id="summaryDetails" style="display: none;">
-                            <h6 class="mb-3">Selected Courses (<span id="courseCount">0</span>)</h6>
-                            <ul class="list-unstyled" id="selectedCoursesList"></ul>
+                            <h6 style="margin-bottom: 1rem; font-weight: 700;">Selected Courses (<span id="courseCount">0</span>)</h6>
+                            <ul style="list-style: none; padding: 0; margin-bottom: 1.5rem;" id="selectedCoursesList"></ul>
 
-                            <hr>
+                            <div style="border-top: 1px solid #e2e8f0; padding-top: 1rem; margin-top: 1rem;">
+                                <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                                    <strong>Access Duration:</strong>
+                                    <span id="summaryDays">120 days</span>
+                                </div>
 
-                            <div class="mb-2">
-                                <strong>Access Duration:</strong>
-                                <span class="float-end" id="summaryDays">120 days</span>
-                            </div>
+                                <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                                    <strong>Base Price:</strong>
+                                    <span id="summaryBasePrice">$0.00</span>
+                                </div>
 
-                            <div class="mb-2">
-                                <strong>Base Price:</strong>
-                                <span class="float-end" id="summaryBasePrice">$0.00</span>
-                            </div>
+                                <div style="display: flex; justify-content: space-between; margin-bottom: 1rem; color: #10B981;">
+                                    <strong><i class="fas fa-tag"></i> Bundle Discount (15%):</strong>
+                                    <span id="summaryDiscount">-$0.00</span>
+                                </div>
 
-                            <div class="mb-2 text-success">
-                                <strong><i class="fas fa-tag"></i> Bundle Discount (15%):</strong>
-                                <span class="float-end" id="summaryDiscount">-$0.00</span>
-                            </div>
+                                <div style="border-top: 2px solid #e2e8f0; padding-top: 1rem; margin-top: 1rem;">
+                                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                                        <h5 style="margin: 0; font-weight: 900;">Final Price:</h5>
+                                        <h5 style="margin: 0; font-weight: 900; color: #10B981;" id="summaryFinalPrice">$0.00</h5>
+                                    </div>
+                                </div>
 
-                            <hr>
+                                <div class="alert alert-success" style="margin-top: 1rem;">
+                                    <i class="fas fa-piggy-bank"></i> You save <strong id="savingsAmount">$0.00</strong>!
+                                </div>
 
-                            <div class="mb-3">
-                                <h5 class="mb-0">
-                                    Final Price:
-                                    <span class="float-end text-success" id="summaryFinalPrice">$0.00</span>
-                                </h5>
-                            </div>
-
-                            <div class="alert alert-success">
-                                <i class="fas fa-piggy-bank"></i> You save <strong id="savingsAmount">$0.00</strong>!
-                            </div>
-
-                            <div class="alert alert-warning mb-0">
-                                <small>
-                                    <i class="fas fa-info-circle"></i> 
-                                    <strong>Note:</strong> Bundle will be activated after admin approval and payment verification.
-                                </small>
+                                <div class="alert alert-warning" style="margin-bottom: 0;">
+                                    <small>
+                                        <i class="fas fa-info-circle"></i> 
+                                        <strong>Note:</strong> Bundle will be activated after admin approval.
+                                    </small>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
 
                 <!-- Quick Tips -->
-                <div class="card mt-3">
-                    <div class="card-header bg-warning text-dark">
-                        <h6 class="mb-0"><i class="fas fa-lightbulb"></i> Quick Tips</h6>
+                <div class="card" style="margin-top: 1rem;">
+                    <div class="card-header" style="background: #FEF3C7; color: #92400E;">
+                        <h6 style="margin: 0; font-weight: 700;"><i class="fas fa-lightbulb"></i> Quick Tips</h6>
                     </div>
                     <div class="card-body">
-                        <ul class="small mb-0">
+                        <ul style="font-size: 0.875rem; margin: 0; padding-left: 1.25rem;">
                             <li>Select 2-10 courses</li>
                             <li>Choose your access duration</li>
                             <li>Get automatic 15% discount</li>
                             <li>All plans include full course access</li>
-                            <li>Adjust days or price - they sync automatically!</li>
+                            <li>Adjust days or price - they sync!</li>
                         </ul>
                     </div>
                 </div>
@@ -212,83 +221,43 @@
 </div>
 
 <style>
-.sticky-sidebar {
-    position: sticky;
-    top: 20px;
-}
-
-.course-card {
+.course-select-card {
     position: relative;
-    border: 2px solid #e0e0e0;
-    border-radius: 8px;
+    border: 2px solid #e2e8f0;
+    border-radius: 12px;
     transition: all 0.3s ease;
     cursor: pointer;
 }
 
-.course-card:hover {
-    border-color: #0d6efd;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+.course-select-card:hover {
+    border-color: #667eea;
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15);
 }
 
-.course-card.selected {
-    border-color: #0d6efd;
-    background-color: #e7f3ff;
+.course-select-card.selected {
+    border-color: #667eea;
+    background-color: rgba(102, 126, 234, 0.05);
 }
 
 .course-checkbox {
     position: absolute;
-    top: 10px;
-    right: 10px;
+    top: 1rem;
+    right: 1rem;
     width: 20px;
     height: 20px;
     cursor: pointer;
-}
-
-.course-label {
-    display: block;
-    padding: 15px;
-    padding-top: 35px;
-    cursor: pointer;
-    margin: 0;
-}
-
-.course-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: start;
-    margin-bottom: 8px;
-}
-
-.course-title {
-    font-size: 14px;
-    font-weight: 600;
-    margin: 0;
-    flex: 1;
-    padding-right: 10px;
-}
-
-.course-price {
-    font-weight: bold;
-    color: #0d6efd;
-    white-space: nowrap;
-}
-
-.course-meta {
-    margin-bottom: 5px;
-}
-
-.course-duration {
-    color: #6c757d;
+    accent-color: #667eea;
 }
 
 .quick-duration {
-    margin-right: 5px;
-    margin-bottom: 5px;
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
 }
 
 .quick-duration.active {
-    background-color: #0d6efd;
+    background: var(--primary-gradient);
     color: white;
+    border-color: transparent;
 }
 </style>
 
@@ -302,14 +271,12 @@ document.addEventListener('DOMContentLoaded', function() {
     const quickDurationBtns = document.querySelectorAll('.quick-duration');
     
     let selectedCourses = [];
-    let basePrice = 0;
     let isUpdatingPrice = false;
     let isUpdatingDays = false;
     
-    // Course selection
     checkboxes.forEach(checkbox => {
         checkbox.addEventListener('change', function() {
-            const card = this.closest('.course-card');
+            const card = this.closest('.course-select-card');
             if (this.checked) {
                 card.classList.add('selected');
             } else {
@@ -320,7 +287,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
     
-    // Quick duration buttons
     quickDurationBtns.forEach(btn => {
         btn.addEventListener('click', function() {
             quickDurationBtns.forEach(b => b.classList.remove('active'));
@@ -330,14 +296,12 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
     
-    // Days change -> Update price
     durationInput.addEventListener('input', function() {
         if (!isUpdatingDays) {
             calculatePricing();
         }
     });
     
-    // Price change -> Update days
     customPriceInput.addEventListener('input', function() {
         if (!isUpdatingPrice && this.value) {
             isUpdatingDays = true;
@@ -345,12 +309,8 @@ document.addEventListener('DOMContentLoaded', function() {
             const selectedCount = selectedCourses.length;
             
             if (selectedCount > 0) {
-                // Reverse formula: days = (price / (courseCount * $10 * 0.85)) * 7
-                // price = courseCount * (days/7) * $10 * 0.85
-                // price / (courseCount * 0.85 * 10) = days / 7
-                // days = (price / (courseCount * 0.85 * 10)) * 7
                 const baseRatePerWeek = 10;
-                const discount = 0.85; // After 15% discount
+                const discount = 0.85;
                 const weeks = customPrice / (selectedCount * baseRatePerWeek * discount);
                 const calculatedDays = Math.round(weeks * 7);
                 const clampedDays = Math.max(7, calculatedDays);
@@ -366,17 +326,12 @@ document.addEventListener('DOMContentLoaded', function() {
     
     function updateSummary() {
         selectedCourses = [];
-        basePrice = 0;
         
         checkboxes.forEach(checkbox => {
             if (checkbox.checked) {
-                const card = checkbox.closest('.course-card');
-                const courseId = card.dataset.courseId;
-                const price = parseFloat(card.dataset.price);
-                const title = card.querySelector('.course-title').textContent;
-                
-                selectedCourses.push({ id: courseId, title: title, price: price });
-                basePrice += price;
+                const card = checkbox.closest('.course-select-card');
+                const title = card.querySelector('h6').textContent;
+                selectedCourses.push({ title: title });
             }
         });
         
@@ -389,12 +344,10 @@ document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('summaryDetails').style.display = 'block';
             createBtn.disabled = false;
             
-            // Update course list
             const list = document.getElementById('selectedCoursesList');
             list.innerHTML = selectedCourses.map(course => 
-                `<li class="mb-2">
+                `<li style="margin-bottom: 0.5rem;">
                     <small>${course.title}</small>
-                    <span class="float-end text-primary">$10/week</span>
                 </li>`
             ).join('');
             
@@ -412,28 +365,20 @@ document.addEventListener('DOMContentLoaded', function() {
         
         const days = parseInt(durationInput.value) || 120;
         const courseCount = selectedCourses.length;
-        
-        // NEW PRICING FORMULA: $10 for 7 days as baseline
-        // Base rate: $10 per 7 days per course
-        // Formula: price = courseCount * (days / 7) * $10 * 0.85 (15% bundle discount)
-        const baseRatePerWeek = 10; // $10 per week
+        const baseRatePerWeek = 10;
         const weeks = days / 7;
         const basePriceCalculated = courseCount * weeks * baseRatePerWeek;
         const discount = 0.15;
         const finalPrice = basePriceCalculated * (1 - discount);
         const discountAmount = basePriceCalculated * discount;
         
-        // Update summary
         document.getElementById('summaryDays').textContent = days + ' days';
         document.getElementById('summaryBasePrice').textContent = '$' + basePriceCalculated.toFixed(2);
         document.getElementById('summaryDiscount').textContent = '-$' + discountAmount.toFixed(2);
         document.getElementById('summaryFinalPrice').textContent = '$' + finalPrice.toFixed(2);
         document.getElementById('savingsAmount').textContent = '$' + discountAmount.toFixed(2);
-        
-        // Update custom price placeholder
         customPriceInput.placeholder = finalPrice.toFixed(2);
         
-        // Show AI suggestion
         showPricingSuggestion(days, finalPrice);
         
         setTimeout(() => { isUpdatingPrice = false; }, 100);
@@ -444,24 +389,18 @@ document.addEventListener('DOMContentLoaded', function() {
         const suggestionText = document.getElementById('suggestionText');
         
         let suggestion = '';
-        
-        if (days <= 30) {
-            suggestion = `Short-term access (${days} days). Great for quick learning! Suggested: $${price.toFixed(2)}`;
-        } else if (days <= 90) {
-            suggestion = `Standard access (${days} days). Perfect for thorough learning. Suggested: $${price.toFixed(2)}`;
+        if (days <= 90) {
+            suggestion = `Short-term access (${days} days). Suggested: $${price.toFixed(2)}`;
         } else if (days <= 180) {
-            suggestion = `Extended access (${days} days). Ideal for mastery. Suggested: $${price.toFixed(2)}`;
-        } else if (days <= 365) {
-            suggestion = `Long-term access (${days} days). Excellent value! Suggested: $${price.toFixed(2)}`;
+            suggestion = `Standard access (${days} days). Suggested: $${price.toFixed(2)}`;
         } else {
-            suggestion = `Extended long-term access (${days} days / ${Math.round(days/30)} months). Premium investment! Suggested: $${price.toFixed(2)}`;
+            suggestion = `Long-term access (${days} days). Excellent value! Suggested: $${price.toFixed(2)}`;
         }
         
         suggestionText.textContent = suggestion;
         suggestionDiv.style.display = 'block';
     }
     
-    // Form submission
     form.addEventListener('submit', function(e) {
         if (selectedCourses.length < 2) {
             e.preventDefault();
@@ -469,7 +408,6 @@ document.addEventListener('DOMContentLoaded', function() {
             return false;
         }
         
-        // Add custom price to form if provided
         if (customPriceInput.value) {
             const hiddenInput = document.createElement('input');
             hiddenInput.type = 'hidden';
@@ -477,12 +415,6 @@ document.addEventListener('DOMContentLoaded', function() {
             hiddenInput.value = customPriceInput.value;
             form.appendChild(hiddenInput);
         }
-    });
-    
-    // Initialize tooltips
-    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
-        return new bootstrap.Tooltip(tooltipTriggerEl);
     });
 });
 </script>

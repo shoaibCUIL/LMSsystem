@@ -3,48 +3,50 @@
 {% block title %}Dashboard - {{ app_name }}{% endblock %}
 
 {% block content %}
-<div class="container my-5">
+<div class="container" style="padding: 3rem 0;">
     <!-- Dashboard Header -->
     <div class="dashboard-header">
-        <h1 class="mb-2">Welcome back, {{ current_user.full_name }}!</h1>
-        <p class="mb-0">Continue your learning journey</p>
+        <h1 style="font-size: 2.5rem; font-weight: 900; color: white; margin-bottom: 0.5rem;">
+            Welcome back, {{ current_user.full_name }}!
+        </h1>
+        <p style="color: rgba(255,255,255,0.95); font-size: 1.125rem; margin: 0;">Continue your learning journey</p>
     </div>
     
     <!-- Stats -->
-    <div class="dashboard-stats">
+    <div class="stats-grid" style="margin: 3rem 0;">
         <div class="stat-card">
-            <h3>{{ stats.total_courses }}</h3>
-            <p>Enrolled Courses</p>
+            <div class="stat-number">{{ stats.total_courses }}</div>
+            <div class="stat-label">Enrolled Courses</div>
         </div>
         
-        <div class="stat-card" style="border-color: var(--success-color);">
-            <h3 style="color: var(--success-color);">{{ stats.completed_courses }}</h3>
-            <p>Completed</p>
+        <div class="stat-card">
+            <div class="stat-number" style="color: #10B981;">{{ stats.completed_courses }}</div>
+            <div class="stat-label">Completed</div>
         </div>
         
-        <div class="stat-card" style="border-color: var(--warning-color);">
-            <h3 style="color: var(--warning-color);">{{ stats.in_progress }}</h3>
-            <p>In Progress</p>
+        <div class="stat-card">
+            <div class="stat-number" style="color: #F59E0B;">{{ stats.in_progress }}</div>
+            <div class="stat-label">In Progress</div>
         </div>
         
-        <div class="stat-card" style="border-color: var(--info-color);">
-            <h3 style="color: var(--info-color);">{{ stats.total_bundles }}</h3>
-            <p>Custom Bundles</p>
+        <div class="stat-card">
+            <div class="stat-number" style="color: #3B82F6;">{{ stats.total_bundles }}</div>
+            <div class="stat-label">Custom Bundles</div>
         </div>
     </div>
     
     <!-- Quick Actions -->
-    <div class="card mb-4">
+    <div class="card" style="margin-bottom: 2rem;">
         <div class="card-body">
-            <h4 class="card-title mb-3">Quick Actions</h4>
-            <div class="d-flex flex-wrap gap-2">
+            <h4 style="font-weight: 700; margin-bottom: 1.5rem;">Quick Actions</h4>
+            <div style="display: flex; flex-wrap: wrap; gap: 1rem;">
                 <a href="{{ url_for('courses') }}" class="btn btn-primary">
                     <i class="fas fa-plus"></i> Browse Courses
                 </a>
                 <a href="{{ url_for('bundle_creator') }}" class="btn btn-success">
                     <i class="fas fa-layer-group"></i> Create Custom Bundle
                 </a>
-                <a href="{{ url_for('blogs') }}" class="btn btn-outline-secondary">
+                <a href="{{ url_for('blogs') }}" class="btn btn-outline">
                     <i class="fas fa-newspaper"></i> Read Blog
                 </a>
             </div>
@@ -52,10 +54,10 @@
     </div>
     
     <!-- My Courses -->
-    <div class="card mb-4">
+    <div class="card" style="margin-bottom: 2rem;">
         <div class="card-body">
-            <div class="d-flex justify-content-between align-items-center mb-3">
-                <h4 class="card-title mb-0">My Courses</h4>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                <h4 style="font-weight: 700; margin: 0;">My Courses</h4>
                 {% if enrollments %}
                 <span class="badge badge-primary">{{ enrollments|length }} active</span>
                 {% endif %}
@@ -65,57 +67,59 @@
                 {% for enrollment in enrollments %}
                 <div class="enrollment-card">
                     {% if enrollment.course.thumbnail_url %}
-                        <img src="{{ enrollment.course.thumbnail_url }}" class="enrollment-thumbnail" alt="{{ enrollment.course.title }}">
+                        <img src="{{ enrollment.course.thumbnail_url }}" style="width: 120px; height: 120px; object-fit: cover; border-radius: 12px; flex-shrink: 0;" alt="{{ enrollment.course.title }}">
                     {% else %}
-                        <div class="enrollment-thumbnail" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);"></div>
+                        <div style="width: 120px; height: 120px; background: var(--primary-gradient); border-radius: 12px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; color: white; font-size: 2rem;">
+                            <i class="fas fa-book"></i>
+                        </div>
                     {% endif %}
                     
-                    <div class="enrollment-info">
-                        <div class="d-flex justify-content-between align-items-start mb-2">
+                    <div style="flex: 1;">
+                        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 0.75rem;">
                             <div>
-                                <h5 class="mb-1">{{ enrollment.course.title }}</h5>
-                                <p class="text-muted mb-2">
-                                    <span class="badge badge-primary me-2">{{ enrollment.course.category }}</span>
-                                    <span class="badge badge-info">{{ enrollment.course.level }}</span>
-                                </p>
+                                <h5 style="font-weight: 700; margin-bottom: 0.5rem;">{{ enrollment.course.title }}</h5>
+                                <div style="display: flex; gap: 0.5rem;">
+                                    <span class="badge" style="background: rgba(102, 126, 234, 0.1); color: #667eea;">{{ enrollment.course.category }}</span>
+                                    <span class="badge" style="background: rgba(59, 130, 246, 0.1); color: #3B82F6;">{{ enrollment.course.level }}</span>
+                                </div>
                             </div>
                             
-                            <div class="text-end">
-                                {% if enrollment.expires_at %}
-                                <small class="text-muted d-block">
+                            {% if enrollment.expires_at %}
+                            <div style="text-align: right;">
+                                <small style="color: #718096;">
                                     <i class="fas fa-calendar"></i>
                                     {% if enrollment.is_expired %}
-                                        <span class="text-danger">Expired</span>
+                                        <span style="color: #EF4444;">Expired</span>
                                     {% elif enrollment.days_remaining %}
                                         {{ enrollment.days_remaining }} days left
                                     {% endif %}
                                 </small>
-                                {% endif %}
                             </div>
+                            {% endif %}
                         </div>
                         
-                        <p class="text-secondary small mb-2">
+                        <p style="color: #718096; font-size: 0.875rem; margin-bottom: 0.75rem;">
                             Enrolled on {{ enrollment.enrolled_at.strftime('%b %d, %Y') }}
                         </p>
                         
                         <!-- Progress Bar -->
-                        <div class="mb-3">
-                            <div class="d-flex justify-content-between mb-1">
-                                <small>Progress</small>
-                                <small><strong>{{ enrollment.progress_percentage|int }}%</strong></small>
+                        <div style="margin-bottom: 1rem;">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                                <small style="color: #718096;">Progress</small>
+                                <small style="font-weight: 700; color: #1a202c;">{{ enrollment.progress_percentage|int }}%</small>
                             </div>
-                            <div class="progress-bar-container">
+                            <div class="progress">
                                 <div class="progress-bar" style="width: {{ enrollment.progress_percentage }}%"></div>
                             </div>
                         </div>
                         
-                        <div class="d-flex gap-2">
+                        <div style="display: flex; gap: 0.75rem;">
                             <a href="{{ url_for('course_detail', course_id=enrollment.course.id) }}" class="btn btn-primary btn-sm">
                                 <i class="fas fa-play"></i> Continue Learning
                             </a>
                             
-                            <form method="POST" action="{{ url_for('unenroll_course', enrollment_id=enrollment.id) }}" class="d-inline">
-                                <button type="submit" class="btn btn-outline-danger btn-sm" onclick="return confirm('Are you sure you want to unenroll?')">
+                            <form method="POST" action="{{ url_for('unenroll_course', enrollment_id=enrollment.id) }}" style="display: inline;">
+                                <button type="submit" class="btn btn-sm" style="background: transparent; border: 2px solid #EF4444; color: #EF4444;" onclick="return confirm('Are you sure you want to unenroll?')">
                                     <i class="fas fa-times"></i> Unenroll
                                 </button>
                             </form>
@@ -124,10 +128,10 @@
                 </div>
                 {% endfor %}
             {% else %}
-                <div class="text-center py-5">
-                    <i class="fas fa-book-open fa-4x text-muted mb-3"></i>
-                    <h5>No courses yet</h5>
-                    <p class="text-secondary mb-4">Start learning by enrolling in a course</p>
+                <div style="text-align: center; padding: 4rem 0;">
+                    <i class="fas fa-book-open" style="font-size: 4rem; color: #cbd5e0; margin-bottom: 1rem; display: block;"></i>
+                    <h5 style="color: #4a5568; margin-bottom: 0.5rem;">No courses yet</h5>
+                    <p style="color: #718096; margin-bottom: 1.5rem;">Start learning by enrolling in a course</p>
                     <a href="{{ url_for('courses') }}" class="btn btn-primary">
                         <i class="fas fa-search"></i> Browse Courses
                     </a>
@@ -138,68 +142,66 @@
     
     <!-- Custom Bundles -->
     {% if bundles %}
-    <div class="card mb-4">
+    <div class="card">
         <div class="card-body">
-            <div class="d-flex justify-content-between align-items-center mb-3">
-                <h4 class="card-title mb-0">My Custom Bundles</h4>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                <h4 style="font-weight: 700; margin: 0;">My Custom Bundles</h4>
                 <span class="badge badge-success">{{ bundles|length }} bundles</span>
             </div>
             
-            <div class="row g-3">
+            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 1.5rem;">
                 {% for bundle in bundles %}
-                <div class="col-md-6">
-                    <div class="card border-primary">
-                        <div class="card-body">
-                            <div class="d-flex justify-content-between align-items-start mb-2">
-                                <h5 class="card-title mb-0">{{ bundle.bundle_name }}</h5>
-                                {% if bundle.is_active %}
-                                    <span class="badge badge-success">Active</span>
-                                {% else %}
-                                    <span class="badge badge-secondary">Inactive</span>
-                                {% endif %}
+                <div class="card" style="border: 2px solid #667eea;">
+                    <div class="card-body">
+                        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 1rem;">
+                            <h5 style="font-weight: 700; margin: 0;">{{ bundle.bundle_name }}</h5>
+                            {% if bundle.is_active %}
+                                <span class="badge badge-success">Active</span>
+                            {% else %}
+                                <span class="badge" style="background: #9CA3AF; color: white;">Inactive</span>
+                            {% endif %}
+                        </div>
+                        
+                        {% if bundle.description %}
+                        <p style="color: #718096; font-size: 0.875rem; margin-bottom: 1rem;">{{ bundle.description }}</p>
+                        {% endif %}
+                        
+                        <div style="margin-bottom: 1rem;">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                                <span style="color: #4a5568;"><i class="fas fa-book"></i> {{ bundle.course_count }} courses</span>
+                                <span style="color: #4a5568;"><i class="fas fa-clock"></i> {{ bundle.duration_days }} days</span>
                             </div>
                             
-                            {% if bundle.description %}
-                            <p class="text-muted small">{{ bundle.description }}</p>
-                            {% endif %}
-                            
-                            <div class="mb-3">
-                                <div class="d-flex justify-content-between mb-2">
-                                    <span><i class="fas fa-book"></i> {{ bundle.course_count }} courses</span>
-                                    <span><i class="fas fa-clock"></i> {{ bundle.duration_days }} days</span>
-                                </div>
-                                
-                                <div class="d-flex justify-content-between">
-                                    <span class="text-muted text-decoration-line-through">${{ "%.2f"|format(bundle.total_price) }}</span>
-                                    <span class="text-success fw-bold">${{ "%.2f"|format(bundle.final_price) }}</span>
-                                </div>
-                                <small class="text-success">{{ bundle.discount_percentage }}% discount applied</small>
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <span style="color: #9CA3AF; text-decoration: line-through;">${{ "%.2f"|format(bundle.total_price) }}</span>
+                                <span style="color: #10B981; font-weight: 700; font-size: 1.25rem;">${{ "%.2f"|format(bundle.final_price) }}</span>
                             </div>
-                            
-                            {% if bundle.activated_at %}
-                            <p class="small text-muted mb-2">
-                                Activated: {{ bundle.activated_at.strftime('%b %d, %Y') }}
-                                {% if bundle.expires_at %}
-                                    <br>Expires: {{ bundle.expires_at.strftime('%b %d, %Y') }}
-                                {% endif %}
-                            </p>
+                            <small style="color: #10B981;">{{ bundle.discount_percentage }}% discount applied</small>
+                        </div>
+                        
+                        {% if bundle.activated_at %}
+                        <p style="font-size: 0.875rem; color: #718096; margin-bottom: 1rem;">
+                            Activated: {{ bundle.activated_at.strftime('%b %d, %Y') }}
+                            {% if bundle.expires_at %}
+                                <br>Expires: {{ bundle.expires_at.strftime('%b %d, %Y') }}
                             {% endif %}
-                            
-                            <div class="d-flex gap-2">
-                                {% if not bundle.activated_at %}
-                                    <form method="POST" action="{{ url_for('activate_bundle', bundle_id=bundle.id) }}" class="flex-grow-1">
-                                        <button type="submit" class="btn btn-success btn-sm w-100">
-                                            <i class="fas fa-check"></i> Activate Bundle
-                                        </button>
-                                    </form>
-                                {% endif %}
-                                
-                                <form method="POST" action="{{ url_for('delete_bundle', bundle_id=bundle.id) }}">
-                                    <button type="submit" class="btn btn-outline-danger btn-sm" onclick="return confirm('Delete this bundle?')">
-                                        <i class="fas fa-trash"></i>
+                        </p>
+                        {% endif %}
+                        
+                        <div style="display: flex; gap: 0.75rem;">
+                            {% if not bundle.activated_at %}
+                                <form method="POST" action="{{ url_for('activate_bundle', bundle_id=bundle.id) }}" style="flex: 1;">
+                                    <button type="submit" class="btn btn-success btn-sm" style="width: 100%;">
+                                        <i class="fas fa-check"></i> Activate Bundle
                                     </button>
                                 </form>
-                            </div>
+                            {% endif %}
+                            
+                            <form method="POST" action="{{ url_for('delete_bundle', bundle_id=bundle.id) }}">
+                                <button type="submit" class="btn btn-sm" style="background: transparent; border: 2px solid #EF4444; color: #EF4444;" onclick="return confirm('Delete this bundle?')">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </form>
                         </div>
                     </div>
                 </div>
