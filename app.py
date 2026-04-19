@@ -1,7 +1,8 @@
 """
 Main Application File for LMS System
 Complete Flask application with all routes and logic
-UPDATED: Payment verification system, fixed enrollment, admin payment management
+UPDATED: Payment verification system, fixed enrollment, admin blog management
+NOTE: Payment admin routes are commented out until template is created
 """
 
 from flask import Flask, render_template, request, redirect, url_for, flash, jsonify, abort
@@ -160,8 +161,7 @@ def courses():
     elif sort == 'price_high':
         query = query.order_by(Course.price.desc())
     elif sort == 'popular':
-        # Sort by enrollment count (requires subquery or join)
-        query = query.order_by(Course.id.desc())  # Placeholder
+        query = query.order_by(Course.id.desc())
     
     # Pagination
     page = request.args.get('page', 1, type=int)
@@ -621,6 +621,7 @@ def activate_bundle(bundle_id):
             existing.is_active = True
             existing.enrolled_at = datetime.utcnow()
             existing.expires_at = bundle.expires_at
+            existing.payment_status = 'free'
             enrolled_count += 1
     
     db.session.commit()
@@ -669,6 +670,67 @@ def admin_panel():
                          stats=stats,
                          recent_users=recent_users,
                          recent_enrollments=recent_enrollments)
+
+
+# PAYMENT VERIFICATION ROUTES - COMMENTED OUT UNTIL TEMPLATE IS CREATED
+# Uncomment these after creating templates/admin/admin_pending_payments.html
+
+# @app.route('/admin/enrollments/pending')
+# @login_required
+# @admin_required
+# def admin_pending_enrollments():
+#     """View pending payment enrollments"""
+#     pending_enrollments = Enrollment.query.filter_by(
+#         payment_status='pending',
+#         is_active=False
+#     ).order_by(Enrollment.enrolled_at.desc()).all()
+#     
+#     return render_template('admin/admin_pending_payments.html', 
+#                          enrollments=pending_enrollments)
+
+
+# @app.route('/admin/enrollment/<int:enrollment_id>/verify', methods=['POST'])
+# @login_required
+# @admin_required
+# def admin_verify_payment(enrollment_id):
+#     """Verify and activate enrollment"""
+#     enrollment = Enrollment.query.get_or_404(enrollment_id)
+#     
+#     enrollment.payment_status = 'verified'
+#     enrollment.payment_verified_at = datetime.utcnow()
+#     enrollment.is_active = True
+#     
+#     try:
+#         db.session.commit()
+#         flash(f'Payment verified for {enrollment.user.username} - {enrollment.course.title}!', 'success')
+#     except Exception as e:
+#         db.session.rollback()
+#         flash('An error occurred while verifying payment.', 'danger')
+#         app.logger.error(f'Payment verification error: {str(e)}')
+#     
+#     return redirect(url_for('admin_pending_enrollments'))
+
+
+# @app.route('/admin/enrollment/<int:enrollment_id>/reject', methods=['POST'])
+# @login_required
+# @admin_required
+# def admin_reject_payment(enrollment_id):
+#     """Reject payment and delete enrollment"""
+#     enrollment = Enrollment.query.get_or_404(enrollment_id)
+#     
+#     user_name = enrollment.user.username
+#     course_name = enrollment.course.title
+#     
+#     try:
+#         db.session.delete(enrollment)
+#         db.session.commit()
+#         flash(f'Enrollment rejected and deleted for {user_name} - {course_name}.', 'info')
+#     except Exception as e:
+#         db.session.rollback()
+#         flash('An error occurred while rejecting enrollment.', 'danger')
+#         app.logger.error(f'Payment rejection error: {str(e)}')
+#     
+#     return redirect(url_for('admin_pending_enrollments'))
 
 
 @app.route('/admin/course/add', methods=['POST'])
