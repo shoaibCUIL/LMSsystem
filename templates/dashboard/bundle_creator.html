@@ -1,226 +1,207 @@
 {% extends "layout/base.html" %}
 
-{% block title %}Create Custom Bundle - {{ app_name }}{% endblock %}
+{% block title %}Create Bundle - {{ app_name }}{% endblock %}
 
 {% block content %}
 <div class="container my-5">
     <div class="row">
+        <!-- Left Column - Bundle Creation -->
         <div class="col-lg-8">
-            <div class="mb-4">
-                <h1 class="mb-2"><i class="fas fa-layer-group text-primary"></i> Create Custom Course Bundle</h1>
-                <p class="lead text-secondary">Select your courses and choose a bundle plan</p>
+            <div class="page-header mb-4">
+                <h2><i class="fas fa-layer-group"></i> Create Custom Course Bundle</h2>
+                <p class="text-muted">Select your courses and choose a bundle plan</p>
             </div>
-            
-            <div class="bundle-creator">
-                <form method="POST" action="{{ url_for('create_bundle') }}" id="bundleForm">
-                    <!-- Bundle Info -->
-                    <div class="card mb-4">
-                        <div class="card-body">
-                            <h4 class="mb-3">Bundle Information</h4>
-                            
-                            <div class="form-group mb-3">
-                                <label for="bundle_name" class="form-label">Bundle Name *</label>
-                                <input type="text" class="form-control" id="bundle_name" name="bundle_name" required placeholder="e.g., Full Stack Developer Bundle">
-                            </div>
-                            
-                            <div class="form-group mb-3">
-                                <label for="description" class="form-label">Description (Optional)</label>
-                                <textarea class="form-control" id="description" name="description" rows="3" placeholder="Describe what this bundle will help you achieve..."></textarea>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- Course Selection -->
-                    <div class="card mb-4">
-                        <div class="card-body">
-                            <h4 class="mb-3">
-                                Select Courses 
-                                <span class="badge bg-primary" id="selected_count_badge">0 selected</span>
-                            </h4>
-                            <p class="text-muted">Choose 2-10 courses for your bundle</p>
-                            
-                            {% if courses %}
-                            <div class="row g-3">
-                                {% for course in courses %}
-                                <div class="col-md-6">
-                                    <div class="course-select-card" id="card_{{ course.id }}">
-                                        <div class="form-check">
-                                            <input class="form-check-input course-checkbox" 
-                                                   type="checkbox" 
-                                                   name="course_ids" 
-                                                   value="{{ course.id }}"
-                                                   id="course_{{ course.id }}"
-                                                   data-course-id="{{ course.id }}"
-                                                   data-course-price="{{ course.price }}"
-                                                   data-course-days="{{ course.duration_days }}"
-                                                   data-course-title="{{ course.title }}"
-                                                   onchange="toggleCourse()">
-                                            <label class="form-check-label w-100" for="course_{{ course.id }}">
-                                                <div class="d-flex justify-content-between align-items-start">
-                                                    <div class="flex-grow-1">
-                                                        <h6 class="mb-1">{{ course.title }}</h6>
-                                                        <small class="text-muted d-block mb-2">{{ course.category }} • {{ course.level }}</small>
-                                                    </div>
-                                                    <div class="text-end">
-                                                        <div class="course-price-badge">${{ "%.2f"|format(course.price) }}</div>
-                                                        <small class="text-muted d-block">{{ course.duration_days }} days</small>
-                                                    </div>
-                                                </div>
-                                            </label>
-                                        </div>
-                                    </div>
-                                </div>
-                                {% endfor %}
-                            </div>
-                            {% else %}
-                            <div class="alert alert-warning">
-                                <i class="fas fa-info-circle"></i> No courses available.
-                            </div>
-                            {% endif %}
-                        </div>
-                    </div>
-                    
-                    <!-- Bundle Plan Selection -->
-                    <div class="card mb-4" id="plan_selection" style="display:none;">
-                        <div class="card-body">
-                            <h4 class="mb-3">Choose Your Bundle Plan</h4>
-                            <p class="text-muted">Select access duration - pricing adjusts automatically</p>
-                            
-                            <div class="row g-3">
-                                <!-- Quick Access Plan -->
-                                <div class="col-md-4">
-                                    <div class="plan-card" data-plan="quick" onclick="selectPlan('quick', 60)">
-                                        <div class="plan-header">
-                                            <i class="fas fa-bolt"></i>
-                                            <h5>Quick Access</h5>
-                                        </div>
-                                        <div class="plan-duration">60 Days</div>
-                                        <div class="plan-price" id="price_quick">$0.00</div>
-                                        <div class="plan-discount">15% off</div>
-                                        <ul class="plan-features">
-                                            <li><i class="fas fa-check"></i> Perfect for focused learning</li>
-                                            <li><i class="fas fa-check"></i> Best value for fast learners</li>
-                                            <li><i class="fas fa-check"></i> Lower cost</li>
-                                        </ul>
-                                        <input type="radio" name="bundle_plan" value="quick" id="plan_quick" style="display:none;">
-                                    </div>
-                                </div>
-                                
-                                <!-- Standard Plan -->
-                                <div class="col-md-4">
-                                    <div class="plan-card recommended" data-plan="standard" onclick="selectPlan('standard', 120)">
-                                        <div class="recommended-badge">
-                                            <i class="fas fa-star"></i> Recommended
-                                        </div>
-                                        <div class="plan-header">
-                                            <i class="fas fa-graduation-cap"></i>
-                                            <h5>Standard Access</h5>
-                                        </div>
-                                        <div class="plan-duration">120 Days</div>
-                                        <div class="plan-price" id="price_standard">$0.00</div>
-                                        <div class="plan-discount">15% off</div>
-                                        <ul class="plan-features">
-                                            <li><i class="fas fa-check"></i> Comfortable learning pace</li>
-                                            <li><i class="fas fa-check"></i> Most popular choice</li>
-                                            <li><i class="fas fa-check"></i> Best value overall</li>
-                                        </ul>
-                                        <input type="radio" name="bundle_plan" value="standard" id="plan_standard" style="display:none;">
-                                    </div>
-                                </div>
-                                
-                                <!-- Extended Plan -->
-                                <div class="col-md-4">
-                                    <div class="plan-card" data-plan="extended" onclick="selectPlan('extended', 365)">
-                                        <div class="plan-header">
-                                            <i class="fas fa-infinity"></i>
-                                            <h5>Extended Access</h5>
-                                        </div>
-                                        <div class="plan-duration">365 Days (1 Year)</div>
-                                        <div class="plan-price" id="price_extended">$0.00</div>
-                                        <div class="plan-discount">15% off</div>
-                                        <ul class="plan-features">
-                                            <li><i class="fas fa-check"></i> Maximum flexibility</li>
-                                            <li><i class="fas fa-check"></i> Learn at your own pace</li>
-                                            <li><i class="fas fa-check"></i> Lifetime value</li>
-                                        </ul>
-                                        <input type="radio" name="bundle_plan" value="extended" id="plan_extended" style="display:none;">
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <input type="hidden" name="duration_days" id="duration_days" value="120">
-                    <input type="hidden" name="calculated_price" id="calculated_price" value="0">
-                    
-                    <div class="d-grid">
-                        <button type="submit" class="btn btn-success btn-lg" id="create_bundle_btn" disabled>
-                            <i class="fas fa-check"></i> Create Bundle
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
-        
-        <!-- Summary Sidebar -->
-        <div class="col-lg-4">
-            <div class="sticky-top" style="top: 20px;">
-                <div class="card shadow">
-                    <div class="card-header bg-primary text-white">
-                        <h5 class="mb-0"><i class="fas fa-calculator"></i> Bundle Summary</h5>
+
+            <form method="POST" action="{{ url_for('create_bundle') }}" id="bundleForm">
+                <!-- Bundle Information -->
+                <div class="card mb-4">
+                    <div class="card-header bg-white">
+                        <h5 class="mb-0">Bundle Information</h5>
                     </div>
                     <div class="card-body">
-                        <!-- Selected Courses -->
                         <div class="mb-3">
-                            <h6 class="mb-2">Selected Courses (<span id="selected_count">0</span>)</h6>
-                            <div id="selected_courses_list" class="selected-courses-list">
-                                <small class="text-muted">No courses selected yet</small>
-                            </div>
+                            <label for="bundle_name" class="form-label">Bundle Name <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="bundle_name" name="bundle_name" required 
+                                   placeholder="e.g., My Learning Path">
                         </div>
-                        
-                        <hr>
-                        
-                        <!-- Selected Plan -->
-                        <div id="selected_plan_info" style="display:none;">
-                            <div class="alert alert-info mb-3">
-                                <strong id="plan_name_display">Standard Access</strong>
-                                <div id="plan_duration_display">120 days</div>
-                            </div>
-                        </div>
-                        
-                        <!-- Price Breakdown -->
-                        <div class="price-breakdown">
-                            <div class="price-row">
-                                <span>Base Price:</span>
-                                <span id="base_price" class="fw-bold">$0.00</span>
-                            </div>
-                            <div class="price-row discount-row">
-                                <span><i class="fas fa-tag"></i> Bundle Discount (15%):</span>
-                                <span id="discount_amount" class="fw-bold text-success">-$0.00</span>
-                            </div>
-                            <hr>
-                            <div class="price-row final-price-row">
-                                <span>Final Price:</span>
-                                <span id="final_price" class="fw-bold text-success">$0.00</span>
-                            </div>
-                        </div>
-                        
-                        <!-- Savings -->
-                        <div class="savings-badge mt-3" id="savings_info" style="display:none;">
-                            <i class="fas fa-piggy-bank"></i> You save <strong id="savings_amount">$0.00</strong>!
+
+                        <div class="mb-3">
+                            <label for="description" class="form-label">Description (Optional)</label>
+                            <textarea class="form-control" id="description" name="description" rows="3" 
+                                      placeholder="Describe what this bundle will help you achieve..."></textarea>
                         </div>
                     </div>
                 </div>
-                
-                <!-- Tips -->
-                <div class="card mt-3">
+
+                <!-- Course Selection -->
+                <div class="card mb-4">
+                    <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">Select Courses</h5>
+                        <span class="badge bg-primary" id="selectedCount">0 selected</span>
+                    </div>
                     <div class="card-body">
-                        <h6><i class="fas fa-lightbulb text-warning"></i> Quick Tips</h6>
+                        <p class="text-muted mb-3">Choose 2-10 courses for your bundle</p>
+                        
+                        <div class="row g-3" id="courseGrid">
+                            {% for course in courses %}
+                            <div class="col-md-6">
+                                <div class="course-card" data-course-id="{{ course.id }}" data-price="{{ course.price }}" data-days="{{ course.duration_days }}">
+                                    <input type="checkbox" class="course-checkbox" name="course_ids" value="{{ course.id }}" id="course{{ course.id }}">
+                                    <label for="course{{ course.id }}" class="course-label">
+                                        <div class="course-header">
+                                            <h6 class="course-title">{{ course.title }}</h6>
+                                            <div class="course-price">${{ "%.2f"|format(course.price) }}</div>
+                                        </div>
+                                        <div class="course-meta">
+                                            <small class="text-muted">{{ course.category }} • {{ course.level }}</small>
+                                        </div>
+                                        <div class="course-duration">
+                                            <small><i class="far fa-clock"></i> {{ course.duration_days }} days</small>
+                                        </div>
+                                    </label>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Duration & Pricing Customization -->
+                <div class="card mb-4">
+                    <div class="card-header bg-white">
+                        <h5 class="mb-0">Customize Duration & Pricing</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <!-- Days Selector -->
+                            <div class="col-md-6 mb-3">
+                                <label for="duration_days" class="form-label">
+                                    Access Duration (Days)
+                                    <i class="fas fa-info-circle text-muted" data-bs-toggle="tooltip" 
+                                       title="Adjust the number of days you want access to all courses"></i>
+                                </label>
+                                <div class="input-group">
+                                    <input type="number" class="form-control" id="duration_days" name="duration_days" 
+                                           min="30" max="365" value="120" required>
+                                    <span class="input-group-text">days</span>
+                                </div>
+                                <small class="text-muted">Min: 30 days | Max: 365 days</small>
+                                
+                                <!-- Quick Duration Buttons -->
+                                <div class="mt-2">
+                                    <button type="button" class="btn btn-sm btn-outline-secondary quick-duration" data-days="60">60 days</button>
+                                    <button type="button" class="btn btn-sm btn-outline-secondary quick-duration" data-days="120">120 days</button>
+                                    <button type="button" class="btn btn-sm btn-outline-secondary quick-duration" data-days="180">180 days</button>
+                                    <button type="button" class="btn btn-sm btn-outline-secondary quick-duration" data-days="365">1 year</button>
+                                </div>
+                            </div>
+
+                            <!-- Custom Price -->
+                            <div class="col-md-6 mb-3">
+                                <label for="custom_price" class="form-label">
+                                    Custom Price (USD)
+                                    <i class="fas fa-info-circle text-muted" data-bs-toggle="tooltip" 
+                                       title="Adjust price - days will update automatically"></i>
+                                </label>
+                                <div class="input-group">
+                                    <span class="input-group-text">$</span>
+                                    <input type="number" class="form-control" id="custom_price" 
+                                           min="1" step="0.01" placeholder="Auto-calculated">
+                                </div>
+                                <small class="text-muted" id="priceHint">Suggested: Based on selected courses</small>
+                            </div>
+                        </div>
+
+                        <!-- AI Pricing Suggestion -->
+                        <div class="alert alert-info mb-0" id="pricingSuggestion" style="display: none;">
+                            <i class="fas fa-lightbulb"></i> <strong>Pricing Tip:</strong> 
+                            <span id="suggestionText"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-between">
+                    <a href="{{ url_for('dashboard') }}" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-left"></i> Cancel
+                    </a>
+                    <button type="submit" class="btn btn-primary" id="createBundleBtn" disabled>
+                        <i class="fas fa-save"></i> Create Bundle
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Right Column - Bundle Summary -->
+        <div class="col-lg-4">
+            <div class="sticky-sidebar">
+                <div class="card shadow-sm">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0"><i class="fas fa-receipt"></i> Bundle Summary</h5>
+                    </div>
+                    <div class="card-body">
+                        <div id="summaryContent">
+                            <div class="text-center text-muted py-5">
+                                <i class="fas fa-shopping-cart fa-3x mb-3"></i>
+                                <p>Select courses to see summary</p>
+                            </div>
+                        </div>
+
+                        <div id="summaryDetails" style="display: none;">
+                            <h6 class="mb-3">Selected Courses (<span id="courseCount">0</span>)</h6>
+                            <ul class="list-unstyled" id="selectedCoursesList"></ul>
+
+                            <hr>
+
+                            <div class="mb-2">
+                                <strong>Access Duration:</strong>
+                                <span class="float-end" id="summaryDays">120 days</span>
+                            </div>
+
+                            <div class="mb-2">
+                                <strong>Base Price:</strong>
+                                <span class="float-end" id="summaryBasePrice">$0.00</span>
+                            </div>
+
+                            <div class="mb-2 text-success">
+                                <strong><i class="fas fa-tag"></i> Bundle Discount (15%):</strong>
+                                <span class="float-end" id="summaryDiscount">-$0.00</span>
+                            </div>
+
+                            <hr>
+
+                            <div class="mb-3">
+                                <h5 class="mb-0">
+                                    Final Price:
+                                    <span class="float-end text-success" id="summaryFinalPrice">$0.00</span>
+                                </h5>
+                            </div>
+
+                            <div class="alert alert-success">
+                                <i class="fas fa-piggy-bank"></i> You save <strong id="savingsAmount">$0.00</strong>!
+                            </div>
+
+                            <div class="alert alert-warning mb-0">
+                                <small>
+                                    <i class="fas fa-info-circle"></i> 
+                                    <strong>Note:</strong> Bundle will be activated after admin approval and payment verification.
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Tips -->
+                <div class="card mt-3">
+                    <div class="card-header bg-warning text-dark">
+                        <h6 class="mb-0"><i class="fas fa-lightbulb"></i> Quick Tips</h6>
+                    </div>
+                    <div class="card-body">
                         <ul class="small mb-0">
                             <li>Select 2-10 courses</li>
                             <li>Choose your access duration</li>
                             <li>Get automatic 15% discount</li>
                             <li>All plans include full course access</li>
+                            <li>Adjust days or price - they sync automatically!</li>
                         </ul>
                     </div>
                 </div>
@@ -230,315 +211,268 @@
 </div>
 
 <style>
-.course-select-card {
-    border: 2px solid #dee2e6;
-    border-radius: 8px;
-    padding: 15px;
-    transition: all 0.3s;
-    cursor: pointer;
+.sticky-sidebar {
+    position: sticky;
+    top: 20px;
 }
 
-.course-select-card:hover {
-    border-color: #007bff;
-    box-shadow: 0 2px 8px rgba(0,123,255,0.1);
-}
-
-.course-select-card.selected {
-    border-color: #28a745;
-    background: #f0fff4;
-}
-
-.course-price-badge {
-    font-size: 1.1em;
-    font-weight: bold;
-    color: #007bff;
-}
-
-.plan-card {
-    border: 3px solid #dee2e6;
-    border-radius: 12px;
-    padding: 20px;
-    cursor: pointer;
-    transition: all 0.3s;
+.course-card {
     position: relative;
-    background: white;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    cursor: pointer;
 }
 
-.plan-card:hover {
-    border-color: #007bff;
-    transform: translateY(-5px);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+.course-card:hover {
+    border-color: #0d6efd;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
 }
 
-.plan-card.selected {
-    border-color: #28a745;
-    background: linear-gradient(135deg, #f0fff4 0%, #e8f5e9 100%);
-    box-shadow: 0 4px 16px rgba(40,167,69,0.2);
+.course-card.selected {
+    border-color: #0d6efd;
+    background-color: #e7f3ff;
 }
 
-.plan-card.recommended {
-    border-color: #ffc107;
-}
-
-.recommended-badge {
+.course-checkbox {
     position: absolute;
-    top: -12px;
-    right: 20px;
-    background: #ffc107;
-    color: #000;
-    padding: 4px 12px;
-    border-radius: 20px;
-    font-size: 0.85em;
-    font-weight: bold;
+    top: 10px;
+    right: 10px;
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
 }
 
-.plan-header {
-    text-align: center;
-    margin-bottom: 15px;
-}
-
-.plan-header i {
-    font-size: 2.5em;
-    color: #007bff;
+.course-label {
     display: block;
-    margin-bottom: 10px;
-}
-
-.plan-header h5 {
-    margin: 0;
-    font-weight: bold;
-}
-
-.plan-duration {
-    text-align: center;
-    font-size: 1.1em;
-    color: #666;
-    margin-bottom: 10px;
-}
-
-.plan-price {
-    text-align: center;
-    font-size: 2em;
-    font-weight: bold;
-    color: #28a745;
-    margin: 15px 0;
-}
-
-.plan-discount {
-    text-align: center;
-    background: #28a745;
-    color: white;
-    padding: 5px;
-    border-radius: 5px;
-    font-size: 0.9em;
-    margin-bottom: 15px;
-}
-
-.plan-features {
-    list-style: none;
-    padding: 0;
+    padding: 15px;
+    padding-top: 35px;
+    cursor: pointer;
     margin: 0;
 }
 
-.plan-features li {
-    padding: 8px 0;
-    font-size: 0.9em;
-}
-
-.plan-features i {
-    color: #28a745;
-    margin-right: 8px;
-}
-
-.price-breakdown .price-row {
+.course-header {
     display: flex;
     justify-content: space-between;
-    padding: 8px 0;
-    border-bottom: 1px solid #f0f0f0;
+    align-items: start;
+    margin-bottom: 8px;
 }
 
-.discount-row {
-    color: #28a745;
+.course-title {
+    font-size: 14px;
+    font-weight: 600;
+    margin: 0;
+    flex: 1;
+    padding-right: 10px;
 }
 
-.final-price-row {
-    font-size: 1.3em;
-    border-bottom: none;
-    padding-top: 10px;
+.course-price {
+    font-weight: bold;
+    color: #0d6efd;
+    white-space: nowrap;
 }
 
-.savings-badge {
-    background: linear-gradient(135deg, #28a745, #20c997);
+.course-meta {
+    margin-bottom: 5px;
+}
+
+.course-duration {
+    color: #6c757d;
+}
+
+.quick-duration {
+    margin-right: 5px;
+    margin-bottom: 5px;
+}
+
+.quick-duration.active {
+    background-color: #0d6efd;
     color: white;
-    padding: 12px;
-    border-radius: 8px;
-    text-align: center;
-}
-
-.selected-courses-list {
-    max-height: 200px;
-    overflow-y: auto;
-}
-
-.selected-course-item {
-    padding: 8px;
-    background: #f8f9fa;
-    border-radius: 4px;
-    margin-bottom: 6px;
-    font-size: 0.9em;
 }
 </style>
 
 <script>
-let selectedCourses = [];
-let selectedPlan = 'standard';
-let selectedDays = 120;
-const DISCOUNT_RATE = 0.15;
-
-function toggleCourse() {
-    selectedCourses = [];
-    document.querySelectorAll('.course-checkbox:checked').forEach(checkbox => {
-        const card = document.getElementById(`card_${checkbox.dataset.courseId}`);
-        card.classList.add('selected');
-        
-        selectedCourses.push({
-            id: checkbox.dataset.courseId,
-            title: checkbox.dataset.courseTitle,
-            price: parseFloat(checkbox.dataset.coursePrice),
-            days: parseInt(checkbox.dataset.courseDays)
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('bundleForm');
+    const checkboxes = document.querySelectorAll('.course-checkbox');
+    const durationInput = document.getElementById('duration_days');
+    const customPriceInput = document.getElementById('custom_price');
+    const createBtn = document.getElementById('createBundleBtn');
+    const quickDurationBtns = document.querySelectorAll('.quick-duration');
+    
+    let selectedCourses = [];
+    let basePrice = 0;
+    let isUpdatingPrice = false;
+    let isUpdatingDays = false;
+    
+    // Course selection
+    checkboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', function() {
+            const card = this.closest('.course-card');
+            if (this.checked) {
+                card.classList.add('selected');
+            } else {
+                card.classList.remove('selected');
+            }
+            updateSummary();
+            calculatePricing();
         });
     });
     
-    document.querySelectorAll('.course-checkbox:not(:checked)').forEach(checkbox => {
-        const card = document.getElementById(`card_${checkbox.dataset.courseId}`);
-        card.classList.remove('selected');
+    // Quick duration buttons
+    quickDurationBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+            quickDurationBtns.forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            durationInput.value = this.dataset.days;
+            calculatePricing();
+        });
     });
     
-    updateDisplay();
-}
-
-function selectPlan(plan, days) {
-    selectedPlan = plan;
-    selectedDays = days;
-    
-    // Update hidden field
-    document.getElementById('duration_days').value = days;
-    
-    // Update radio
-    document.getElementById(`plan_${plan}`).checked = true;
-    
-    // Update visual selection
-    document.querySelectorAll('.plan-card').forEach(card => {
-        card.classList.remove('selected');
-    });
-    document.querySelector(`[data-plan="${plan}"]`).classList.add('selected');
-    
-    // Update sidebar
-    const planNames = {
-        'quick': 'Quick Access',
-        'standard': 'Standard Access',
-        'extended': 'Extended Access'
-    };
-    document.getElementById('plan_name_display').textContent = planNames[plan];
-    document.getElementById('plan_duration_display').textContent = `${days} days`;
-    document.getElementById('selected_plan_info').style.display = 'block';
-    
-    updateDisplay();
-}
-
-function updateDisplay() {
-    const count = selectedCourses.length;
-    
-    // Update badges
-    document.getElementById('selected_count').textContent = count;
-    document.getElementById('selected_count_badge').textContent = `${count} selected`;
-    
-    // Show/hide plan selection
-    const planSection = document.getElementById('plan_selection');
-    if (count >= 2) {
-        planSection.style.display = 'block';
-        // Auto-select standard if none selected
-        if (!document.querySelector('.plan-card.selected')) {
-            selectPlan('standard', 120);
+    // Days change -> Update price
+    durationInput.addEventListener('input', function() {
+        if (!isUpdatingDays) {
+            calculatePricing();
         }
-    } else {
-        planSection.style.display = 'none';
-    }
+    });
     
-    if (count === 0) {
-        resetDisplay();
-        return;
-    }
+    // Price change -> Update days
+    customPriceInput.addEventListener('input', function() {
+        if (!isUpdatingPrice && this.value) {
+            isUpdatingDays = true;
+            const customPrice = parseFloat(this.value);
+            const selectedCount = selectedCourses.length;
+            
+            if (selectedCount > 0 && basePrice > 0) {
+                // Calculate days based on price
+                // Formula: days = (price / basePrice) * 120 (baseline)
+                const priceRatio = customPrice / (basePrice * 0.85); // Account for 15% discount
+                const calculatedDays = Math.round(priceRatio * 120);
+                const clampedDays = Math.max(30, Math.min(365, calculatedDays));
+                
+                durationInput.value = clampedDays;
+                updateSummary();
+                showPricingSuggestion(clampedDays, customPrice);
+            }
+            
+            setTimeout(() => { isUpdatingDays = false; }, 100);
+        }
+    });
     
-    // Calculate prices
-    const basePrice = selectedCourses.reduce((sum, c) => sum + c.price, 0);
-    const discountAmount = basePrice * DISCOUNT_RATE;
-    const finalPrice = basePrice - discountAmount;
-    const savings = discountAmount;
-    
-    // Update all plan prices (same for all)
-    document.getElementById('price_quick').textContent = `$${finalPrice.toFixed(2)}`;
-    document.getElementById('price_standard').textContent = `$${finalPrice.toFixed(2)}`;
-    document.getElementById('price_extended').textContent = `$${finalPrice.toFixed(2)}`;
-    
-    // Update sidebar
-    document.getElementById('base_price').textContent = `$${basePrice.toFixed(2)}`;
-    document.getElementById('discount_amount').textContent = `-$${discountAmount.toFixed(2)}`;
-    document.getElementById('final_price').textContent = `$${finalPrice.toFixed(2)}`;
-    document.getElementById('calculated_price').value = finalPrice.toFixed(2);
-    
-    // Update savings
-    if (savings > 0) {
-        document.getElementById('savings_amount').textContent = `$${savings.toFixed(2)}`;
-        document.getElementById('savings_info').style.display = 'block';
-    }
-    
-    // Update selected courses list
-    const listEl = document.getElementById('selected_courses_list');
-    if (count > 0) {
-        listEl.innerHTML = selectedCourses.map(course => `
-            <div class="selected-course-item">
-                <div class="d-flex justify-content-between">
+    function updateSummary() {
+        selectedCourses = [];
+        basePrice = 0;
+        
+        checkboxes.forEach(checkbox => {
+            if (checkbox.checked) {
+                const card = checkbox.closest('.course-card');
+                const courseId = card.dataset.courseId;
+                const price = parseFloat(card.dataset.price);
+                const title = card.querySelector('.course-title').textContent;
+                
+                selectedCourses.push({ id: courseId, title: title, price: price });
+                basePrice += price;
+            }
+        });
+        
+        const count = selectedCourses.length;
+        document.getElementById('selectedCount').textContent = count + ' selected';
+        document.getElementById('courseCount').textContent = count;
+        
+        if (count >= 2) {
+            document.getElementById('summaryContent').style.display = 'none';
+            document.getElementById('summaryDetails').style.display = 'block';
+            createBtn.disabled = false;
+            
+            // Update course list
+            const list = document.getElementById('selectedCoursesList');
+            list.innerHTML = selectedCourses.map(course => 
+                `<li class="mb-2">
                     <small>${course.title}</small>
-                    <small class="text-primary">$${course.price.toFixed(2)}</small>
-                </div>
-            </div>
-        `).join('');
+                    <span class="float-end text-primary">$${course.price.toFixed(2)}</span>
+                </li>`
+            ).join('');
+            
+        } else {
+            document.getElementById('summaryContent').style.display = 'block';
+            document.getElementById('summaryDetails').style.display = 'none';
+            createBtn.disabled = true;
+        }
     }
     
-    // Enable/disable button
-    const btn = document.getElementById('create_bundle_btn');
-    const hasPlan = document.querySelector('.plan-card.selected');
-    btn.disabled = count < 2 || count > 10 || !hasPlan;
-    
-    if (count < 2) {
-        btn.innerHTML = '<i class="fas fa-times"></i> Select at least 2 courses';
-    } else if (count > 10) {
-        btn.innerHTML = '<i class="fas fa-times"></i> Maximum 10 courses';
-    } else if (!hasPlan) {
-        btn.innerHTML = '<i class="fas fa-hand-pointer"></i> Choose a plan above';
-    } else {
-        btn.innerHTML = `<i class="fas fa-check"></i> Create Bundle ($${finalPrice.toFixed(2)})`;
+    function calculatePricing() {
+        if (selectedCourses.length < 2) return;
+        
+        isUpdatingPrice = true;
+        
+        const days = parseInt(durationInput.value) || 120;
+        
+        // AI Pricing Algorithm based on duration
+        // Base: 120 days = 100% price
+        // Formula: price = basePrice * (days/120) * 0.85 (15% bundle discount)
+        const durationMultiplier = days / 120;
+        const discount = 0.15;
+        const finalPrice = basePrice * durationMultiplier * (1 - discount);
+        
+        // Update summary
+        document.getElementById('summaryDays').textContent = days + ' days';
+        document.getElementById('summaryBasePrice').textContent = '$' + (basePrice * durationMultiplier).toFixed(2);
+        document.getElementById('summaryDiscount').textContent = '-$' + (basePrice * durationMultiplier * discount).toFixed(2);
+        document.getElementById('summaryFinalPrice').textContent = '$' + finalPrice.toFixed(2);
+        document.getElementById('savingsAmount').textContent = '$' + (basePrice * durationMultiplier * discount).toFixed(2);
+        
+        // Update custom price placeholder
+        customPriceInput.placeholder = finalPrice.toFixed(2);
+        
+        // Show AI suggestion
+        showPricingSuggestion(days, finalPrice);
+        
+        setTimeout(() => { isUpdatingPrice = false; }, 100);
     }
-}
-
-function resetDisplay() {
-    document.getElementById('selected_courses_list').innerHTML = '<small class="text-muted">No courses selected yet</small>';
-    document.getElementById('base_price').textContent = '$0.00';
-    document.getElementById('discount_amount').textContent = '-$0.00';
-    document.getElementById('final_price').textContent = '$0.00';
-    document.getElementById('price_quick').textContent = '$0.00';
-    document.getElementById('price_standard').textContent = '$0.00';
-    document.getElementById('price_extended').textContent = '$0.00';
-    document.getElementById('savings_info').style.display = 'none';
-    document.getElementById('selected_plan_info').style.display = 'none';
-    document.getElementById('create_bundle_btn').disabled = true;
-    document.getElementById('create_bundle_btn').innerHTML = '<i class="fas fa-check"></i> Create Bundle';
-}
-
-// Initialize
-document.addEventListener('DOMContentLoaded', function() {
-    resetDisplay();
+    
+    function showPricingSuggestion(days, price) {
+        const suggestionDiv = document.getElementById('pricingSuggestion');
+        const suggestionText = document.getElementById('suggestionText');
+        
+        let suggestion = '';
+        
+        if (days <= 60) {
+            suggestion = `Short-term access (${days} days). Great for quick learning! Suggested: $${price.toFixed(2)}`;
+        } else if (days <= 120) {
+            suggestion = `Standard access (${days} days). Perfect for thorough learning. Suggested: $${price.toFixed(2)}`;
+        } else if (days <= 180) {
+            suggestion = `Extended access (${days} days). Ideal for mastery. Suggested: $${price.toFixed(2)}`;
+        } else {
+            suggestion = `Long-term access (${days} days). Maximum value! Suggested: $${price.toFixed(2)}`;
+        }
+        
+        suggestionText.textContent = suggestion;
+        suggestionDiv.style.display = 'block';
+    }
+    
+    // Form submission
+    form.addEventListener('submit', function(e) {
+        if (selectedCourses.length < 2) {
+            e.preventDefault();
+            alert('Please select at least 2 courses');
+            return false;
+        }
+        
+        // Add custom price to form if provided
+        if (customPriceInput.value) {
+            const hiddenInput = document.createElement('input');
+            hiddenInput.type = 'hidden';
+            hiddenInput.name = 'custom_price';
+            hiddenInput.value = customPriceInput.value;
+            form.appendChild(hiddenInput);
+        }
+    });
+    
+    // Initialize tooltips
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
 });
 </script>
 {% endblock %}
