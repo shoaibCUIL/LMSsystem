@@ -1,7 +1,7 @@
 """
 Main Application File for LMS System
 Complete Flask application with all routes and logic
-UPDATED: Auto database initialization and course population for Railway deployment
+UPDATED: Auto database initialization with YOUR exact courses
 """
 
 from flask import Flask, render_template, request, redirect, url_for, flash, jsonify, abort
@@ -1038,169 +1038,180 @@ with app.app_context():
         else:
             print('✅ Admin user already exists')
         
-        # Auto-populate courses if database is empty
+        # Auto-populate YOUR EXACT 13 courses if database is empty
         course_count = Course.query.count()
         if course_count == 0:
-            print('📚 Populating database with courses...')
+            print('📚 Populating database with YOUR 13 courses...')
             
-            # Sample courses data
+            # YOUR EXACT COURSE SPECIFICATIONS
             courses_data = [
+                # ==========================================
+                # A. LINGUISTICS (Theoretical + Applied) - 3 COURSES
+                # ==========================================
                 {
-                    'title': 'Complete Python Programming Masterclass',
-                    'description': 'Master Python from basics to advanced. Learn data structures, OOP, web development, data science, and more with hands-on projects.',
+                    'title': 'General Linguistics',
+                    'description': 'Master the foundational principles of linguistics, including phonetics, phonology, morphology, syntax, and semantics. Perfect for beginners and those seeking a comprehensive understanding of language structure.',
+                    'category': 'Linguistics',
+                    'level': 'Beginner',
+                    'price': 99.00,
+                    'duration_hours': 40,
+                    'duration_days': 60,
+                    'instructor_name': 'Dr. Language Expert',
+                    'thumbnail_url': '',
+                    'featured': True
+                },
+                {
+                    'title': 'Corpus Linguistics',
+                    'description': 'Learn to work with large text collections using corpus linguistic methods. Explore frequency analysis, concordancing, and pattern discovery in real-world language data.',
+                    'category': 'Linguistics',
+                    'level': 'Intermediate',
+                    'price': 129.00,
+                    'duration_hours': 35,
+                    'duration_days': 50,
+                    'instructor_name': 'Dr. Language Expert',
+                    'thumbnail_url': '',
+                    'featured': True
+                },
+                {
+                    'title': 'Computational Linguistics',
+                    'description': 'Bridge linguistics and computer science. Learn NLP fundamentals, text processing, language modeling, and how computers understand human language.',
+                    'category': 'Linguistics',
+                    'level': 'Advanced',
+                    'price': 149.00,
+                    'duration_hours': 45,
+                    'duration_days': 70,
+                    'instructor_name': 'Dr. Language Expert',
+                    'thumbnail_url': '',
+                    'featured': True
+                },
+                
+                # ==========================================
+                # B. PROGRAMMING & DEVELOPMENT - 4 COURSES
+                # ==========================================
+                {
+                    'title': 'Python Programming',
+                    'description': 'Complete Python course from basics to advanced. Learn data structures, OOP, file handling, error handling, and real-world application development.',
                     'category': 'Programming',
                     'level': 'Beginner',
-                    'price': 49.99,
-                    'duration_hours': 45,
-                    'duration_days': 90,
-                    'instructor_name': 'Dr. Sarah Johnson',
-                    'thumbnail_url': 'https://images.unsplash.com/photo-1526379095098-d400fd0bf935?w=500',
-                    'featured': True
-                },
-                {
-                    'title': 'Modern Web Development Bootcamp 2025',
-                    'description': 'Build modern websites and web apps with HTML5, CSS3, JavaScript, React, Node.js, and MongoDB. Includes 10+ real-world projects.',
-                    'category': 'Web Development',
-                    'level': 'Intermediate',
-                    'price': 69.99,
-                    'duration_hours': 60,
-                    'duration_days': 120,
-                    'instructor_name': 'Mike Chen',
-                    'thumbnail_url': 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=500',
-                    'featured': True
-                },
-                {
-                    'title': 'Data Science & Machine Learning A-Z',
-                    'description': 'Complete data science bootcamp. Master Python, NumPy, Pandas, Matplotlib, Scikit-learn, TensorFlow, and deep learning.',
-                    'category': 'Data Science',
-                    'level': 'Advanced',
-                    'price': 79.99,
-                    'duration_hours': 55,
-                    'duration_days': 120,
-                    'instructor_name': 'Dr. Emily Rodriguez',
-                    'thumbnail_url': 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=500',
-                    'featured': True
-                },
-                {
-                    'title': 'UI/UX Design Fundamentals',
-                    'description': 'Learn user interface and user experience design from scratch. Master Figma, Adobe XD, design principles, wireframing, and prototyping.',
-                    'category': 'Design',
-                    'level': 'Beginner',
-                    'price': 39.99,
-                    'duration_hours': 30,
-                    'duration_days': 60,
-                    'instructor_name': 'Amanda White',
-                    'thumbnail_url': 'https://images.unsplash.com/photo-1561070791-2526d30994b5?w=500',
-                    'featured': True
-                },
-                {
-                    'title': 'Digital Marketing Mastery 2025',
-                    'description': 'Complete digital marketing course covering SEO, social media marketing, email marketing, Google Ads, Facebook Ads, and analytics.',
-                    'category': 'Marketing',
-                    'level': 'Intermediate',
-                    'price': 59.99,
-                    'duration_hours': 40,
-                    'duration_days': 90,
-                    'instructor_name': 'David Park',
-                    'thumbnail_url': 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=500',
-                    'featured': True
-                },
-                {
-                    'title': 'AWS Cloud Architect Certification',
-                    'description': 'Prepare for AWS Solutions Architect certification. Learn EC2, S3, Lambda, RDS, VPC, CloudFormation, and cloud best practices.',
-                    'category': 'Cloud Computing',
-                    'level': 'Advanced',
-                    'price': 89.99,
+                    'price': 79.00,
                     'duration_hours': 50,
                     'duration_days': 90,
-                    'instructor_name': 'James Mitchell',
-                    'thumbnail_url': 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=500',
-                    'featured': False
-                },
-                {
-                    'title': 'Mobile App Development with React Native',
-                    'description': 'Build cross-platform mobile apps for iOS and Android using React Native. Includes Firebase integration and app deployment.',
-                    'category': 'Mobile Development',
-                    'level': 'Intermediate',
-                    'price': 64.99,
-                    'duration_hours': 45,
-                    'duration_days': 90,
-                    'instructor_name': 'Lisa Anderson',
-                    'thumbnail_url': 'https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?w=500',
-                    'featured': False
-                },
-                {
-                    'title': 'Cybersecurity Essentials & Ethical Hacking',
-                    'description': 'Learn cybersecurity fundamentals, network security, penetration testing, and ethical hacking techniques to protect systems.',
-                    'category': 'Cybersecurity',
-                    'level': 'Advanced',
-                    'price': 74.99,
-                    'duration_hours': 48,
-                    'duration_days': 90,
-                    'instructor_name': 'Robert Taylor',
-                    'thumbnail_url': 'https://images.unsplash.com/photo-1550751827-4bd374c3f58b?w=500',
-                    'featured': False
-                },
-                {
-                    'title': 'Blockchain & Cryptocurrency Development',
-                    'description': 'Master blockchain technology and cryptocurrency development. Build smart contracts with Solidity and create your own tokens.',
-                    'category': 'Blockchain',
-                    'level': 'Advanced',
-                    'price': 99.99,
-                    'duration_hours': 52,
-                    'duration_days': 120,
-                    'instructor_name': 'Kevin Zhang',
-                    'thumbnail_url': 'https://images.unsplash.com/photo-1639762681485-074b7f938ba0?w=500',
-                    'featured': False
-                },
-                {
-                    'title': 'Business Analytics with Excel & Power BI',
-                    'description': 'Master data analysis and visualization with Excel and Power BI. Learn pivot tables, DAX, data modeling, and dashboard creation.',
-                    'category': 'Business',
-                    'level': 'Beginner',
-                    'price': 44.99,
-                    'duration_hours': 35,
-                    'duration_days': 60,
-                    'instructor_name': 'Jennifer Martinez',
-                    'thumbnail_url': 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=500',
-                    'featured': False
-                },
-                {
-                    'title': 'Introduction to Artificial Intelligence',
-                    'description': 'FREE course introducing AI concepts, machine learning basics, neural networks, and practical AI applications.',
-                    'category': 'Artificial Intelligence',
-                    'level': 'Beginner',
-                    'price': 0.00,
-                    'duration_hours': 20,
-                    'duration_days': 30,
-                    'instructor_name': 'Dr. Alex Kumar',
-                    'thumbnail_url': 'https://images.unsplash.com/photo-1677442136019-21780ecad995?w=500',
+                    'instructor_name': 'Tech Instructor',
+                    'thumbnail_url': '',
                     'featured': True
                 },
                 {
-                    'title': 'DevOps Engineering Complete Guide',
-                    'description': 'Learn DevOps practices, CI/CD pipelines, Docker, Kubernetes, Jenkins, Git, monitoring, and infrastructure as code.',
-                    'category': 'DevOps',
-                    'level': 'Advanced',
-                    'price': 84.99,
-                    'duration_hours': 55,
-                    'duration_days': 120,
-                    'instructor_name': 'Tom Wilson',
-                    'thumbnail_url': 'https://images.unsplash.com/photo-1667372393119-3d4c48d07fc9?w=500',
+                    'title': 'Web App Development',
+                    'description': '🔜 COMING SOON! Build modern web applications using Flask, HTML, CSS, JavaScript, and databases. Create responsive, full-stack applications from scratch.',
+                    'category': 'Programming',
+                    'level': 'Intermediate',
+                    'price': 149.00,
+                    'duration_hours': 60,
+                    'duration_days': 90,
+                    'instructor_name': 'Tech Instructor',
+                    'thumbnail_url': '',
+                    'featured': True
+                },
+                {
+                    'title': 'Desktop App Development',
+                    'description': 'Create professional desktop applications using Python. Learn GUI development with Tkinter, PyQt, and application packaging for distribution.',
+                    'category': 'Programming',
+                    'level': 'Intermediate',
+                    'price': 129.00,
+                    'duration_hours': 45,
+                    'duration_days': 60,
+                    'instructor_name': 'Tech Instructor',
+                    'thumbnail_url': '',
                     'featured': False
                 },
                 {
-                    'title': 'Introduction to Programming',
-                    'description': 'FREE beginner-friendly course teaching programming fundamentals using Python. Perfect for complete beginners.',
+                    'title': 'Google Apps Script',
+                    'description': '🔜 COMING SOON! Automate Google Workspace (Sheets, Docs, Gmail, Drive) with Apps Script. Create custom functions, automated workflows, and productivity tools.',
                     'category': 'Programming',
                     'level': 'Beginner',
-                    'price': 0.00,
-                    'duration_hours': 15,
-                    'duration_days': 30,
-                    'instructor_name': 'Rachel Green',
-                    'thumbnail_url': 'https://images.unsplash.com/photo-1542831371-29b0f74f9713?w=500',
+                    'price': 89.00,
+                    'duration_hours': 30,
+                    'duration_days': 45,
+                    'instructor_name': 'Tech Instructor',
+                    'thumbnail_url': '',
+                    'featured': False
+                },
+                
+                # ==========================================
+                # C. AI & AUTOMATION - 2 COURSES
+                # ==========================================
+                {
+                    'title': 'AI Automation',
+                    'description': '🔜 COMING SOON! Harness AI tools and APIs to automate workflows. Learn to integrate ChatGPT, Claude, and other AI services into your applications and processes.',
+                    'category': 'AI & Automation',
+                    'level': 'Intermediate',
+                    'price': 159.00,
+                    'duration_hours': 40,
+                    'duration_days': 60,
+                    'instructor_name': 'AI Specialist',
+                    'thumbnail_url': '',
                     'featured': True
-                }
+                },
+                {
+                    'title': 'Vibe Coding',
+                    'description': '🔜 COMING SOON! Modern AI-assisted development workflow. Learn to code faster using AI pair programming, prompt engineering for developers, and efficient debugging with AI.',
+                    'category': 'AI & Automation',
+                    'level': 'Intermediate',
+                    'price': 119.00,
+                    'duration_hours': 25,
+                    'duration_days': 30,
+                    'instructor_name': 'AI Specialist',
+                    'thumbnail_url': '',
+                    'featured': True
+                },
+                
+                # ==========================================
+                # D. SPECIALIZED / NICHE COURSES - 1 COURSE
+                # ==========================================
+                {
+                    'title': 'Python for Linguists (Short Course)',
+                    'description': 'Bridge course combining linguistics and programming. Learn Python specifically for text analysis, corpus processing, and linguistic research. Perfect for linguists entering computational work.',
+                    'category': 'Specialized',
+                    'level': 'Beginner',
+                    'price': 69.00,
+                    'duration_hours': 20,
+                    'duration_days': 30,
+                    'instructor_name': 'Dr. Language Expert',
+                    'thumbnail_url': '',
+                    'featured': True
+                },
+                
+                # ==========================================
+                # E. SYSTEMS & TOOLS DEVELOPMENT - 1 COURSE
+                # ==========================================
+                {
+                    'title': 'LMS Development',
+                    'description': '🔜 COMING SOON! Build your own Learning Management System from scratch. Learn full-stack development, database design, user authentication, course management, and payment integration.',
+                    'category': 'Systems Development',
+                    'level': 'Advanced',
+                    'price': 199.00,
+                    'duration_hours': 70,
+                    'duration_days': 120,
+                    'instructor_name': 'Tech Instructor',
+                    'thumbnail_url': '',
+                    'featured': True
+                },
+                
+                # ==========================================
+                # F. DEPLOYMENT & HOSTING - 1 COURSE
+                # ==========================================
+                {
+                    'title': 'How to Deploy and Host Your Tools',
+                    'description': '🔜 COMING SOON! Complete guide to deploying and hosting web apps, NLP tools, and APIs. Master deployment fundamentals, server management, domains, and scaling. Covers Render, Streamlit, Railway, and more.',
+                    'category': 'Deployment',
+                    'level': 'Intermediate',
+                    'price': 139.00,
+                    'duration_hours': 35,
+                    'duration_days': 50,
+                    'instructor_name': 'DevOps Expert',
+                    'thumbnail_url': '',
+                    'featured': True
+                },
             ]
             
             for course_data in courses_data:
@@ -1209,6 +1220,7 @@ with app.app_context():
             
             db.session.commit()
             print(f'✅ {len(courses_data)} courses added successfully!')
+            print('   ℹ️  6 courses marked as "COMING SOON"')
         else:
             print(f'✅ Database already has {course_count} courses')
             
