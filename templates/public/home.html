@@ -1,158 +1,831 @@
-{% extends "layout/base.html" %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LearnHub — Learn Skills That Matter</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-{% block title %}Home{% endblock %}
+  :root {
+    --grad: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    --grad-r: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+    --grad-warm: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    --grad-cool: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    --ink: #0d0d1a;
+    --ink-2: #3a3a5c;
+    --ink-3: #7b7b9d;
+    --surface: #f7f7fc;
+    --white: #ffffff;
+    --card-radius: 24px;
+    --btn-radius: 14px;
+    --shadow-sm: 0 4px 20px rgba(102,126,234,0.10);
+    --shadow-md: 0 20px 60px rgba(0,0,0,0.08);
+    --shadow-lg: 0 35px 90px rgba(102,126,234,0.22);
+    --transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  }
 
-{% block content %}
-<!-- Hero Section -->
-<div class="hero">
-    <div class="container">
-        <h1>Learn Skills That Matter</h1>
-        <p>Master in-demand skills with expert-led courses in Linguistics, Programming, and AI</p>
-        <div style="margin-top: 2rem; display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
-            <a href="{{ url_for('courses') }}" class="btn btn-lg" style="background: white; color: var(--primary);">
-                <i class="fas fa-graduation-cap"></i> Browse Courses
-            </a>
-            {% if not current_user.is_authenticated %}
-            <a href="{{ url_for('register') }}" class="btn btn-outline btn-lg" style="border-color: white; color: white;">
-                Get Started Free
-            </a>
-            {% endif %}
-        </div>
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--white);
+    color: var(--ink);
+    line-height: 1.7;
+    overflow-x: hidden;
+  }
+
+  /* ── NAVBAR ─────────────────────────────── */
+  nav {
+    position: sticky; top: 0; z-index: 100;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 5vw;
+    height: 70px;
+    background: rgba(255,255,255,0.72);
+    backdrop-filter: blur(20px) saturate(160%);
+    -webkit-backdrop-filter: blur(20px) saturate(160%);
+    border-bottom: 1px solid rgba(102,126,234,0.10);
+  }
+  .nav-logo {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800; font-size: 1.4rem;
+    background: var(--grad); -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    text-decoration: none;
+  }
+  .nav-links { display: flex; align-items: center; gap: 2rem; }
+  .nav-links a {
+    font-size: 0.9rem; font-weight: 500; color: var(--ink-2);
+    text-decoration: none; transition: color 0.2s;
+  }
+  .nav-links a:hover { color: #667eea; }
+  .nav-cta {
+    background: var(--grad); color: white !important;
+    padding: 9px 22px; border-radius: 10px;
+    font-size: 0.88rem !important; font-weight: 600 !important;
+    transition: var(--transition) !important;
+    box-shadow: 0 4px 18px rgba(102,126,234,0.35);
+  }
+  .nav-cta:hover { transform: translateY(-2px); box-shadow: 0 8px 28px rgba(102,126,234,0.45) !important; }
+
+  /* ── HERO ────────────────────────────────── */
+  .hero {
+    position: relative;
+    min-height: 92vh;
+    display: flex; align-items: center; justify-content: center;
+    text-align: center;
+    overflow: hidden;
+    padding: 6rem 5vw 5rem;
+  }
+  .hero-bg {
+    position: absolute; inset: 0;
+    background: linear-gradient(135deg, #1a0533 0%, #0d1557 40%, #1a0533 100%);
+    z-index: 0;
+  }
+  .hero-grad-orb {
+    position: absolute; border-radius: 50%;
+    filter: blur(80px); opacity: 0.55; z-index: 1;
+  }
+  .orb-1 { width: 700px; height: 700px; background: radial-gradient(circle, #667eea, transparent 70%); top: -200px; left: -150px; animation: floatOrb 12s ease-in-out infinite alternate; }
+  .orb-2 { width: 600px; height: 600px; background: radial-gradient(circle, #764ba2, transparent 70%); bottom: -150px; right: -100px; animation: floatOrb 15s ease-in-out infinite alternate-reverse; }
+  .orb-3 { width: 400px; height: 400px; background: radial-gradient(circle, #f093fb, transparent 70%); top: 50%; left: 55%; opacity: 0.25; animation: floatOrb 10s ease-in-out infinite; }
+
+  @keyframes floatOrb {
+    from { transform: translate(0, 0) scale(1); }
+    to   { transform: translate(40px, 30px) scale(1.06); }
+  }
+
+  .hero-grid {
+    position: absolute; inset: 0; z-index: 2;
+    background-image:
+      linear-gradient(rgba(255,255,255,0.035) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.035) 1px, transparent 1px);
+    background-size: 60px 60px;
+    animation: moveGrid 30s linear infinite;
+  }
+  @keyframes moveGrid { from { background-position: 0 0; } to { background-position: 60px 60px; } }
+
+  .hero-content {
+    position: relative; z-index: 3;
+    max-width: 860px;
+  }
+
+  .hero-pill {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: rgba(255,255,255,0.10);
+    border: 1px solid rgba(255,255,255,0.18);
+    color: rgba(255,255,255,0.85);
+    padding: 7px 18px; border-radius: 40px;
+    font-size: 0.82rem; font-weight: 500; letter-spacing: 0.03em;
+    margin-bottom: 2rem;
+    backdrop-filter: blur(8px);
+    animation: fadeInUp 0.6s ease both;
+  }
+  .hero-pill-dot { width: 7px; height: 7px; border-radius: 50%; background: #f093fb; animation: pulse 2s infinite; }
+  @keyframes pulse { 0%,100% { opacity:1; transform:scale(1); } 50% { opacity:0.5; transform:scale(0.8); } }
+
+  .hero h1 {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(3rem, 6vw, 4.5rem);
+    font-weight: 900;
+    line-height: 1.08;
+    letter-spacing: -0.03em;
+    color: white;
+    margin-bottom: 1.5rem;
+    animation: fadeInUp 0.7s 0.1s ease both;
+  }
+  .hero h1 span {
+    background: linear-gradient(90deg, #f093fb, #c084fc, #818cf8);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  }
+
+  .hero p {
+    font-size: 1.15rem; font-weight: 300;
+    color: rgba(255,255,255,0.72);
+    max-width: 580px; margin: 0 auto 2.8rem;
+    line-height: 1.7;
+    animation: fadeInUp 0.7s 0.2s ease both;
+  }
+
+  .hero-btns {
+    display: flex; gap: 14px; justify-content: center; flex-wrap: wrap;
+    animation: fadeInUp 0.7s 0.3s ease both;
+  }
+  .btn {
+    display: inline-flex; align-items: center; gap: 9px;
+    padding: 14px 30px; border-radius: var(--btn-radius);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.95rem; font-weight: 500;
+    text-decoration: none; cursor: pointer;
+    transition: var(--transition);
+    border: none; position: relative; overflow: hidden;
+  }
+  .btn::after {
+    content: ''; position: absolute; inset: 0;
+    background: white; opacity: 0; transition: opacity 0.2s;
+  }
+  .btn:active::after { opacity: 0.12; }
+  .btn-primary {
+    background: linear-gradient(135deg, #667eea, #f093fb 120%);
+    color: white;
+    box-shadow: 0 6px 30px rgba(102,126,234,0.45);
+  }
+  .btn-primary:hover { transform: translateY(-3px); box-shadow: 0 12px 40px rgba(102,126,234,0.55); }
+  .btn-ghost {
+    background: rgba(255,255,255,0.09);
+    color: white;
+    border: 1px solid rgba(255,255,255,0.22);
+    backdrop-filter: blur(8px);
+  }
+  .btn-ghost:hover { background: rgba(255,255,255,0.16); transform: translateY(-3px); }
+
+  .hero-stats-bar {
+    position: relative; z-index: 3;
+    display: flex; justify-content: center; gap: 3rem; flex-wrap: wrap;
+    margin-top: 4rem;
+    animation: fadeInUp 0.7s 0.45s ease both;
+  }
+  .hero-mini-stat { text-align: center; }
+  .hero-mini-num {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.8rem; font-weight: 800;
+    background: linear-gradient(90deg, #c084fc, #818cf8);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  }
+  .hero-mini-label { font-size: 0.78rem; color: rgba(255,255,255,0.5); letter-spacing: 0.08em; text-transform: uppercase; margin-top: 2px; }
+
+  @keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(28px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ── STATS CARDS ─────────────────────────── */
+  .stats-section {
+    padding: 6rem 5vw;
+    background: var(--surface);
+  }
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 24px;
+    max-width: 900px; margin: 0 auto;
+  }
+  .stat-card {
+    background: white;
+    border-radius: var(--card-radius);
+    padding: 2.5rem 2rem;
+    text-align: center;
+    box-shadow: var(--shadow-md);
+    position: relative; overflow: hidden;
+    transition: var(--transition);
+    border: 1px solid rgba(102,126,234,0.08);
+  }
+  .stat-card::before {
+    content: '';
+    position: absolute; top: 0; left: 0; right: 0;
+    height: 3px;
+    background: var(--grad);
+    opacity: 0;
+    transition: opacity 0.4s ease;
+  }
+  .stat-card:hover { transform: translateY(-10px); box-shadow: var(--shadow-lg); }
+  .stat-card:hover::before { opacity: 1; }
+  .stat-number {
+    font-family: 'Syne', sans-serif;
+    font-size: 4rem; font-weight: 800; line-height: 1;
+    background: var(--grad); -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    margin-bottom: 0.5rem;
+  }
+  .stat-label {
+    font-size: 0.78rem; font-weight: 500; color: var(--ink-3);
+    text-transform: uppercase; letter-spacing: 0.12em;
+  }
+  .stat-icon {
+    font-size: 1.5rem; margin-bottom: 1rem;
+    background: linear-gradient(135deg, #667eea, #f093fb);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  }
+
+  /* ── SECTION COMMON ──────────────────────── */
+  .section-head { text-align: center; margin-bottom: 4rem; }
+  .section-tag {
+    display: inline-block;
+    font-size: 0.75rem; font-weight: 600; letter-spacing: 0.14em;
+    text-transform: uppercase;
+    background: linear-gradient(135deg, rgba(102,126,234,0.10), rgba(240,147,251,0.10));
+    color: #667eea;
+    padding: 5px 16px; border-radius: 40px;
+    border: 1px solid rgba(102,126,234,0.18);
+    margin-bottom: 1.25rem;
+  }
+  .section-head h2 {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(2rem, 4vw, 3.5rem);
+    font-weight: 800; line-height: 1.1; letter-spacing: -0.02em;
+    background: var(--grad); -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    margin-bottom: 1rem;
+  }
+  .section-head p {
+    font-size: 1rem; color: var(--ink-3); max-width: 480px; margin: 0 auto;
+  }
+
+  /* ── COURSE CARDS ────────────────────────── */
+  .courses-section { padding: 7rem 5vw; background: white; }
+
+  .courses-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 28px;
+    margin-bottom: 3.5rem;
+  }
+
+  .course-card {
+    background: white;
+    border-radius: var(--card-radius);
+    overflow: hidden;
+    box-shadow: var(--shadow-md);
+    border: 1px solid rgba(102,126,234,0.08);
+    transition: var(--transition);
+    display: flex; flex-direction: column;
+  }
+  .course-card:hover {
+    transform: translateY(-15px) scale(1.02);
+    box-shadow: var(--shadow-lg);
+  }
+
+  .course-thumb {
+    height: 220px; position: relative; overflow: hidden;
+    flex-shrink: 0;
+  }
+  .course-thumb-inner {
+    width: 100%; height: 100%;
+    display: flex; align-items: center; justify-content: center;
+    position: relative;
+  }
+  .course-thumb-inner::after {
+    content: '';
+    position: absolute; inset: 0;
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      rgba(255,255,255,0.18) 40%,
+      rgba(255,255,255,0.3) 50%,
+      rgba(255,255,255,0.18) 60%,
+      transparent 100%
+    );
+    transform: translateX(-100%);
+    animation: shimmer 2.6s ease-in-out infinite;
+  }
+  @keyframes shimmer {
+    0%   { transform: translateX(-100%); }
+    50%,100% { transform: translateX(100%); }
+  }
+  .thumb-icon {
+    font-size: 3.5rem; opacity: 0.65; z-index: 1; position: relative;
+    filter: drop-shadow(0 4px 12px rgba(0,0,0,0.2));
+  }
+
+  .free-badge {
+    position: absolute; top: 14px; right: 14px; z-index: 2;
+    background: linear-gradient(135deg, #10b981, #059669);
+    color: white; font-size: 0.7rem; font-weight: 700;
+    letter-spacing: 0.1em; text-transform: uppercase;
+    padding: 4px 12px; border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(16,185,129,0.4);
+  }
+
+  .course-body { padding: 1.6rem; flex: 1; display: flex; flex-direction: column; }
+  .course-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.2rem; font-weight: 800; line-height: 1.3;
+    color: var(--ink);
+    margin-bottom: 0.75rem;
+  }
+  .course-meta {
+    display: flex; gap: 1.25rem; margin-bottom: 1rem;
+  }
+  .course-meta span {
+    display: flex; align-items: center; gap: 6px;
+    font-size: 0.82rem; color: var(--ink-3); font-weight: 500;
+  }
+  .course-meta i { color: #667eea; font-size: 0.78rem; }
+  .course-desc {
+    font-size: 0.88rem; color: var(--ink-3); line-height: 1.6;
+    flex: 1; margin-bottom: 1.4rem;
+  }
+  .course-footer {
+    display: flex; align-items: center; justify-content: space-between;
+    padding-top: 1rem;
+    border-top: 1px solid rgba(102,126,234,0.08);
+  }
+  .course-price {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.6rem; font-weight: 800;
+    background: var(--grad); -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  }
+  .btn-course {
+    display: inline-flex; align-items: center; gap: 7px;
+    background: linear-gradient(135deg, rgba(102,126,234,0.08), rgba(118,75,162,0.08));
+    color: #667eea;
+    border: 1px solid rgba(102,126,234,0.2);
+    padding: 9px 18px; border-radius: 10px;
+    font-size: 0.85rem; font-weight: 600;
+    text-decoration: none; cursor: pointer;
+    transition: var(--transition);
+  }
+  .btn-course:hover {
+    background: var(--grad); color: white;
+    border-color: transparent;
+    box-shadow: 0 6px 20px rgba(102,126,234,0.35);
+    transform: translateY(-2px);
+  }
+
+  .view-all-wrap { text-align: center; }
+  .btn-outline-grad {
+    display: inline-flex; align-items: center; gap: 10px;
+    background: white;
+    color: #667eea;
+    border: 2px solid transparent;
+    background-clip: padding-box;
+    padding: 14px 36px; border-radius: var(--btn-radius);
+    font-size: 0.95rem; font-weight: 600;
+    text-decoration: none; cursor: pointer;
+    position: relative;
+    transition: var(--transition);
+    box-shadow: 0 0 0 2px rgba(102,126,234,0.3);
+  }
+  .btn-outline-grad:hover {
+    background: var(--grad);
+    color: white;
+    box-shadow: 0 10px 40px rgba(102,126,234,0.35);
+    transform: translateY(-3px);
+  }
+
+  /* ── FEATURES ────────────────────────────── */
+  .features-section { padding: 7rem 5vw; background: var(--surface); }
+  .features-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 24px;
+  }
+  .feature-card {
+    background: white;
+    border-radius: var(--card-radius);
+    padding: 2.5rem 2rem;
+    text-align: center;
+    box-shadow: var(--shadow-md);
+    border: 1px solid rgba(102,126,234,0.06);
+    transition: var(--transition);
+  }
+  .feature-card:hover { transform: translateY(-8px); box-shadow: var(--shadow-lg); }
+  .feature-icon-wrap {
+    width: 72px; height: 72px; border-radius: 20px;
+    background: linear-gradient(135deg, rgba(102,126,234,0.10), rgba(240,147,251,0.10));
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 1.5rem;
+    border: 1px solid rgba(102,126,234,0.12);
+    transition: var(--transition);
+  }
+  .feature-card:hover .feature-icon-wrap {
+    background: var(--grad);
+    border-color: transparent;
+  }
+  .feature-card:hover .feature-icon-wrap i { color: white !important; }
+  .feature-icon-wrap i { font-size: 1.8rem; color: #7c3aed; transition: color 0.3s; }
+  .feature-card h4 {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.15rem; font-weight: 700;
+    color: var(--ink); margin-bottom: 0.75rem;
+  }
+  .feature-card p { font-size: 0.9rem; color: var(--ink-3); line-height: 1.7; }
+
+  /* ── TESTIMONIAL STRIP ───────────────────── */
+  .social-proof {
+    padding: 4rem 5vw;
+    background: white;
+    overflow: hidden;
+  }
+  .proof-track {
+    display: flex; gap: 32px;
+    animation: scrollProof 30s linear infinite;
+    width: max-content;
+  }
+  .proof-track:hover { animation-play-state: paused; }
+  @keyframes scrollProof { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+  .proof-item {
+    display: flex; align-items: center; gap: 10px;
+    flex-shrink: 0;
+    background: var(--surface);
+    border: 1px solid rgba(102,126,234,0.08);
+    border-radius: 40px; padding: 10px 20px;
+    font-size: 0.85rem; color: var(--ink-2); font-weight: 500;
+  }
+  .proof-avatar {
+    width: 30px; height: 30px; border-radius: 50%;
+    background: var(--grad); display: flex; align-items: center; justify-content: center;
+    font-size: 0.75rem; color: white; font-weight: 700;
+  }
+  .stars { color: #f59e0b; font-size: 0.7rem; letter-spacing: 1px; }
+
+  /* ── CTA SECTION ─────────────────────────── */
+  .cta-section {
+    padding: 8rem 5vw;
+    position: relative; overflow: hidden;
+    background: linear-gradient(135deg, #0d0630 0%, #1a0533 50%, #0a1060 100%);
+    text-align: center;
+  }
+  .cta-section .orb-1 { opacity: 0.4; animation: floatOrb 12s ease-in-out infinite alternate; }
+  .cta-section .orb-2 { opacity: 0.3; }
+  .cta-content { position: relative; z-index: 2; }
+  .cta-section h2 {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(2.2rem, 4.5vw, 3.8rem);
+    font-weight: 900; letter-spacing: -0.03em;
+    color: white; line-height: 1.1;
+    margin-bottom: 1rem;
+  }
+  .cta-section h2 span {
+    background: linear-gradient(90deg, #f093fb, #c084fc);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  }
+  .cta-section p { font-size: 1.05rem; color: rgba(255,255,255,0.6); margin-bottom: 2.5rem; }
+  .btn-cta-white {
+    display: inline-flex; align-items: center; gap: 10px;
+    background: white; color: #667eea;
+    padding: 16px 40px; border-radius: var(--btn-radius);
+    font-size: 1rem; font-weight: 700;
+    text-decoration: none; cursor: pointer;
+    transition: var(--transition);
+    box-shadow: 0 10px 40px rgba(0,0,0,0.25);
+    border: none;
+  }
+  .btn-cta-white:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 20px 60px rgba(102,126,234,0.4);
+    background: linear-gradient(135deg, white, #f3f0ff);
+  }
+
+  .cta-logos {
+    margin-top: 4rem; display: flex; justify-content: center; align-items: center;
+    gap: 2.5rem; flex-wrap: wrap; opacity: 0.35;
+  }
+  .cta-logos span {
+    font-family: 'Syne', sans-serif; font-size: 1.1rem; font-weight: 700;
+    color: white; letter-spacing: 0.05em;
+  }
+
+  /* ── FOOTER ──────────────────────────────── */
+  footer {
+    background: #07050f;
+    padding: 3rem 5vw;
+    display: flex; align-items: center; justify-content: space-between;
+    flex-wrap: wrap; gap: 1rem;
+    border-top: 1px solid rgba(255,255,255,0.05);
+  }
+  .footer-logo {
+    font-family: 'Syne', sans-serif; font-weight: 800; font-size: 1.3rem;
+    background: var(--grad); -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    text-decoration: none;
+  }
+  footer p { font-size: 0.82rem; color: rgba(255,255,255,0.3); }
+  .footer-links { display: flex; gap: 1.5rem; }
+  .footer-links a { font-size: 0.82rem; color: rgba(255,255,255,0.35); text-decoration: none; transition: color 0.2s; }
+  .footer-links a:hover { color: #c084fc; }
+
+  /* ── RESPONSIVE ──────────────────────────── */
+  @media (max-width: 768px) {
+    .nav-links { display: none; }
+    .hero h1 { font-size: 2.8rem; }
+    .hero-stats-bar { gap: 1.5rem; }
+    .courses-grid { grid-template-columns: 1fr; }
+    .features-grid { grid-template-columns: 1fr; }
+    .stats-grid { grid-template-columns: 1fr; }
+    footer { flex-direction: column; text-align: center; }
+  }
+
+  /* ── SCROLL ANIMATIONS ───────────────────── */
+  .reveal {
+    opacity: 0; transform: translateY(40px);
+    transition: opacity 0.7s ease, transform 0.7s cubic-bezier(0.16,1,0.3,1);
+  }
+  .reveal.visible { opacity: 1; transform: translateY(0); }
+  .reveal-delay-1 { transition-delay: 0.1s; }
+  .reveal-delay-2 { transition-delay: 0.2s; }
+  .reveal-delay-3 { transition-delay: 0.3s; }
+</style>
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav>
+  <a href="#" class="nav-logo">LearnHub</a>
+  <div class="nav-links">
+    <a href="#">Courses</a>
+    <a href="#">Instructors</a>
+    <a href="#">Pricing</a>
+    <a href="#">About</a>
+    <a href="#" class="nav-cta">Get Started</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-grad-orb orb-1"></div>
+  <div class="hero-grad-orb orb-2"></div>
+  <div class="hero-grad-orb orb-3"></div>
+  <div class="hero-grid"></div>
+
+  <div class="hero-content">
+    <div class="hero-pill">
+      <span class="hero-pill-dot"></span>
+      New AI courses added weekly
     </div>
-</div>
 
-<!-- Stats Section -->
-<div class="stats-section">
-    <div class="container">
-        <div class="stats-grid">
-            <div class="stat-card">
-                <div class="stat-number">{{ stats.total_courses }}+</div>
-                <div class="stat-label">Expert Courses</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-number">{{ stats.total_students }}+</div>
-                <div class="stat-label">Active Students</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-number">{{ stats.total_enrollments }}+</div>
-                <div class="stat-label">Enrollments</div>
-            </div>
-        </div>
+    <h1>Learn Skills<br><span>That Matter</span></h1>
+
+    <p>Master in-demand skills with expert-led courses in Linguistics, Programming, and Artificial Intelligence — at your own pace.</p>
+
+    <div class="hero-btns">
+      <a href="#courses" class="btn btn-primary">
+        <i class="fas fa-graduation-cap"></i> Browse Courses
+      </a>
+      <a href="#" class="btn btn-ghost">
+        Get Started Free <i class="fas fa-arrow-right"></i>
+      </a>
     </div>
-</div>
 
-<!-- Featured Courses -->
-{% if featured_courses %}
-<section style="padding: 4rem 0;">
-    <div class="container">
-        <div class="section-title">
-            <h2>Featured Courses</h2>
-            <p>Start learning with our most popular courses</p>
-        </div>
-
-        <div class="grid grid-3">
-            {% for course in featured_courses %}
-            <div class="course-card">
-                <div style="position: relative;">
-                    {% if course.thumbnail_url %}
-                    <img src="{{ course.thumbnail_url }}" class="course-image" alt="{{ course.title }}">
-                    {% else %}
-                    <div class="course-image">
-                        <i class="fas fa-book"></i>
-                    </div>
-                    {% endif %}
-                    
-                    {% if course.is_free %}
-                    <span class="badge badge-success" style="position: absolute; top: 1rem; right: 1rem;">FREE</span>
-                    {% endif %}
-                </div>
-                
-                <div class="course-content">
-                    <h3 class="course-title">{{ course.title }}</h3>
-                    
-                    <div class="course-meta">
-                        <span><i class="fas fa-signal"></i> {{ course.level }}</span>
-                        <span><i class="fas fa-clock"></i> {{ course.duration_hours }}h</span>
-                    </div>
-                    
-                    <p class="course-description">{{ course.description[:120] }}...</p>
-                    
-                    <div class="course-footer">
-                        <div class="course-price">
-                            {% if course.is_free %}
-                            FREE
-                            {% else %}
-                            ${{ "%.0f"|format(course.price) }}
-                            {% endif %}
-                        </div>
-                        <a href="{{ url_for('course_detail', course_id=course.id) }}" class="btn btn-primary">
-                            View Details
-                        </a>
-                    </div>
-                </div>
-            </div>
-            {% endfor %}
-        </div>
-
-        <div class="text-center mt-4">
-            <a href="{{ url_for('courses') }}" class="btn btn-outline btn-lg">
-                View All Courses <i class="fas fa-arrow-right"></i>
-            </a>
-        </div>
+    <div class="hero-stats-bar">
+      <div class="hero-mini-stat">
+        <div class="hero-mini-num">120+</div>
+        <div class="hero-mini-label">Expert Courses</div>
+      </div>
+      <div class="hero-mini-stat">
+        <div class="hero-mini-num">8,400+</div>
+        <div class="hero-mini-label">Students</div>
+      </div>
+      <div class="hero-mini-stat">
+        <div class="hero-mini-num">24k+</div>
+        <div class="hero-mini-label">Enrollments</div>
+      </div>
+      <div class="hero-mini-stat">
+        <div class="hero-mini-num">4.9★</div>
+        <div class="hero-mini-label">Avg Rating</div>
+      </div>
     </div>
+  </div>
 </section>
-{% endif %}
 
-<!-- Why Choose Us -->
-<section style="padding: 4rem 0; background: white;">
-    <div class="container">
-        <div class="section-title">
-            <h2>Why Choose LearnHub?</h2>
-            <p>Professional learning experience designed for your success</p>
-        </div>
-
-        <div class="grid grid-3">
-            <div class="card">
-                <div class="card-body text-center">
-                    <i class="fas fa-chalkboard-teacher" style="font-size: 3rem; color: var(--primary); margin-bottom: 1rem;"></i>
-                    <h4>Expert Instructors</h4>
-                    <p class="text-muted">Learn from experienced professionals in their fields</p>
-                </div>
-            </div>
-            
-            <div class="card">
-                <div class="card-body text-center">
-                    <i class="fas fa-infinity" style="font-size: 3rem; color: var(--primary); margin-bottom: 1rem;"></i>
-                    <h4>Lifetime Access</h4>
-                    <p class="text-muted">Access your courses anytime, anywhere, forever</p>
-                </div>
-            </div>
-            
-            <div class="card">
-                <div class="card-body text-center">
-                    <i class="fas fa-certificate" style="font-size: 3rem; color: var(--primary); margin-bottom: 1rem;"></i>
-                    <h4>Certificates</h4>
-                    <p class="text-muted">Earn certificates upon course completion</p>
-                </div>
-            </div>
-        </div>
+<!-- STATS -->
+<section class="stats-section">
+  <div class="stats-grid">
+    <div class="stat-card reveal">
+      <div class="stat-icon"><i class="fas fa-book-open"></i></div>
+      <div class="stat-number">120+</div>
+      <div class="stat-label">Expert Courses</div>
     </div>
+    <div class="stat-card reveal reveal-delay-1">
+      <div class="stat-icon"><i class="fas fa-users"></i></div>
+      <div class="stat-number">8,400+</div>
+      <div class="stat-label">Active Students</div>
+    </div>
+    <div class="stat-card reveal reveal-delay-2">
+      <div class="stat-icon"><i class="fas fa-chart-line"></i></div>
+      <div class="stat-number">24,000+</div>
+      <div class="stat-label">Total Enrollments</div>
+    </div>
+  </div>
 </section>
 
-<!-- CTA Section -->
-<section style="padding: 4rem 0; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
-    <div class="container text-center">
-        <h2 style="color: white; margin-bottom: 1rem;">Ready to Start Learning?</h2>
-        <p style="font-size: 1.25rem; color: rgba(255,255,255,0.95); margin-bottom: 2rem;">Join thousands of students achieving their goals</p>
-        {% if not current_user.is_authenticated %}
-        <a href="{{ url_for('register') }}" class="btn btn-lg" style="background: white; color: var(--primary);">
-            <i class="fas fa-user-plus"></i> Create Free Account
-        </a>
-        {% else %}
-        <a href="{{ url_for('courses') }}" class="btn btn-lg" style="background: white; color: var(--primary);">
-            <i class="fas fa-graduation-cap"></i> Browse Courses
-        </a>
-        {% endif %}
+<!-- FEATURED COURSES -->
+<section class="courses-section" id="courses">
+  <div class="section-head reveal">
+    <div class="section-tag">Featured Courses</div>
+    <h2>Featured Courses</h2>
+    <p>Start learning with our most popular and highest-rated courses</p>
+  </div>
+
+  <div class="courses-grid">
+    <!-- Card 1 -->
+    <div class="course-card reveal">
+      <div class="course-thumb">
+        <div class="course-thumb-inner" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+          <span class="thumb-icon">🧠</span>
+          <span class="free-badge">FREE</span>
+        </div>
+      </div>
+      <div class="course-body">
+        <h3 class="course-title">Introduction to Linguistics</h3>
+        <div class="course-meta">
+          <span><i class="fas fa-signal"></i> Beginner</span>
+          <span><i class="fas fa-clock"></i> 12h</span>
+          <span><i class="fas fa-star" style="color:#f59e0b"></i> 4.9</span>
+        </div>
+        <p class="course-desc">Explore the foundations of human language — phonetics, morphology, syntax, and the fascinating science of how we communicate.</p>
+        <div class="course-footer">
+          <span class="course-price">Free</span>
+          <a href="#" class="btn-course">View Details <i class="fas fa-arrow-right"></i></a>
+        </div>
+      </div>
     </div>
+
+    <!-- Card 2 -->
+    <div class="course-card reveal reveal-delay-1">
+      <div class="course-thumb">
+        <div class="course-thumb-inner" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
+          <span class="thumb-icon">💻</span>
+        </div>
+      </div>
+      <div class="course-body">
+        <h3 class="course-title">Python for Data Science</h3>
+        <div class="course-meta">
+          <span><i class="fas fa-signal"></i> Intermediate</span>
+          <span><i class="fas fa-clock"></i> 28h</span>
+          <span><i class="fas fa-star" style="color:#f59e0b"></i> 4.8</span>
+        </div>
+        <p class="course-desc">Learn Python from first principles and apply it to real-world data science projects using pandas, NumPy, and matplotlib.</p>
+        <div class="course-footer">
+          <span class="course-price">$49</span>
+          <a href="#" class="btn-course">View Details <i class="fas fa-arrow-right"></i></a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Card 3 -->
+    <div class="course-card reveal reveal-delay-2">
+      <div class="course-thumb">
+        <div class="course-thumb-inner" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+          <span class="thumb-icon">🤖</span>
+        </div>
+      </div>
+      <div class="course-body">
+        <h3 class="course-title">AI & Machine Learning Fundamentals</h3>
+        <div class="course-meta">
+          <span><i class="fas fa-signal"></i> Advanced</span>
+          <span><i class="fas fa-clock"></i> 36h</span>
+          <span><i class="fas fa-star" style="color:#f59e0b"></i> 5.0</span>
+        </div>
+        <p class="course-desc">Understand the core principles behind modern AI — neural networks, gradient descent, transformers, and large language models.</p>
+        <div class="course-footer">
+          <span class="course-price">$79</span>
+          <a href="#" class="btn-course">View Details <i class="fas fa-arrow-right"></i></a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="view-all-wrap reveal">
+    <a href="#" class="btn-outline-grad">View All Courses <i class="fas fa-arrow-right"></i></a>
+  </div>
 </section>
-{% endblock %}
+
+<!-- SOCIAL PROOF TICKER -->
+<section class="social-proof">
+  <div class="proof-track" id="proofTrack">
+    <div class="proof-item"><div class="proof-avatar">AM</div> <span class="stars">★★★★★</span> "Changed my career" — Aisha M.</div>
+    <div class="proof-item"><div class="proof-avatar" style="background:linear-gradient(135deg,#4facfe,#00f2fe)">JK</div> <span class="stars">★★★★★</span> "Best platform ever" — Jonas K.</div>
+    <div class="proof-item"><div class="proof-avatar" style="background:linear-gradient(135deg,#f093fb,#f5576c)">SR</div> <span class="stars">★★★★★</span> "Got a job in 3 months" — Sara R.</div>
+    <div class="proof-item"><div class="proof-avatar" style="background:linear-gradient(135deg,#43e97b,#38f9d7)">DL</div> <span class="stars">★★★★★</span> "Incredible depth" — Diego L.</div>
+    <div class="proof-item"><div class="proof-avatar" style="background:linear-gradient(135deg,#fa709a,#fee140)">NP</div> <span class="stars">★★★★★</span> "World-class content" — Nadia P.</div>
+    <div class="proof-item"><div class="proof-avatar" style="background:linear-gradient(135deg,#a18cd1,#fbc2eb)">TW</div> <span class="stars">★★★★★</span> "Highly recommend" — Tom W.</div>
+    <!-- duplicate for infinite scroll -->
+    <div class="proof-item"><div class="proof-avatar">AM</div> <span class="stars">★★★★★</span> "Changed my career" — Aisha M.</div>
+    <div class="proof-item"><div class="proof-avatar" style="background:linear-gradient(135deg,#4facfe,#00f2fe)">JK</div> <span class="stars">★★★★★</span> "Best platform ever" — Jonas K.</div>
+    <div class="proof-item"><div class="proof-avatar" style="background:linear-gradient(135deg,#f093fb,#f5576c)">SR</div> <span class="stars">★★★★★</span> "Got a job in 3 months" — Sara R.</div>
+    <div class="proof-item"><div class="proof-avatar" style="background:linear-gradient(135deg,#43e97b,#38f9d7)">DL</div> <span class="stars">★★★★★</span> "Incredible depth" — Diego L.</div>
+    <div class="proof-item"><div class="proof-avatar" style="background:linear-gradient(135deg,#fa709a,#fee140)">NP</div> <span class="stars">★★★★★</span> "World-class content" — Nadia P.</div>
+    <div class="proof-item"><div class="proof-avatar" style="background:linear-gradient(135deg,#a18cd1,#fbc2eb)">TW</div> <span class="stars">★★★★★</span> "Highly recommend" — Tom W.</div>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<section class="features-section">
+  <div class="section-head reveal">
+    <div class="section-tag">Why LearnHub</div>
+    <h2>Why Choose LearnHub?</h2>
+    <p>Everything you need to level up your career and skills, in one place</p>
+  </div>
+
+  <div class="features-grid">
+    <div class="feature-card reveal">
+      <div class="feature-icon-wrap"><i class="fas fa-chalkboard-teacher"></i></div>
+      <h4>Expert Instructors</h4>
+      <p>Learn directly from industry veterans and practitioners with proven track records in their fields.</p>
+    </div>
+    <div class="feature-card reveal reveal-delay-1">
+      <div class="feature-icon-wrap"><i class="fas fa-infinity"></i></div>
+      <h4>Lifetime Access</h4>
+      <p>Pay once, learn forever. Access all your enrolled courses anytime, from any device, with no expiry.</p>
+    </div>
+    <div class="feature-card reveal reveal-delay-2">
+      <div class="feature-icon-wrap"><i class="fas fa-certificate"></i></div>
+      <h4>Verified Certificates</h4>
+      <p>Earn shareable, employer-recognized certificates upon completion to showcase your expertise.</p>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta-section">
+  <div class="hero-grad-orb orb-1"></div>
+  <div class="hero-grad-orb orb-2"></div>
+  <div class="cta-content">
+    <div class="section-tag" style="background:rgba(240,147,251,0.15); color:#f093fb; border-color:rgba(240,147,251,0.25); margin-bottom:1.5rem;">
+      Join Today
+    </div>
+    <h2>Ready to Start<br><span>Learning?</span></h2>
+    <p>Join thousands of students already achieving their goals on LearnHub</p>
+    <a href="#" class="btn-cta-white">
+      <i class="fas fa-user-plus"></i> Create Free Account
+    </a>
+    <div class="cta-logos">
+      <span>Linguistics</span>
+      <span>•</span>
+      <span>Programming</span>
+      <span>•</span>
+      <span>AI & ML</span>
+      <span>•</span>
+      <span>Data Science</span>
+      <span>•</span>
+      <span>Design</span>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <a href="#" class="footer-logo">LearnHub</a>
+  <p>© 2025 LearnHub. All rights reserved.</p>
+  <div class="footer-links">
+    <a href="#">Privacy</a>
+    <a href="#">Terms</a>
+    <a href="#">Contact</a>
+  </div>
+</footer>
+
+<script>
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+  }, { threshold: 0.12 });
+  document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+  document.querySelectorAll('.btn, .btn-course, .btn-cta-white, .btn-outline-grad').forEach(btn => {
+    btn.addEventListener('click', function(e) {
+      const ripple = document.createElement('span');
+      const rect = this.getBoundingClientRect();
+      const size = Math.max(rect.width, rect.height);
+      ripple.style.cssText = `position:absolute;border-radius:50%;transform:scale(0);animation:rippleAnim 0.5s ease;width:${size}px;height:${size}px;left:${e.clientX-rect.left-size/2}px;top:${e.clientY-rect.top-size/2}px;background:rgba(255,255,255,0.25);pointer-events:none;`;
+      this.style.position = 'relative'; this.style.overflow = 'hidden';
+      this.appendChild(ripple);
+      setTimeout(() => ripple.remove(), 600);
+    });
+  });
+
+  const style = document.createElement('style');
+  style.textContent = '@keyframes rippleAnim{to{transform:scale(2.5);opacity:0}}';
+  document.head.appendChild(style);
+</script>
+</body>
+</html>
