@@ -1,7 +1,7 @@
 """
 Main Application File for LMS System
 Complete Flask application with all routes and logic
-UPDATED: Auto database initialization with YOUR exact courses
+UPDATED: Fixed payment verification - courses don't activate until admin approves
 """
 
 from flask import Flask, render_template, request, redirect, url_for, flash, jsonify, abort
@@ -70,13 +70,13 @@ def not_found_error(error):
 def internal_error(error):
     """Handle 500 errors"""
     db.session.rollback()
-    return f"Internal Server Error: {str(error)}", 500
+    return render_template('errors/500.html'), 500
 
 
 @app.errorhandler(403)
 def forbidden_error(error):
     """Handle 403 errors"""
-    return "Forbidden: You don't have permission to access this resource.", 403
+    return render_template('errors/403.html'), 403
 
 
 # ==================== CONTEXT PROCESSORS ====================
@@ -394,11 +394,12 @@ def logout():
 @login_required
 def dashboard():
     """User dashboard showing enrolled courses"""
-    # Get active enrollments (verified or free)
+    # CRITICAL FIX: Only show verified or free courses that are active
     enrollments = Enrollment.query.filter_by(
-        user_id=current_user.id
+        user_id=current_user.id,
+        is_active=True  # ← ONLY ACTIVE COURSES
     ).filter(
-        Enrollment.payment_status.in_(['verified', 'free'])
+        Enrollment.payment_status.in_(['verified', 'free'])  # ← ONLY VERIFIED OR FREE
     ).order_by(Enrollment.enrolled_at.desc()).all()
     
     # Get custom bundles
@@ -445,7 +446,7 @@ def payment_instructions(course_id):
 @app.route('/enroll/<int:course_id>', methods=['POST'])
 @login_required
 def enroll_course(course_id):
-    """Enroll user in a course"""
+    """Enroll user in a course with automatic payment redirect"""
     course = Course.query.get_or_404(course_id)
     
     # Check if already enrolled
@@ -459,20 +460,23 @@ def enroll_course(course_id):
             flash('You are already enrolled in this course.', 'info')
             return redirect(url_for('course_detail', course_id=course_id))
         elif existing_enrollment.payment_status == 'pending':
-            flash('Your enrollment is pending payment verification. Please check your email or contact support.', 'warning')
-            return redirect(url_for('course_detail', course_id=course_id))
+            flash('Your enrollment is pending payment verification.', 'warning')
+            return redirect(url_for('payment_instructions', course_id=course_id))
     
     # Create new enrollment
     try:
-        # Determine payment status
+        # CRITICAL FIX: Set is_active based on payment type
         if course.is_free:
             payment_status = 'free'
-            is_active = True
-            flash(f'Successfully enrolled in {course.title}!', 'success')
+            is_active = True  # ✅ FREE COURSES = ACTIVE IMMEDIATELY
+            flash(f'✅ Successfully enrolled in {course.title}!', 'success')
+            redirect_url = url_for('dashboard')
         else:
             payment_status = 'pending'
-            is_active = False
-            flash(f'Enrollment created! Please complete payment to activate access.', 'warning')
+            is_active = False  # ❌ PAID COURSES = NOT ACTIVE UNTIL PAYMENT VERIFIED
+            flash(f'✅ Registration Successful for {course.title}!', 'success')
+            flash('⏳ Please complete payment to activate your course access.', 'info')
+            redirect_url = url_for('payment_instructions', course_id=course_id)
         
         enrollment = Enrollment(
             user_id=current_user.id,
@@ -480,7 +484,7 @@ def enroll_course(course_id):
             enrolled_at=datetime.utcnow(),
             expires_at=datetime.utcnow() + timedelta(days=course.duration_days),
             payment_status=payment_status,
-            is_active=is_active
+            is_active=is_active  # ← THIS IS THE KEY FIX!
         )
         db.session.add(enrollment)
         db.session.commit()
@@ -491,11 +495,8 @@ def enroll_course(course_id):
         app.logger.error(f'Enrollment error: {str(e)}')
         return redirect(url_for('course_detail', course_id=course_id))
     
-    # Redirect based on course type
-    if course.is_free:
-        return redirect(url_for('dashboard'))
-    else:
-        return redirect(url_for('payment_instructions', course_id=course_id))
+    # AUTOMATIC REDIRECT
+    return redirect(redirect_url)
 
 
 @app.route('/unenroll/<int:enrollment_id>', methods=['POST'])
@@ -611,7 +612,7 @@ def activate_bundle(bundle_id):
                 course_id=course.id,
                 enrolled_at=datetime.utcnow(),
                 expires_at=bundle.expires_at,
-                payment_status='free',
+                payment_status='verified',
                 is_active=True
             )
             db.session.add(enrollment)
@@ -620,7 +621,6 @@ def activate_bundle(bundle_id):
             existing.is_active = True
             existing.enrolled_at = datetime.utcnow()
             existing.expires_at = bundle.expires_at
-            existing.payment_status = 'free'
             enrolled_count += 1
     
     db.session.commit()
@@ -659,7 +659,8 @@ def admin_panel():
         'total_enrollments': Enrollment.query.filter(Enrollment.payment_status.in_(['verified', 'free'])).count(),
         'total_blogs': Blog.query.count(),
         'total_lectures': Lecture.query.count(),
-        'active_bundles': CustomBundle.query.filter_by(is_active=True).count()
+        'active_bundles': CustomBundle.query.filter_by(is_active=True).count(),
+        'pending_payments': Enrollment.query.filter_by(payment_status='pending', is_active=False).count()
     }
     
     recent_users = User.query.order_by(User.created_at.desc()).limit(5).all()
@@ -671,115 +672,63 @@ def admin_panel():
                          recent_enrollments=recent_enrollments)
 
 
-@app.route('/admin/course/add', methods=['POST'])
+@app.route('/admin/enrollments/pending')
 @login_required
 @admin_required
-def admin_add_course():
-    """Add new course"""
-    title = request.form.get('title', '').strip()
-    description = request.form.get('description', '').strip()
-    category = request.form.get('category', '').strip()
-    level = request.form.get('level', 'Beginner')
-    price = request.form.get('price', type=float, default=0.0)
-    duration_hours = request.form.get('duration_hours', type=int, default=0)
-    duration_days = request.form.get('duration_days', type=int, default=30)
-    instructor_name = request.form.get('instructor_name', '').strip()
-    thumbnail_url = request.form.get('thumbnail_url', '').strip()
-    featured = request.form.get('featured') == 'on'
+def admin_pending_enrollments():
+    """View pending payment enrollments"""
+    pending_enrollments = Enrollment.query.filter_by(
+        payment_status='pending',
+        is_active=False
+    ).order_by(Enrollment.enrolled_at.desc()).all()
     
-    # Validation
-    if not title or not description or not category:
-        flash('Title, description, and category are required.', 'danger')
-        return redirect(url_for('admin_panel'))
-    
-    try:
-        course = Course(
-            title=title,
-            description=description,
-            category=category,
-            level=level,
-            price=price,
-            duration_hours=duration_hours,
-            duration_days=duration_days,
-            instructor_name=instructor_name,
-            thumbnail_url=thumbnail_url,
-            featured=featured,
-            is_published=True
-        )
-        
-        db.session.add(course)
-        db.session.commit()
-        
-        flash(f'Course "{title}" added successfully!', 'success')
-    
-    except Exception as e:
-        db.session.rollback()
-        flash('An error occurred while adding the course.', 'danger')
-        app.logger.error(f'Add course error: {str(e)}')
-    
-    return redirect(url_for('admin_panel'))
+    return render_template('admin/admin_pending_payments.html', 
+                         enrollments=pending_enrollments)
 
 
-@app.route('/admin/course/<int:course_id>/delete', methods=['POST'])
+@app.route('/admin/enrollment/<int:enrollment_id>/verify', methods=['POST'])
 @login_required
 @admin_required
-def admin_delete_course(course_id):
-    """Delete course"""
-    course = Course.query.get_or_404(course_id)
+def admin_verify_payment(enrollment_id):
+    """Verify and activate enrollment"""
+    enrollment = Enrollment.query.get_or_404(enrollment_id)
+    
+    # ACTIVATE THE COURSE
+    enrollment.payment_status = 'verified'
+    enrollment.is_active = True  # ← NOW IT BECOMES ACTIVE
+    enrollment.payment_verified_at = datetime.utcnow()
     
     try:
-        db.session.delete(course)
         db.session.commit()
-        flash(f'Course "{course.title}" deleted successfully.', 'info')
+        flash(f'✅ Payment verified for {enrollment.user.username} - {enrollment.course.title}!', 'success')
     except Exception as e:
         db.session.rollback()
-        flash('An error occurred while deleting the course.', 'danger')
-        app.logger.error(f'Delete course error: {str(e)}')
+        flash('An error occurred while verifying payment.', 'danger')
+        app.logger.error(f'Payment verification error: {str(e)}')
     
-    return redirect(url_for('admin_panel'))
+    return redirect(url_for('admin_pending_enrollments'))
 
 
-@app.route('/admin/lecture/add', methods=['POST'])
+@app.route('/admin/enrollment/<int:enrollment_id>/reject', methods=['POST'])
 @login_required
 @admin_required
-def admin_add_lecture():
-    """Add lecture to course"""
-    course_id = request.form.get('course_id', type=int)
-    title = request.form.get('title', '').strip()
-    description = request.form.get('description', '').strip()
-    video_url = request.form.get('video_url', '').strip()
-    duration_minutes = request.form.get('duration_minutes', type=int, default=0)
-    order_index = request.form.get('order_index', type=int, default=0)
-    is_preview = request.form.get('is_preview') == 'on'
+def admin_reject_payment(enrollment_id):
+    """Reject payment and delete enrollment"""
+    enrollment = Enrollment.query.get_or_404(enrollment_id)
     
-    if not course_id or not title or not video_url:
-        flash('Course, title, and video URL are required.', 'danger')
-        return redirect(url_for('admin_panel'))
-    
-    course = Course.query.get_or_404(course_id)
+    user_name = enrollment.user.username
+    course_name = enrollment.course.title
     
     try:
-        lecture = Lecture(
-            course_id=course_id,
-            title=title,
-            description=description,
-            video_url=video_url,
-            duration_minutes=duration_minutes,
-            order_index=order_index,
-            is_preview=is_preview
-        )
-        
-        db.session.add(lecture)
+        db.session.delete(enrollment)
         db.session.commit()
-        
-        flash(f'Lecture "{title}" added to "{course.title}"!', 'success')
-    
+        flash(f'❌ Payment rejected for {user_name} - {course_name}', 'warning')
     except Exception as e:
         db.session.rollback()
-        flash('An error occurred while adding the lecture.', 'danger')
-        app.logger.error(f'Add lecture error: {str(e)}')
+        flash('An error occurred while rejecting enrollment.', 'danger')
+        app.logger.error(f'Payment rejection error: {str(e)}')
     
-    return redirect(url_for('admin_panel'))
+    return redirect(url_for('admin_pending_enrollments'))
 
 
 @app.route('/admin/blogs')
@@ -873,157 +822,51 @@ def admin_create_blog():
     return render_template('admin/admin_create_blog.html')
 
 
-@app.route('/admin/blog/<int:blog_id>/delete', methods=['POST'])
-@login_required
-@admin_required
-def admin_delete_blog(blog_id):
-    """Delete blog post"""
-    blog = Blog.query.get_or_404(blog_id)
+# ==================== API ENDPOINTS ====================
+
+@app.route('/api/courses')
+def api_courses():
+    """API endpoint for courses"""
+    courses = Course.query.filter_by(is_published=True).all()
+    return jsonify([{
+        'id': c.id,
+        'title': c.title,
+        'description': c.description,
+        'category': c.category,
+        'price': c.price,
+        'level': c.level
+    } for c in courses])
+
+
+@app.route('/api/course/<int:course_id>')
+def api_course_detail(course_id):
+    """API endpoint for course detail"""
+    course = Course.query.get_or_404(course_id)
+    lectures = course.lectures.order_by(Lecture.order_index.asc()).all()
     
-    try:
-        db.session.delete(blog)
-        db.session.commit()
-        flash(f'Blog post "{blog.title}" deleted successfully.', 'info')
-    except Exception as e:
-        db.session.rollback()
-        flash('An error occurred while deleting the blog post.', 'danger')
-        app.logger.error(f'Delete blog error: {str(e)}')
-    
-    return redirect(url_for('admin_blogs'))
+    return jsonify({
+        'id': course.id,
+        'title': course.title,
+        'description': course.description,
+        'category': course.category,
+        'price': course.price,
+        'level': course.level,
+        'lectures': [{
+            'id': l.id,
+            'title': l.title,
+            'duration': l.duration_minutes
+        } for l in lectures]
+    })
 
 
-@app.route('/admin/blog/<int:blog_id>/publish', methods=['POST'])
-@login_required
-@admin_required
-def admin_publish_blog(blog_id):
-    """Publish a draft blog post"""
-    blog = Blog.query.get_or_404(blog_id)
-    
-    blog.is_published = True
-    blog.published_at = datetime.utcnow()
-    
-    try:
-        db.session.commit()
-        flash(f'Blog post "{blog.title}" published successfully!', 'success')
-    except Exception as e:
-        db.session.rollback()
-        flash('An error occurred while publishing the blog post.', 'danger')
-        app.logger.error(f'Publish blog error: {str(e)}')
-    
-    return redirect(url_for('admin_blogs'))
+# ==================== APPLICATION ENTRY POINT ====================
 
-
-@app.route('/admin/blog/<int:blog_id>/unpublish', methods=['POST'])
-@login_required
-@admin_required
-def admin_unpublish_blog(blog_id):
-    """Unpublish a blog post"""
-    blog = Blog.query.get_or_404(blog_id)
-    
-    blog.is_published = False
-    
-    try:
-        db.session.commit()
-        flash(f'Blog post "{blog.title}" unpublished.', 'info')
-    except Exception as e:
-        db.session.rollback()
-        flash('An error occurred while unpublishing the blog post.', 'danger')
-        app.logger.error(f'Unpublish blog error: {str(e)}')
-    
-    return redirect(url_for('admin_blogs'))
-
-
-# Placeholder admin routes
-@app.route('/admin/users')
-@login_required
-@admin_required
-def admin_users():
-    """User management page (placeholder)"""
-    flash('User management feature coming soon!', 'info')
-    return redirect(url_for('admin_panel'))
-
-
-@app.route('/admin/courses')
-@login_required
-@admin_required
-def admin_courses():
-    """Course management page (placeholder)"""
-    flash('Course management feature coming soon!', 'info')
-    return redirect(url_for('admin_panel'))
-
-
-@app.route('/admin/enrollments')
-@login_required
-@admin_required
-def admin_enrollments():
-    """Enrollment management page (placeholder)"""
-    flash('Enrollment management feature coming soon!', 'info')
-    return redirect(url_for('admin_panel'))
-
-
-@app.route('/admin/bundles')
-@login_required
-@admin_required
-def admin_bundles():
-    """Bundle management page (placeholder)"""
-    flash('Bundle management feature coming soon!', 'info')
-    return redirect(url_for('admin_panel'))
-
-
-@app.route('/admin/lectures')
-@login_required
-@admin_required
-def admin_lectures():
-    """Lecture management page (placeholder)"""
-    flash('Lecture management feature coming soon!', 'info')
-    return redirect(url_for('admin_panel'))
-
-
-# ==================== DATABASE INITIALIZATION ====================
-
-@app.cli.command('init-db')
-def init_db():
-    """Initialize database with tables"""
-    db.create_all()
-    print('Database initialized successfully!')
-
-
-@app.cli.command('create-admin')
-def create_admin():
-    """Create admin user"""
-    admin = User.query.filter_by(username='admin').first()
-    
-    if admin:
-        print('Admin user already exists!')
-        return
-    
-    admin = User(
-        username='admin',
-        email='admin@learnhub.com',
-        first_name='Admin',
-        last_name='User',
-        is_admin=True
-    )
-    admin.set_password('admin123')
-    
-    db.session.add(admin)
-    db.session.commit()
-    
-    print('Admin user created successfully!')
-    print('Username: admin')
-    print('Password: admin123')
-
-
-# ==================== AUTO-INITIALIZE DATABASE ON STARTUP ====================
-
-with app.app_context():
-    try:
+if __name__ == '__main__':
+    with app.app_context():
         db.create_all()
-        print('✅ Database tables created/verified')
         
         # Create admin if not exists
-        admin_exists = User.query.filter_by(username='admin').first()
-        if not admin_exists:
+        if not User.query.filter_by(username='admin').first():
             admin = User(
                 username='admin',
                 email='admin@learnhub.com',
@@ -1034,204 +877,6 @@ with app.app_context():
             admin.set_password('admin123')
             db.session.add(admin)
             db.session.commit()
-            print('✅ Admin user created: username=admin, password=admin123')
-        else:
-            print('✅ Admin user already exists')
-        
-        # Auto-populate YOUR EXACT 13 courses if database is empty
-        course_count = Course.query.count()
-        if course_count == 0:
-            print('📚 Populating database with YOUR 13 courses...')
-            
-            # YOUR EXACT COURSE SPECIFICATIONS
-            courses_data = [
-                # ==========================================
-                # A. LINGUISTICS (Theoretical + Applied) - 3 COURSES
-                # ==========================================
-                {
-                    'title': 'General Linguistics',
-                    'description': 'Master the foundational principles of linguistics, including phonetics, phonology, morphology, syntax, and semantics. Perfect for beginners and those seeking a comprehensive understanding of language structure.',
-                    'category': 'Linguistics',
-                    'level': 'Beginner',
-                    'price': 99.00,
-                    'duration_hours': 40,
-                    'duration_days': 60,
-                    'instructor_name': 'Dr. Language Expert',
-                    'thumbnail_url': '',
-                    'featured': True
-                },
-                {
-                    'title': 'Corpus Linguistics',
-                    'description': 'Learn to work with large text collections using corpus linguistic methods. Explore frequency analysis, concordancing, and pattern discovery in real-world language data.',
-                    'category': 'Linguistics',
-                    'level': 'Intermediate',
-                    'price': 129.00,
-                    'duration_hours': 35,
-                    'duration_days': 50,
-                    'instructor_name': 'Dr. Language Expert',
-                    'thumbnail_url': '',
-                    'featured': True
-                },
-                {
-                    'title': 'Computational Linguistics',
-                    'description': 'Bridge linguistics and computer science. Learn NLP fundamentals, text processing, language modeling, and how computers understand human language.',
-                    'category': 'Linguistics',
-                    'level': 'Advanced',
-                    'price': 149.00,
-                    'duration_hours': 45,
-                    'duration_days': 70,
-                    'instructor_name': 'Dr. Language Expert',
-                    'thumbnail_url': '',
-                    'featured': True
-                },
-                
-                # ==========================================
-                # B. PROGRAMMING & DEVELOPMENT - 4 COURSES
-                # ==========================================
-                {
-                    'title': 'Python Programming',
-                    'description': 'Complete Python course from basics to advanced. Learn data structures, OOP, file handling, error handling, and real-world application development.',
-                    'category': 'Programming',
-                    'level': 'Beginner',
-                    'price': 79.00,
-                    'duration_hours': 50,
-                    'duration_days': 90,
-                    'instructor_name': 'Tech Instructor',
-                    'thumbnail_url': '',
-                    'featured': True
-                },
-                {
-                    'title': 'Web App Development',
-                    'description': '🔜 COMING SOON! Build modern web applications using Flask, HTML, CSS, JavaScript, and databases. Create responsive, full-stack applications from scratch.',
-                    'category': 'Programming',
-                    'level': 'Intermediate',
-                    'price': 149.00,
-                    'duration_hours': 60,
-                    'duration_days': 90,
-                    'instructor_name': 'Tech Instructor',
-                    'thumbnail_url': '',
-                    'featured': True
-                },
-                {
-                    'title': 'Desktop App Development',
-                    'description': 'Create professional desktop applications using Python. Learn GUI development with Tkinter, PyQt, and application packaging for distribution.',
-                    'category': 'Programming',
-                    'level': 'Intermediate',
-                    'price': 129.00,
-                    'duration_hours': 45,
-                    'duration_days': 60,
-                    'instructor_name': 'Tech Instructor',
-                    'thumbnail_url': '',
-                    'featured': False
-                },
-                {
-                    'title': 'Google Apps Script',
-                    'description': '🔜 COMING SOON! Automate Google Workspace (Sheets, Docs, Gmail, Drive) with Apps Script. Create custom functions, automated workflows, and productivity tools.',
-                    'category': 'Programming',
-                    'level': 'Beginner',
-                    'price': 89.00,
-                    'duration_hours': 30,
-                    'duration_days': 45,
-                    'instructor_name': 'Tech Instructor',
-                    'thumbnail_url': '',
-                    'featured': False
-                },
-                
-                # ==========================================
-                # C. AI & AUTOMATION - 2 COURSES
-                # ==========================================
-                {
-                    'title': 'AI Automation',
-                    'description': '🔜 COMING SOON! Harness AI tools and APIs to automate workflows. Learn to integrate ChatGPT, Claude, and other AI services into your applications and processes.',
-                    'category': 'AI & Automation',
-                    'level': 'Intermediate',
-                    'price': 159.00,
-                    'duration_hours': 40,
-                    'duration_days': 60,
-                    'instructor_name': 'AI Specialist',
-                    'thumbnail_url': '',
-                    'featured': True
-                },
-                {
-                    'title': 'Vibe Coding',
-                    'description': '🔜 COMING SOON! Modern AI-assisted development workflow. Learn to code faster using AI pair programming, prompt engineering for developers, and efficient debugging with AI.',
-                    'category': 'AI & Automation',
-                    'level': 'Intermediate',
-                    'price': 119.00,
-                    'duration_hours': 25,
-                    'duration_days': 30,
-                    'instructor_name': 'AI Specialist',
-                    'thumbnail_url': '',
-                    'featured': True
-                },
-                
-                # ==========================================
-                # D. SPECIALIZED / NICHE COURSES - 1 COURSE
-                # ==========================================
-                {
-                    'title': 'Python for Linguists (Short Course)',
-                    'description': 'Bridge course combining linguistics and programming. Learn Python specifically for text analysis, corpus processing, and linguistic research. Perfect for linguists entering computational work.',
-                    'category': 'Specialized',
-                    'level': 'Beginner',
-                    'price': 69.00,
-                    'duration_hours': 20,
-                    'duration_days': 30,
-                    'instructor_name': 'Dr. Language Expert',
-                    'thumbnail_url': '',
-                    'featured': True
-                },
-                
-                # ==========================================
-                # E. SYSTEMS & TOOLS DEVELOPMENT - 1 COURSE
-                # ==========================================
-                {
-                    'title': 'LMS Development',
-                    'description': '🔜 COMING SOON! Build your own Learning Management System from scratch. Learn full-stack development, database design, user authentication, course management, and payment integration.',
-                    'category': 'Systems Development',
-                    'level': 'Advanced',
-                    'price': 199.00,
-                    'duration_hours': 70,
-                    'duration_days': 120,
-                    'instructor_name': 'Tech Instructor',
-                    'thumbnail_url': '',
-                    'featured': True
-                },
-                
-                # ==========================================
-                # F. DEPLOYMENT & HOSTING - 1 COURSE
-                # ==========================================
-                {
-                    'title': 'How to Deploy and Host Your Tools',
-                    'description': '🔜 COMING SOON! Complete guide to deploying and hosting web apps, NLP tools, and APIs. Master deployment fundamentals, server management, domains, and scaling. Covers Render, Streamlit, Railway, and more.',
-                    'category': 'Deployment',
-                    'level': 'Intermediate',
-                    'price': 139.00,
-                    'duration_hours': 35,
-                    'duration_days': 50,
-                    'instructor_name': 'DevOps Expert',
-                    'thumbnail_url': '',
-                    'featured': True
-                },
-            ]
-            
-            for course_data in courses_data:
-                course = Course(**course_data)
-                db.session.add(course)
-            
-            db.session.commit()
-            print(f'✅ {len(courses_data)} courses added successfully!')
-            print('   ℹ️  6 courses marked as "COMING SOON"')
-        else:
-            print(f'✅ Database already has {course_count} courses')
-            
-    except Exception as e:
-        print(f'⚠️ Database initialization error: {str(e)}')
-        db.session.rollback()
-
-
-# ==================== APPLICATION ENTRY POINT ====================
-
-if __name__ == '__main__':
-    # This runs only when running locally with `python app.py`
-    # Railway uses gunicorn, so this block is skipped in production
+            print('Admin user created: username=admin, password=admin123')
+    
     app.run(debug=True, host='0.0.0.0', port=5000)
