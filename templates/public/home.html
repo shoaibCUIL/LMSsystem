@@ -1,254 +1,96 @@
-{% extends "layout/base.html" %}
-
-{% block title %}Home - {{ app_name }}{% endblock %}
-
-{% block content %}
-<!-- Hero Section -->
-<section class="hero">
-    <div class="container">
-        <div class="row align-items-center">
-            <div class="col-lg-12 text-center">
-                <h1 class="hero-title">Transform Your Future with Expert-Led Courses</h1>
-                <p class="hero-subtitle">Master in-demand skills in Linguistics, Programming, AI & More</p>
-                <div class="mt-4">
-                    <a href="{{ url_for('courses') }}" class="btn btn-primary btn-lg me-3">
-                        <i class="fas fa-graduation-cap"></i> Browse Courses
-                    </a>
-                    {% if not current_user.is_authenticated %}
-                    <a href="{{ url_for('register') }}" class="btn btn-outline-primary btn-lg">
-                        <i class="fas fa-user-plus"></i> Get Started Free
-                    </a>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}{% endblock %} - {{ app_name }}</title>
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="container">
+            <div class="d-flex align-items-center justify-content-between">
+                <a href="{{ url_for('home') }}" class="navbar-brand">
+                    <i class="fas fa-graduation-cap"></i> {{ app_name }}
+                </a>
+                
+                <div class="d-flex align-items-center gap-4">
+                    <a href="{{ url_for('home') }}" class="nav-link">Home</a>
+                    <a href="{{ url_for('courses') }}" class="nav-link">Courses</a>
+                    <a href="{{ url_for('blogs') }}" class="nav-link">Blog</a>
+                    
+                    {% if current_user.is_authenticated %}
+                        <a href="{{ url_for('dashboard') }}" class="nav-link">Dashboard</a>
+                        {% if current_user.is_admin %}
+                            <a href="{{ url_for('admin_panel') }}" class="nav-link">Admin</a>
+                        {% endif %}
+                        <a href="{{ url_for('logout') }}" class="btn btn-outline btn-sm">Logout</a>
+                    {% else %}
+                        <a href="{{ url_for('login') }}" class="nav-link">Login</a>
+                        <a href="{{ url_for('register') }}" class="btn btn-primary btn-sm">Sign Up</a>
                     {% endif %}
                 </div>
             </div>
         </div>
-    </div>
-</section>
+    </nav>
 
-<!-- Stats Section -->
-<section class="py-5">
-    <div class="container">
-        <div class="row g-4">
-            <div class="col-md-4">
-                <div class="stats-card">
-                    <div class="stats-number">{{ stats.total_courses }}+</div>
-                    <div class="stats-label">Expert Courses</div>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="stats-card">
-                    <div class="stats-number">{{ stats.total_students }}+</div>
-                    <div class="stats-label">Active Students</div>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="stats-card">
-                    <div class="stats-number">{{ stats.total_enrollments }}+</div>
-                    <div class="stats-label">Course Enrollments</div>
-                </div>
-            </div>
-        </div>
-    </div>
-</section>
-
-<!-- Featured Courses -->
-<section class="py-5 bg-light">
-    <div class="container">
-        <div class="text-center mb-5">
-            <h2 class="text-gradient">Featured Courses</h2>
-            <p class="text-muted">Start learning with our most popular courses</p>
-        </div>
-
-        <div class="row g-4">
-            {% for course in featured_courses %}
-            <div class="col-lg-4 col-md-6">
-                <div class="course-card">
-                    <div class="position-relative">
-                        {% if course.thumbnail_url %}
-                        <img src="{{ course.thumbnail_url }}" class="course-card-image" alt="{{ course.title }}">
-                        {% else %}
-                        <div class="course-card-image d-flex align-items-center justify-content-center">
-                            <i class="fas fa-book fa-3x text-white"></i>
-                        </div>
-                        {% endif %}
-                        
-                        {% if course.is_free %}
-                        <span class="course-card-badge">FREE</span>
-                        {% elif '🔜 COMING SOON' in course.description %}
-                        <span class="course-card-badge coming-soon-badge">
-                            <i class="fas fa-clock"></i> COMING SOON
-                        </span>
-                        {% endif %}
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="container my-4">
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }}">
+                        {{ message }}
                     </div>
-                    
-                    <div class="course-card-content">
-                        <h5 class="course-card-title">{{ course.title }}</h5>
-                        
-                        <div class="course-card-meta">
-                            <span><i class="fas fa-signal"></i> {{ course.level }}</span>
-                            <span><i class="fas fa-clock"></i> {{ course.duration_hours }}h</span>
-                            <span><i class="fas fa-users"></i> {{ course.enrollment_count }}</span>
-                        </div>
-                        
-                        <p class="text-muted small">{{ course.description[:100] }}...</p>
-                        
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div class="course-card-price">
-                                {% if course.is_free %}
-                                FREE
-                                {% else %}
-                                ${{ "%.2f"|format(course.price) }}
-                                {% endif %}
-                            </div>
-                            <a href="{{ url_for('course_detail', course_id=course.id) }}" class="btn btn-primary">
-                                View Details <i class="fas fa-arrow-right"></i>
-                            </a>
-                        </div>
-                    </div>
-                </div>
+                {% endfor %}
             </div>
-            {% endfor %}
-        </div>
-
-        <div class="text-center mt-5">
-            <a href="{{ url_for('courses') }}" class="btn btn-lg btn-outline-primary">
-                View All Courses <i class="fas fa-arrow-right"></i>
-            </a>
-        </div>
-    </div>
-</section>
-
-<!-- Why Choose Us -->
-<section class="py-5">
-    <div class="container">
-        <div class="text-center mb-5">
-            <h2 class="text-gradient">Why Choose LearnHub?</h2>
-            <p class="text-muted">Learn from industry experts and achieve your goals</p>
-        </div>
-
-        <div class="row g-4">
-            <div class="col-md-4">
-                <div class="card text-center">
-                    <div class="card-body">
-                        <i class="fas fa-chalkboard-teacher fa-3x text-primary mb-3"></i>
-                        <h5>Expert Instructors</h5>
-                        <p class="text-muted">Learn from experienced professionals in their fields</p>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="col-md-4">
-                <div class="card text-center">
-                    <div class="card-body">
-                        <i class="fas fa-infinity fa-3x text-primary mb-3"></i>
-                        <h5>Lifetime Access</h5>
-                        <p class="text-muted">Access your courses anytime, anywhere, forever</p>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="col-md-4">
-                <div class="card text-center">
-                    <div class="card-body">
-                        <i class="fas fa-certificate fa-3x text-primary mb-3"></i>
-                        <h5>Certificates</h5>
-                        <p class="text-muted">Earn certificates upon course completion</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</section>
-
-<!-- Recent Courses -->
-{% if recent_courses %}
-<section class="py-5 bg-light">
-    <div class="container">
-        <div class="text-center mb-5">
-            <h2 class="text-gradient">Recently Added</h2>
-            <p class="text-muted">Check out our newest courses</p>
-        </div>
-
-        <div class="row g-4">
-            {% for course in recent_courses[:6] %}
-            <div class="col-lg-4 col-md-6">
-                <div class="course-card">
-                    <div class="course-card-content">
-                        <h5 class="course-card-title">{{ course.title }}</h5>
-                        <div class="mb-2">
-                            <span class="badge badge-primary">{{ course.category }}</span>
-                            <span class="badge badge-info">{{ course.level }}</span>
-                        </div>
-                        <p class="text-muted small">{{ course.description[:80] }}...</p>
-                        <div class="d-flex justify-content-between align-items-center mt-3">
-                            <span class="text-primary fw-bold">${{ "%.2f"|format(course.price) }}</span>
-                            <a href="{{ url_for('course_detail', course_id=course.id) }}" class="btn btn-sm btn-outline-primary">
-                                Learn More
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            {% endfor %}
-        </div>
-    </div>
-</section>
-{% endif %}
-
-<!-- Recent Blog Posts -->
-{% if recent_blogs %}
-<section class="py-5">
-    <div class="container">
-        <div class="text-center mb-5">
-            <h2 class="text-gradient">From Our Blog</h2>
-            <p class="text-muted">Latest articles and insights</p>
-        </div>
-
-        <div class="row g-4">
-            {% for blog in recent_blogs %}
-            <div class="col-md-4">
-                <div class="card h-100">
-                    <div class="card-body">
-                        <span class="badge badge-primary mb-2">{{ blog.category }}</span>
-                        <h5 class="card-title">{{ blog.title }}</h5>
-                        <p class="text-muted small">{{ blog.excerpt[:100] }}...</p>
-                        <div class="d-flex justify-content-between align-items-center mt-3">
-                            <small class="text-muted">
-                                <i class="far fa-calendar"></i> {{ blog.published_at.strftime('%b %d, %Y') }}
-                            </small>
-                            <a href="{{ url_for('blog_detail', slug=blog.slug) }}" class="btn btn-sm btn-outline-primary">
-                                Read More
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            {% endfor %}
-        </div>
-
-        <div class="text-center mt-4">
-            <a href="{{ url_for('blogs') }}" class="btn btn-outline-primary">
-                View All Articles <i class="fas fa-arrow-right"></i>
-            </a>
-        </div>
-    </div>
-</section>
-{% endif %}
-
-<!-- CTA Section -->
-<section class="py-5 bg-gradient-primary text-white">
-    <div class="container text-center">
-        <h2 class="mb-4">Ready to Start Learning?</h2>
-        <p class="lead mb-4">Join thousands of students achieving their goals</p>
-        {% if not current_user.is_authenticated %}
-        <a href="{{ url_for('register') }}" class="btn btn-light btn-lg">
-            <i class="fas fa-user-plus"></i> Create Free Account
-        </a>
-        {% else %}
-        <a href="{{ url_for('courses') }}" class="btn btn-light btn-lg">
-            <i class="fas fa-graduation-cap"></i> Browse Courses
-        </a>
         {% endif %}
-    </div>
-</section>
-{% endblock %}
+    {% endwith %}
+
+    <!-- Main Content -->
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 2rem; margin-bottom: 2rem;">
+                <div>
+                    <h5>{{ app_name }}</h5>
+                    <p style="color: var(--gray-400);">Professional online learning platform for skill development and career growth.</p>
+                </div>
+                
+                <div>
+                    <h5>Quick Links</h5>
+                    <a href="{{ url_for('courses') }}">Browse Courses</a>
+                    <a href="{{ url_for('blogs') }}">Blog</a>
+                    <a href="{{ url_for('home') }}">About Us</a>
+                </div>
+                
+                <div>
+                    <h5>Support</h5>
+                    <a href="#">Help Center</a>
+                    <a href="#">Contact Us</a>
+                    <a href="#">Terms of Service</a>
+                    <a href="#">Privacy Policy</a>
+                </div>
+            </div>
+            
+            <div class="footer-bottom">
+                <p>&copy; {{ current_year }} {{ app_name }}. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    {% block extra_js %}{% endblock %}
+</body>
+</html>
