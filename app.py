@@ -611,7 +611,9 @@ def activate_bundle(bundle_id):
                 user_id=current_user.id,
                 course_id=course.id,
                 enrolled_at=datetime.utcnow(),
-                expires_at=bundle.expires_at
+                expires_at=bundle.expires_at,
+                payment_status='free',
+                is_active=True
             )
             db.session.add(enrollment)
             enrolled_count += 1
@@ -657,8 +659,7 @@ def admin_panel():
         'total_enrollments': Enrollment.query.filter(Enrollment.payment_status.in_(['verified', 'free'])).count(),
         'total_blogs': Blog.query.count(),
         'total_lectures': Lecture.query.count(),
-        'active_bundles': CustomBundle.query.filter_by(is_active=True).count(),
-        'pending_payments': Enrollment.query.filter_by(payment_status='pending').count()
+        'active_bundles': CustomBundle.query.filter_by(is_active=True).count()
     }
     
     recent_users = User.query.order_by(User.created_at.desc()).limit(5).all()
@@ -668,64 +669,6 @@ def admin_panel():
                          stats=stats,
                          recent_users=recent_users,
                          recent_enrollments=recent_enrollments)
-
-
-@app.route('/admin/enrollments/pending')
-@login_required
-@admin_required
-def admin_pending_enrollments():
-    """View pending payment enrollments"""
-    pending_enrollments = Enrollment.query.filter_by(
-        payment_status='pending',
-        is_active=False
-    ).order_by(Enrollment.enrolled_at.desc()).all()
-    
-    return render_template('admin/admin_pending_payments.html', 
-                         enrollments=pending_enrollments)
-
-
-@app.route('/admin/enrollment/<int:enrollment_id>/verify', methods=['POST'])
-@login_required
-@admin_required
-def admin_verify_payment(enrollment_id):
-    """Verify and activate enrollment"""
-    enrollment = Enrollment.query.get_or_404(enrollment_id)
-    
-    enrollment.payment_status = 'verified'
-    enrollment.payment_verified_at = datetime.utcnow()
-    enrollment.is_active = True
-    
-    try:
-        db.session.commit()
-        flash(f'Payment verified for {enrollment.user.username} - {enrollment.course.title}!', 'success')
-    except Exception as e:
-        db.session.rollback()
-        flash('An error occurred while verifying payment.', 'danger')
-        app.logger.error(f'Payment verification error: {str(e)}')
-    
-    return redirect(url_for('admin_pending_enrollments'))
-
-
-@app.route('/admin/enrollment/<int:enrollment_id>/reject', methods=['POST'])
-@login_required
-@admin_required
-def admin_reject_payment(enrollment_id):
-    """Reject payment and delete enrollment"""
-    enrollment = Enrollment.query.get_or_404(enrollment_id)
-    
-    user_name = enrollment.user.username
-    course_name = enrollment.course.title
-    
-    try:
-        db.session.delete(enrollment)
-        db.session.commit()
-        flash(f'Enrollment rejected and deleted for {user_name} - {course_name}.', 'info')
-    except Exception as e:
-        db.session.rollback()
-        flash('An error occurred while rejecting enrollment.', 'danger')
-        app.logger.error(f'Payment rejection error: {str(e)}')
-    
-    return redirect(url_for('admin_pending_enrollments'))
 
 
 @app.route('/admin/course/add', methods=['POST'])
@@ -773,36 +716,6 @@ def admin_add_course():
         db.session.rollback()
         flash('An error occurred while adding the course.', 'danger')
         app.logger.error(f'Add course error: {str(e)}')
-    
-    return redirect(url_for('admin_panel'))
-
-
-@app.route('/admin/course/<int:course_id>/edit', methods=['POST'])
-@login_required
-@admin_required
-def admin_edit_course(course_id):
-    """Edit existing course"""
-    course = Course.query.get_or_404(course_id)
-    
-    course.title = request.form.get('title', '').strip()
-    course.description = request.form.get('description', '').strip()
-    course.category = request.form.get('category', '').strip()
-    course.level = request.form.get('level', 'Beginner')
-    course.price = request.form.get('price', type=float, default=0.0)
-    course.duration_hours = request.form.get('duration_hours', type=int, default=0)
-    course.duration_days = request.form.get('duration_days', type=int, default=30)
-    course.instructor_name = request.form.get('instructor_name', '').strip()
-    course.thumbnail_url = request.form.get('thumbnail_url', '').strip()
-    course.featured = request.form.get('featured') == 'on'
-    course.updated_at = datetime.utcnow()
-    
-    try:
-        db.session.commit()
-        flash(f'Course "{course.title}" updated successfully!', 'success')
-    except Exception as e:
-        db.session.rollback()
-        flash('An error occurred while updating the course.', 'danger')
-        app.logger.error(f'Edit course error: {str(e)}')
     
     return redirect(url_for('admin_panel'))
 
@@ -865,98 +778,6 @@ def admin_add_lecture():
         db.session.rollback()
         flash('An error occurred while adding the lecture.', 'danger')
         app.logger.error(f'Add lecture error: {str(e)}')
-    
-    return redirect(url_for('admin_panel'))
-
-
-@app.route('/admin/lecture/<int:lecture_id>/delete', methods=['POST'])
-@login_required
-@admin_required
-def admin_delete_lecture(lecture_id):
-    """Delete lecture"""
-    lecture = Lecture.query.get_or_404(lecture_id)
-    
-    try:
-        db.session.delete(lecture)
-        db.session.commit()
-        flash(f'Lecture "{lecture.title}" deleted successfully.', 'info')
-    except Exception as e:
-        db.session.rollback()
-        flash('An error occurred while deleting the lecture.', 'danger')
-        app.logger.error(f'Delete lecture error: {str(e)}')
-    
-    return redirect(url_for('admin_panel'))
-
-
-@app.route('/admin/blog/add', methods=['POST'])
-@login_required
-@admin_required
-def admin_add_blog():
-    """Add new blog post"""
-    title = request.form.get('title', '').strip()
-    content = request.form.get('content', '').strip()
-    excerpt = request.form.get('excerpt', '').strip()
-    author = request.form.get('author', '').strip() or current_user.full_name
-    category = request.form.get('category', '').strip()
-    tags = request.form.get('tags', '').strip()
-    featured_image = request.form.get('featured_image', '').strip()
-    
-    if not title or not content:
-        flash('Title and content are required.', 'danger')
-        return redirect(url_for('admin_panel'))
-    
-    # Create slug
-    slug = create_slug(title)
-    
-    # Ensure slug is unique
-    base_slug = slug
-    counter = 1
-    while Blog.query.filter_by(slug=slug).first():
-        slug = f'{base_slug}-{counter}'
-        counter += 1
-    
-    try:
-        blog = Blog(
-            title=title,
-            slug=slug,
-            content=content,
-            excerpt=excerpt or content[:200],
-            author=author,
-            category=category,
-            tags=tags,
-            featured_image_url=featured_image,
-            is_published=True,
-            published_at=datetime.utcnow()
-        )
-        
-        db.session.add(blog)
-        db.session.commit()
-        
-        flash(f'Blog post "{title}" published successfully!', 'success')
-    
-    except Exception as e:
-        db.session.rollback()
-        flash('An error occurred while publishing the blog post.', 'danger')
-        app.logger.error(f'Add blog error: {str(e)}')
-    
-    return redirect(url_for('admin_panel'))
-
-
-@app.route('/admin/blog/<int:blog_id>/delete', methods=['POST'])
-@login_required
-@admin_required
-def admin_delete_blog(blog_id):
-    """Delete blog post"""
-    blog = Blog.query.get_or_404(blog_id)
-    
-    try:
-        db.session.delete(blog)
-        db.session.commit()
-        flash(f'Blog post "{blog.title}" deleted successfully.', 'info')
-    except Exception as e:
-        db.session.rollback()
-        flash('An error occurred while deleting the blog post.', 'danger')
-        app.logger.error(f'Delete blog error: {str(e)}')
     
     return redirect(url_for('admin_panel'))
 
@@ -1052,33 +873,23 @@ def admin_create_blog():
     return render_template('admin/admin_create_blog.html')
 
 
-@app.route('/admin/blog/<int:blog_id>/edit', methods=['GET', 'POST'])
+@app.route('/admin/blog/<int:blog_id>/delete', methods=['POST'])
 @login_required
 @admin_required
-def admin_edit_blog(blog_id):
-    """Edit existing blog post"""
+def admin_delete_blog(blog_id):
+    """Delete blog post"""
     blog = Blog.query.get_or_404(blog_id)
     
-    if request.method == 'POST':
-        blog.title = request.form.get('title', '').strip()
-        blog.slug = request.form.get('slug', '').strip()
-        blog.content = request.form.get('content', '').strip()
-        blog.excerpt = request.form.get('excerpt', '').strip()
-        blog.category = request.form.get('category', '').strip()
-        blog.tags = request.form.get('tags', '').strip()
-        blog.featured_image_url = request.form.get('featured_image_url', '').strip()
-        blog.updated_at = datetime.utcnow()
-        
-        try:
-            db.session.commit()
-            flash(f'Blog post "{blog.title}" updated successfully!', 'success')
-            return redirect(url_for('admin_blogs'))
-        except Exception as e:
-            db.session.rollback()
-            flash('An error occurred while updating the blog post.', 'danger')
-            app.logger.error(f'Edit blog error: {str(e)}')
+    try:
+        db.session.delete(blog)
+        db.session.commit()
+        flash(f'Blog post "{blog.title}" deleted successfully.', 'info')
+    except Exception as e:
+        db.session.rollback()
+        flash('An error occurred while deleting the blog post.', 'danger')
+        app.logger.error(f'Delete blog error: {str(e)}')
     
-    return render_template('admin/admin_edit_blog.html', blog=blog)
+    return redirect(url_for('admin_blogs'))
 
 
 @app.route('/admin/blog/<int:blog_id>/publish', methods=['POST'])
@@ -1122,6 +933,7 @@ def admin_unpublish_blog(blog_id):
     return redirect(url_for('admin_blogs'))
 
 
+# Placeholder admin routes
 @app.route('/admin/users')
 @login_required
 @admin_required
@@ -1167,43 +979,6 @@ def admin_lectures():
     return redirect(url_for('admin_panel'))
 
 
-# ==================== API ENDPOINTS (for future frontend) ====================
-
-@app.route('/api/courses')
-def api_courses():
-    """API endpoint for courses"""
-    courses = Course.query.filter_by(is_published=True).all()
-    return jsonify([{
-        'id': c.id,
-        'title': c.title,
-        'description': c.description,
-        'category': c.category,
-        'price': c.price,
-        'level': c.level
-    } for c in courses])
-
-
-@app.route('/api/course/<int:course_id>')
-def api_course_detail(course_id):
-    """API endpoint for course detail"""
-    course = Course.query.get_or_404(course_id)
-    lectures = course.lectures.order_by(Lecture.order_index.asc()).all()
-    
-    return jsonify({
-        'id': course.id,
-        'title': course.title,
-        'description': course.description,
-        'category': course.category,
-        'price': course.price,
-        'level': course.level,
-        'lectures': [{
-            'id': l.id,
-            'title': l.title,
-            'duration': l.duration_minutes
-        } for l in lectures]
-    })
-
-
 # ==================== DATABASE INITIALIZATION ====================
 
 @app.cli.command('init-db')
@@ -1237,58 +1012,6 @@ def create_admin():
     print('Admin user created successfully!')
     print('Username: admin')
     print('Password: admin123')
-
-
-@app.cli.command('seed-data')
-def seed_data():
-    """Seed database with sample data"""
-    # Create sample courses
-    courses_data = [
-        {
-            'title': 'Complete Python Programming',
-            'description': 'Learn Python from scratch to advanced level with hands-on projects.',
-            'category': 'Programming',
-            'level': 'Beginner',
-            'price': 49.99,
-            'duration_hours': 40,
-            'duration_days': 60,
-            'instructor_name': 'John Doe',
-            'thumbnail_url': 'https://images.unsplash.com/photo-1526379095098-d400fd0bf935?w=500',
-            'featured': True
-        },
-        {
-            'title': 'Web Development Bootcamp',
-            'description': 'Master HTML, CSS, JavaScript, and modern frameworks.',
-            'category': 'Web Development',
-            'level': 'Intermediate',
-            'price': 59.99,
-            'duration_hours': 60,
-            'duration_days': 90,
-            'instructor_name': 'Jane Smith',
-            'thumbnail_url': 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=500',
-            'featured': True
-        },
-        {
-            'title': 'Data Science with Python',
-            'description': 'Learn data analysis, visualization, and machine learning.',
-            'category': 'Data Science',
-            'level': 'Advanced',
-            'price': 79.99,
-            'duration_hours': 50,
-            'duration_days': 90,
-            'instructor_name': 'Dr. Michael Chen',
-            'thumbnail_url': 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=500',
-            'featured': True
-        }
-    ]
-    
-    for course_data in courses_data:
-        if not Course.query.filter_by(title=course_data['title']).first():
-            course = Course(**course_data)
-            db.session.add(course)
-    
-    db.session.commit()
-    print('Sample data seeded successfully!')
 
 
 # ==================== APPLICATION ENTRY POINT ====================
