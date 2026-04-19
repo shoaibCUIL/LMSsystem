@@ -1,195 +1,249 @@
 {% extends "layout/base.html" %}
 
-{% block title %}Payment Instructions - {{ app_name }}{% endblock %}
+{% block title %}Payment Instructions - {{ course.title }}{% endblock %}
 
 {% block content %}
 <div class="container my-5">
     <div class="row justify-content-center">
         <div class="col-lg-8">
-            <!-- Course Info Card -->
-            <div class="card mb-4 shadow">
-                <div class="card-header bg-primary text-white">
-                    <h4 class="mb-0"><i class="fas fa-graduation-cap"></i> Enrollment Details</h4>
-                </div>
-                <div class="card-body">
-                    <h5 class="text-primary">{{ course.title }}</h5>
-                    <p class="text-muted mb-3">{{ course.category }} • {{ course.level }}</p>
-                    
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="info-box">
-                                <i class="fas fa-clock text-info"></i>
-                                <div>
-                                    <small class="text-muted">Duration</small>
-                                    <div class="fw-bold">{{ course.duration_hours }} hours ({{ course.duration_days }} days)</div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="info-box">
-                                <i class="fas fa-book text-success"></i>
-                                <div>
-                                    <small class="text-muted">Lectures</small>
-                                    <div class="fw-bold">{{ course.lecture_count }} lectures</div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <hr>
-                    
-                    <div class="price-display">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <h4 class="mb-0">Course Fee:</h4>
-                            <h3 class="mb-0 text-success">
-                                {% if course.is_free %}
-                                    <span class="badge bg-success">FREE</span>
-                                {% else %}
-                                    ${{ "%.2f"|format(course.price) }}
-                                {% endif %}
-                            </h3>
-                        </div>
-                    </div>
+            <!-- Header -->
+            <div class="text-center mb-4">
+                <i class="fas fa-credit-card fa-3x text-success mb-3"></i>
+                <h2>Complete Your Enrollment</h2>
+                <p class="text-muted">Course: <strong>{{ course.title }}</strong></p>
+            </div>
+
+            <!-- Important Notice -->
+            <div class="alert alert-info d-flex align-items-start">
+                <i class="fas fa-info-circle fa-2x me-3 mt-1"></i>
+                <div>
+                    <h5 class="alert-heading">Important:</h5>
+                    <p class="mb-0">Currently we accept manual bank transfers. Please follow the instructions below to complete your enrollment.</p>
                 </div>
             </div>
-            
-            {% if course.is_free %}
-            <!-- Free Course - Direct Enrollment -->
-            <div class="card shadow">
-                <div class="card-body text-center p-5">
-                    <i class="fas fa-gift fa-4x text-success mb-3"></i>
-                    <h3>This Course is FREE!</h3>
-                    <p class="lead">You can enroll directly without any payment.</p>
-                    
-                    <form method="POST" action="{{ url_for('enroll_course', course_id=course.id) }}">
-                        <button type="submit" class="btn btn-success btn-lg mt-3">
-                            <i class="fas fa-check"></i> Enroll Now for Free
-                        </button>
-                    </form>
-                </div>
-            </div>
-            
-            {% else %}
-            <!-- Paid Course - Payment Instructions -->
-            <div class="card shadow">
+
+            <!-- Bank Details Card -->
+            <div class="card shadow-sm mb-4">
                 <div class="card-header bg-success text-white">
-                    <h4 class="mb-0"><i class="fas fa-credit-card"></i> Payment Instructions</h4>
+                    <h5 class="mb-0"><i class="fas fa-university"></i> Bank Account Details</h5>
                 </div>
                 <div class="card-body">
-                    <div class="alert alert-info">
-                        <i class="fas fa-info-circle"></i>
-                        <strong>Important:</strong> Currently we accept manual bank transfers. Please follow the instructions below to complete your enrollment.
-                    </div>
-                    
-                    <!-- Bank Details -->
-                    <div class="bank-details-card">
-                        <h5 class="mb-3"><i class="fas fa-university"></i> Bank Account Details</h5>
-                        
-                        <div class="detail-row">
-                            <span class="label">Bank Name:</span>
-                            <span class="value">Meezan Bank</span>
-                        </div>
-                        
-                        <div class="detail-row">
-                            <span class="label">Account Number:</span>
-                            <span class="value selectable">04110104042981</span>
-                            <button class="btn btn-sm btn-outline-primary" onclick="copyToClipboard('04110104042981')">
-                                <i class="fas fa-copy"></i> Copy
-                            </button>
-                        </div>
-                        
-                        <div class="detail-row">
-                            <span class="label">IBAN Number:</span>
-                            <span class="value selectable">PK41MEZN0004110104042981</span>
-                            <button class="btn btn-sm btn-outline-primary" onclick="copyToClipboard('PK41MEZN0004110104042981')">
-                                <i class="fas fa-copy"></i> Copy
-                            </button>
-                        </div>
-                        
-                        <div class="detail-row">
-                            <span class="label">Amount to Transfer:</span>
-                            <span class="value text-success fw-bold">${{ "%.2f"|format(course.price) }}</span>
+                    <div class="row mb-3">
+                        <div class="col-md-4 text-muted">Bank Name:</div>
+                        <div class="col-md-8">
+                            <strong style="font-family: 'Courier New', monospace;">Meezan Bank</strong>
                         </div>
                     </div>
-                    
-                    <!-- Payment Steps -->
-                    <div class="mt-4">
-                        <h5><i class="fas fa-list-ol"></i> How to Complete Payment</h5>
-                        <ol class="payment-steps">
-                            <li>
-                                <strong>Transfer the exact amount</strong> (${{ "%.2f"|format(course.price) }}) to the bank account above
-                            </li>
-                            <li>
-                                <strong>Keep your payment receipt/screenshot</strong> as proof of payment
-                            </li>
-                            <li>
-                                <strong>Send payment proof</strong> to our email with your details:
-                                <div class="email-box mt-2">
-                                    <i class="fas fa-envelope"></i>
-                                    <a href="mailto:shoaibtahir411@gmail.com?subject=Payment Proof - {{ course.title|urlencode }} - {{ current_user.username|urlencode }}&body=Hi Team,%0D%0A%0D%0AI have completed the payment for the course.%0D%0A%0D%0ADetails:%0D%0A- Name: {{ current_user.full_name|urlencode }}%0D%0A- Email: {{ current_user.email|urlencode }}%0D%0A- Course: {{ course.title|urlencode }}%0D%0A- Amount Paid: ${{ course.price }}%0D%0A%0D%0APlease find my payment receipt attached.%0D%0A%0D%0AThank you!" class="btn btn-primary">
-                                        <i class="fas fa-paper-plane"></i> Send Payment Proof via Gmail
-                                    </a>
-                                </div>
-                            </li>
-                            <li>
-                                <strong>What to include in your email:</strong>
-                                <ul>
-                                    <li>Payment receipt/screenshot (attached)</li>
-                                    <li>Transaction ID (if available)</li>
-                                    <li>Your registered email: <strong>{{ current_user.email }}</strong></li>
-                                </ul>
-                            </li>
-                            <li>
-                                <strong>Wait for confirmation</strong> - We'll verify your payment and activate your enrollment within 24 hours. You'll receive an email once verified.
-                            </li>
-                        </ol>
-                    </div>
-                    
-                    <!-- Important Notes -->
-                    <div class="alert alert-warning mt-4">
-                        <h6><i class="fas fa-exclamation-triangle"></i> Important Notes:</h6>
-                        <ul class="mb-0">
-                            <li>Your enrollment will be activated only after payment verification</li>
-                            <li>You will have view-only access until payment is verified</li>
-                            <li>Please transfer the exact amount to avoid delays</li>
-                            <li>Processing time: 24-48 hours (business days)</li>
-                            <li>Keep your payment receipt until enrollment is confirmed</li>
-                        </ul>
-                    </div>
-                    
-                    <!-- Contact Support -->
-                    <div class="support-box mt-4">
-                        <h6><i class="fas fa-headset"></i> Need Help?</h6>
-                        <p class="mb-2">If you face any problems during payment, contact us:</p>
-                        <div class="contact-info">
-                            <i class="fas fa-envelope text-primary"></i>
-                            <a href="mailto:shoaibtahir411@gmail.com">shoaibtahir411@gmail.com</a>
+
+                    <div class="row mb-3">
+                        <div class="col-md-4 text-muted">Account Number:</div>
+                        <div class="col-md-8">
+                            <div class="d-flex align-items-center">
+                                <code class="bg-light p-2 rounded me-2">04110104042981</code>
+                                <button class="btn btn-sm btn-outline-primary" onclick="copyToClipboard('04110104042981', this)">
+                                    <i class="fas fa-copy"></i> Copy
+                                </button>
+                            </div>
                         </div>
                     </div>
-                </div>
-                
-                <div class="card-footer">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <a href="{{ url_for('course_detail', course_id=course.id) }}" class="btn btn-outline-secondary">
-                            <i class="fas fa-arrow-left"></i> Back to Course
-                        </a>
-                        <a href="mailto:shoaibtahir411@gmail.com?subject=Payment Proof - {{ course.title|urlencode }} - {{ current_user.username|urlencode }}&body=Hi Team,%0D%0A%0D%0AI have completed the payment for the course.%0D%0A%0D%0ADetails:%0D%0A- Name: {{ current_user.full_name|urlencode }}%0D%0A- Email: {{ current_user.email|urlencode }}%0D%0A- Course: {{ course.title|urlencode }}%0D%0A- Amount Paid: ${{ course.price }}%0D%0A%0D%0APlease find my payment receipt attached.%0D%0A%0D%0AThank you!" class="btn btn-success">
-                            <i class="fas fa-paper-plane"></i> Send Payment Proof
-                        </a>
+
+                    <div class="row mb-3">
+                        <div class="col-md-4 text-muted">IBAN Number:</div>
+                        <div class="col-md-8">
+                            <div class="d-flex align-items-center">
+                                <code class="bg-light p-2 rounded me-2">PK41MEZN0004110104042981</code>
+                                <button class="btn btn-sm btn-outline-primary" onclick="copyToClipboard('PK41MEZN0004110104042981', this)">
+                                    <i class="fas fa-copy"></i> Copy
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-4 text-muted">Amount to Transfer:</div>
+                        <div class="col-md-8">
+                            <h4 class="text-success mb-0">${{ "%.2f"|format(course.price) }}</h4>
+                        </div>
                     </div>
                 </div>
             </div>
-            {% endif %}
+
+            <!-- Payment Instructions -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="fas fa-list-ol"></i> How to Complete Payment</h5>
+                </div>
+                <div class="card-body">
+                    <ol class="payment-steps">
+                        <li class="mb-3">
+                            <strong>Transfer the exact amount</strong> (${{ "%.2f"|format(course.price) }}) to the bank account above.
+                        </li>
+                        <li class="mb-3">
+                            <strong>Take a screenshot or photo</strong> of your payment receipt/confirmation.
+                        </li>
+                        <li class="mb-3">
+                            <strong>Send payment proof via email</strong> to our verification team:
+                            <div class="mt-2">
+                                <a href="mailto:payments@learnhub.com?subject=Payment Proof - {{ course.title }} - {{ current_user.username }}&body=Hi LearnHub Team,%0D%0A%0D%0AI have completed the payment for the course: {{ course.title }}%0D%0A%0D%0AUser: {{ current_user.username }}%0D%0AEmail: {{ current_user.email }}%0D%0AAmount: ${{ course.price }}%0D%0A%0D%0APlease find attached the payment receipt.%0D%0A%0D%0AThank you!" 
+                                   class="btn btn-primary">
+                                    <i class="fas fa-envelope"></i> Send Payment Proof via Email
+                                </a>
+                            </div>
+                            <small class="text-muted d-block mt-2">
+                                Or email to: <strong>payments@learnhub.com</strong>
+                            </small>
+                        </li>
+                        <li class="mb-3">
+                            <strong>Wait for admin approval</strong> (usually within 24 hours).
+                        </li>
+                        <li class="mb-0">
+                            Once verified, your course will be <strong>automatically activated</strong> and you'll receive a confirmation email.
+                        </li>
+                    </ol>
+                </div>
+            </div>
+
+            <!-- What to Include in Email -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-warning text-dark">
+                    <h5 class="mb-0"><i class="fas fa-exclamation-triangle"></i> Important: Include in Your Email</h5>
+                </div>
+                <div class="card-body">
+                    <ul class="mb-0">
+                        <li><strong>Your Username:</strong> {{ current_user.username }}</li>
+                        <li><strong>Course Name:</strong> {{ course.title }}</li>
+                        <li><strong>Payment Amount:</strong> ${{ "%.2f"|format(course.price) }}</li>
+                        <li><strong>Payment Receipt:</strong> Attach screenshot/photo</li>
+                        <li><strong>Transaction Date:</strong> When you made the payment</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="d-flex justify-content-between mb-5">
+                <a href="{{ url_for('course_detail', course_id=course.id) }}" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left"></i> Back to Course
+                </a>
+                <a href="{{ url_for('dashboard') }}" class="btn btn-success">
+                    <i class="fas fa-tachometer-alt"></i> Go to Dashboard
+                </a>
+            </div>
+
+            <!-- FAQ -->
+            <div class="card mb-5">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-question-circle"></i> Frequently Asked Questions</h5>
+                </div>
+                <div class="card-body">
+                    <div class="accordion" id="faqAccordion">
+                        <div class="accordion-item">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#faq1">
+                                    How long does verification take?
+                                </button>
+                            </h2>
+                            <div id="faq1" class="accordion-collapse collapse show" data-bs-parent="#faqAccordion">
+                                <div class="accordion-body">
+                                    Typically within 24 hours during business days. You'll receive an email once your payment is verified.
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="accordion-item">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq2">
+                                    What if I transferred the wrong amount?
+                                </button>
+                            </h2>
+                            <div id="faq2" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                                <div class="accordion-body">
+                                    Contact us immediately at support@learnhub.com with your payment details. We'll help you resolve the issue.
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="accordion-item">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq3">
+                                    Can I get a refund?
+                                </button>
+                            </h2>
+                            <div id="faq3" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                                <div class="accordion-body">
+                                    Yes, within 7 days of course activation if you're not satisfied. Contact support@learnhub.com for refund requests.
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="accordion-item">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq4">
+                                    I didn't receive a confirmation email
+                                </button>
+                            </h2>
+                            <div id="faq4" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                                <div class="accordion-body">
+                                    Check your spam folder first. If you still don't see it, contact support@learnhub.com with your username and payment details.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </div>
 
+<style>
+.payment-steps {
+    list-style: none;
+    counter-reset: step-counter;
+    padding-left: 0;
+}
+
+.payment-steps li {
+    counter-increment: step-counter;
+    position: relative;
+    padding-left: 50px;
+}
+
+.payment-steps li::before {
+    content: counter(step-counter);
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 35px;
+    height: 35px;
+    background: #0d6efd;
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+}
+
+code {
+    font-size: 14px;
+}
+</style>
+
 <script>
-function copyToClipboard(text) {
+function copyToClipboard(text, button) {
     navigator.clipboard.writeText(text).then(function() {
-        alert('Copied to clipboard: ' + text);
+        // Change button text temporarily
+        const originalHTML = button.innerHTML;
+        button.innerHTML = '<i class="fas fa-check"></i> Copied!';
+        button.classList.remove('btn-outline-primary');
+        button.classList.add('btn-success');
+        
+        setTimeout(function() {
+            button.innerHTML = originalHTML;
+            button.classList.remove('btn-success');
+            button.classList.add('btn-outline-primary');
+        }, 2000);
     }, function(err) {
-        console.error('Could not copy text: ', err);
+        alert('Failed to copy: ' + err);
     });
 }
 </script>
