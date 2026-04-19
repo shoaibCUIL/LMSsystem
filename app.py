@@ -1,8 +1,7 @@
 """
 Main Application File for LMS System
 Complete Flask application with all routes and logic
-UPDATED: Payment verification system, fixed enrollment, admin blog management
-NOTE: Payment admin routes are commented out until template is created
+UPDATED: Auto database initialization and course population for Railway deployment
 """
 
 from flask import Flask, render_template, request, redirect, url_for, flash, jsonify, abort
@@ -71,13 +70,13 @@ def not_found_error(error):
 def internal_error(error):
     """Handle 500 errors"""
     db.session.rollback()
-    return render_template('errors/500.html'), 500
+    return f"Internal Server Error: {str(error)}", 500
 
 
 @app.errorhandler(403)
 def forbidden_error(error):
     """Handle 403 errors"""
-    return render_template('errors/403.html'), 403
+    return "Forbidden: You don't have permission to access this resource.", 403
 
 
 # ==================== CONTEXT PROCESSORS ====================
@@ -672,67 +671,6 @@ def admin_panel():
                          recent_enrollments=recent_enrollments)
 
 
-# PAYMENT VERIFICATION ROUTES - COMMENTED OUT UNTIL TEMPLATE IS CREATED
-# Uncomment these after creating templates/admin/admin_pending_payments.html
-
-# @app.route('/admin/enrollments/pending')
-# @login_required
-# @admin_required
-# def admin_pending_enrollments():
-#     """View pending payment enrollments"""
-#     pending_enrollments = Enrollment.query.filter_by(
-#         payment_status='pending',
-#         is_active=False
-#     ).order_by(Enrollment.enrolled_at.desc()).all()
-#     
-#     return render_template('admin/admin_pending_payments.html', 
-#                          enrollments=pending_enrollments)
-
-
-# @app.route('/admin/enrollment/<int:enrollment_id>/verify', methods=['POST'])
-# @login_required
-# @admin_required
-# def admin_verify_payment(enrollment_id):
-#     """Verify and activate enrollment"""
-#     enrollment = Enrollment.query.get_or_404(enrollment_id)
-#     
-#     enrollment.payment_status = 'verified'
-#     enrollment.payment_verified_at = datetime.utcnow()
-#     enrollment.is_active = True
-#     
-#     try:
-#         db.session.commit()
-#         flash(f'Payment verified for {enrollment.user.username} - {enrollment.course.title}!', 'success')
-#     except Exception as e:
-#         db.session.rollback()
-#         flash('An error occurred while verifying payment.', 'danger')
-#         app.logger.error(f'Payment verification error: {str(e)}')
-#     
-#     return redirect(url_for('admin_pending_enrollments'))
-
-
-# @app.route('/admin/enrollment/<int:enrollment_id>/reject', methods=['POST'])
-# @login_required
-# @admin_required
-# def admin_reject_payment(enrollment_id):
-#     """Reject payment and delete enrollment"""
-#     enrollment = Enrollment.query.get_or_404(enrollment_id)
-#     
-#     user_name = enrollment.user.username
-#     course_name = enrollment.course.title
-#     
-#     try:
-#         db.session.delete(enrollment)
-#         db.session.commit()
-#         flash(f'Enrollment rejected and deleted for {user_name} - {course_name}.', 'info')
-#     except Exception as e:
-#         db.session.rollback()
-#         flash('An error occurred while rejecting enrollment.', 'danger')
-#         app.logger.error(f'Payment rejection error: {str(e)}')
-#     
-#     return redirect(url_for('admin_pending_enrollments'))
-
-
 @app.route('/admin/course/add', methods=['POST'])
 @login_required
 @admin_required
@@ -1050,15 +988,6 @@ def init_db():
     print('Database initialized successfully!')
 
 
-# ==================== DATABASE INITIALIZATION ====================
-
-@app.cli.command('init-db')
-def init_db():
-    """Initialize database with tables"""
-    db.create_all()
-    print('Database initialized successfully!')
-
-
 @app.cli.command('create-admin')
 def create_admin():
     """Create admin user"""
@@ -1087,7 +1016,6 @@ def create_admin():
 
 # ==================== AUTO-INITIALIZE DATABASE ON STARTUP ====================
 
-# This runs BEFORE the app starts (important for Railway)
 with app.app_context():
     try:
         db.create_all()
@@ -1109,8 +1037,184 @@ with app.app_context():
             print('✅ Admin user created: username=admin, password=admin123')
         else:
             print('✅ Admin user already exists')
+        
+        # Auto-populate courses if database is empty
+        course_count = Course.query.count()
+        if course_count == 0:
+            print('📚 Populating database with courses...')
+            
+            # Sample courses data
+            courses_data = [
+                {
+                    'title': 'Complete Python Programming Masterclass',
+                    'description': 'Master Python from basics to advanced. Learn data structures, OOP, web development, data science, and more with hands-on projects.',
+                    'category': 'Programming',
+                    'level': 'Beginner',
+                    'price': 49.99,
+                    'duration_hours': 45,
+                    'duration_days': 90,
+                    'instructor_name': 'Dr. Sarah Johnson',
+                    'thumbnail_url': 'https://images.unsplash.com/photo-1526379095098-d400fd0bf935?w=500',
+                    'featured': True
+                },
+                {
+                    'title': 'Modern Web Development Bootcamp 2025',
+                    'description': 'Build modern websites and web apps with HTML5, CSS3, JavaScript, React, Node.js, and MongoDB. Includes 10+ real-world projects.',
+                    'category': 'Web Development',
+                    'level': 'Intermediate',
+                    'price': 69.99,
+                    'duration_hours': 60,
+                    'duration_days': 120,
+                    'instructor_name': 'Mike Chen',
+                    'thumbnail_url': 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=500',
+                    'featured': True
+                },
+                {
+                    'title': 'Data Science & Machine Learning A-Z',
+                    'description': 'Complete data science bootcamp. Master Python, NumPy, Pandas, Matplotlib, Scikit-learn, TensorFlow, and deep learning.',
+                    'category': 'Data Science',
+                    'level': 'Advanced',
+                    'price': 79.99,
+                    'duration_hours': 55,
+                    'duration_days': 120,
+                    'instructor_name': 'Dr. Emily Rodriguez',
+                    'thumbnail_url': 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=500',
+                    'featured': True
+                },
+                {
+                    'title': 'UI/UX Design Fundamentals',
+                    'description': 'Learn user interface and user experience design from scratch. Master Figma, Adobe XD, design principles, wireframing, and prototyping.',
+                    'category': 'Design',
+                    'level': 'Beginner',
+                    'price': 39.99,
+                    'duration_hours': 30,
+                    'duration_days': 60,
+                    'instructor_name': 'Amanda White',
+                    'thumbnail_url': 'https://images.unsplash.com/photo-1561070791-2526d30994b5?w=500',
+                    'featured': True
+                },
+                {
+                    'title': 'Digital Marketing Mastery 2025',
+                    'description': 'Complete digital marketing course covering SEO, social media marketing, email marketing, Google Ads, Facebook Ads, and analytics.',
+                    'category': 'Marketing',
+                    'level': 'Intermediate',
+                    'price': 59.99,
+                    'duration_hours': 40,
+                    'duration_days': 90,
+                    'instructor_name': 'David Park',
+                    'thumbnail_url': 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=500',
+                    'featured': True
+                },
+                {
+                    'title': 'AWS Cloud Architect Certification',
+                    'description': 'Prepare for AWS Solutions Architect certification. Learn EC2, S3, Lambda, RDS, VPC, CloudFormation, and cloud best practices.',
+                    'category': 'Cloud Computing',
+                    'level': 'Advanced',
+                    'price': 89.99,
+                    'duration_hours': 50,
+                    'duration_days': 90,
+                    'instructor_name': 'James Mitchell',
+                    'thumbnail_url': 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=500',
+                    'featured': False
+                },
+                {
+                    'title': 'Mobile App Development with React Native',
+                    'description': 'Build cross-platform mobile apps for iOS and Android using React Native. Includes Firebase integration and app deployment.',
+                    'category': 'Mobile Development',
+                    'level': 'Intermediate',
+                    'price': 64.99,
+                    'duration_hours': 45,
+                    'duration_days': 90,
+                    'instructor_name': 'Lisa Anderson',
+                    'thumbnail_url': 'https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?w=500',
+                    'featured': False
+                },
+                {
+                    'title': 'Cybersecurity Essentials & Ethical Hacking',
+                    'description': 'Learn cybersecurity fundamentals, network security, penetration testing, and ethical hacking techniques to protect systems.',
+                    'category': 'Cybersecurity',
+                    'level': 'Advanced',
+                    'price': 74.99,
+                    'duration_hours': 48,
+                    'duration_days': 90,
+                    'instructor_name': 'Robert Taylor',
+                    'thumbnail_url': 'https://images.unsplash.com/photo-1550751827-4bd374c3f58b?w=500',
+                    'featured': False
+                },
+                {
+                    'title': 'Blockchain & Cryptocurrency Development',
+                    'description': 'Master blockchain technology and cryptocurrency development. Build smart contracts with Solidity and create your own tokens.',
+                    'category': 'Blockchain',
+                    'level': 'Advanced',
+                    'price': 99.99,
+                    'duration_hours': 52,
+                    'duration_days': 120,
+                    'instructor_name': 'Kevin Zhang',
+                    'thumbnail_url': 'https://images.unsplash.com/photo-1639762681485-074b7f938ba0?w=500',
+                    'featured': False
+                },
+                {
+                    'title': 'Business Analytics with Excel & Power BI',
+                    'description': 'Master data analysis and visualization with Excel and Power BI. Learn pivot tables, DAX, data modeling, and dashboard creation.',
+                    'category': 'Business',
+                    'level': 'Beginner',
+                    'price': 44.99,
+                    'duration_hours': 35,
+                    'duration_days': 60,
+                    'instructor_name': 'Jennifer Martinez',
+                    'thumbnail_url': 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=500',
+                    'featured': False
+                },
+                {
+                    'title': 'Introduction to Artificial Intelligence',
+                    'description': 'FREE course introducing AI concepts, machine learning basics, neural networks, and practical AI applications.',
+                    'category': 'Artificial Intelligence',
+                    'level': 'Beginner',
+                    'price': 0.00,
+                    'duration_hours': 20,
+                    'duration_days': 30,
+                    'instructor_name': 'Dr. Alex Kumar',
+                    'thumbnail_url': 'https://images.unsplash.com/photo-1677442136019-21780ecad995?w=500',
+                    'featured': True
+                },
+                {
+                    'title': 'DevOps Engineering Complete Guide',
+                    'description': 'Learn DevOps practices, CI/CD pipelines, Docker, Kubernetes, Jenkins, Git, monitoring, and infrastructure as code.',
+                    'category': 'DevOps',
+                    'level': 'Advanced',
+                    'price': 84.99,
+                    'duration_hours': 55,
+                    'duration_days': 120,
+                    'instructor_name': 'Tom Wilson',
+                    'thumbnail_url': 'https://images.unsplash.com/photo-1667372393119-3d4c48d07fc9?w=500',
+                    'featured': False
+                },
+                {
+                    'title': 'Introduction to Programming',
+                    'description': 'FREE beginner-friendly course teaching programming fundamentals using Python. Perfect for complete beginners.',
+                    'category': 'Programming',
+                    'level': 'Beginner',
+                    'price': 0.00,
+                    'duration_hours': 15,
+                    'duration_days': 30,
+                    'instructor_name': 'Rachel Green',
+                    'thumbnail_url': 'https://images.unsplash.com/photo-1542831371-29b0f74f9713?w=500',
+                    'featured': True
+                }
+            ]
+            
+            for course_data in courses_data:
+                course = Course(**course_data)
+                db.session.add(course)
+            
+            db.session.commit()
+            print(f'✅ {len(courses_data)} courses added successfully!')
+        else:
+            print(f'✅ Database already has {course_count} courses')
+            
     except Exception as e:
         print(f'⚠️ Database initialization error: {str(e)}')
+        db.session.rollback()
 
 
 # ==================== APPLICATION ENTRY POINT ====================
