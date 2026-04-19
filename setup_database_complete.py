@@ -1,6 +1,6 @@
 """
-Complete Database Setup and Diagnostic Script
-Fixes all database issues and populates with courses
+Complete Database Setup - FIXED VERSION
+Removes is_free property issue
 """
 
 import os
@@ -60,7 +60,6 @@ def setup_complete_database():
                 'duration_hours': 40,
                 'duration_days': 60,
                 'instructor_name': 'Dr. Sarah Johnson',
-                'is_free': False,
                 'featured': True,
                 'is_published': True
             },
@@ -73,7 +72,6 @@ def setup_complete_database():
                 'duration_hours': 35,
                 'duration_days': 50,
                 'instructor_name': 'Prof. Michael Chen',
-                'is_free': False,
                 'featured': True,
                 'is_published': True
             },
@@ -86,7 +84,6 @@ def setup_complete_database():
                 'duration_hours': 45,
                 'duration_days': 70,
                 'instructor_name': 'Dr. Emily Rodriguez',
-                'is_free': False,
                 'featured': True,
                 'is_published': True
             },
@@ -99,7 +96,6 @@ def setup_complete_database():
                 'duration_hours': 50,
                 'duration_days': 90,
                 'instructor_name': 'John Davis',
-                'is_free': False,
                 'featured': True,
                 'is_published': True
             },
@@ -112,7 +108,6 @@ def setup_complete_database():
                 'duration_hours': 60,
                 'duration_days': 90,
                 'instructor_name': 'Alex Martinez',
-                'is_free': False,
                 'featured': False,
                 'is_published': True
             },
@@ -125,7 +120,6 @@ def setup_complete_database():
                 'duration_hours': 45,
                 'duration_days': 60,
                 'instructor_name': 'David Wilson',
-                'is_free': False,
                 'featured': False,
                 'is_published': True
             },
@@ -138,7 +132,6 @@ def setup_complete_database():
                 'duration_hours': 30,
                 'duration_days': 45,
                 'instructor_name': 'Lisa Anderson',
-                'is_free': False,
                 'featured': False,
                 'is_published': True
             },
@@ -151,7 +144,6 @@ def setup_complete_database():
                 'duration_hours': 40,
                 'duration_days': 60,
                 'instructor_name': 'Dr. James Taylor',
-                'is_free': False,
                 'featured': False,
                 'is_published': True
             },
@@ -164,7 +156,6 @@ def setup_complete_database():
                 'duration_hours': 25,
                 'duration_days': 30,
                 'instructor_name': 'Sophie Lee',
-                'is_free': False,
                 'featured': False,
                 'is_published': True
             },
@@ -177,7 +168,6 @@ def setup_complete_database():
                 'duration_hours': 20,
                 'duration_days': 30,
                 'instructor_name': 'Dr. Rachel Green',
-                'is_free': False,
                 'featured': False,
                 'is_published': True
             },
@@ -190,7 +180,6 @@ def setup_complete_database():
                 'duration_hours': 70,
                 'duration_days': 120,
                 'instructor_name': 'Mark Thompson',
-                'is_free': False,
                 'featured': False,
                 'is_published': True
             },
@@ -203,7 +192,6 @@ def setup_complete_database():
                 'duration_hours': 35,
                 'duration_days': 50,
                 'instructor_name': 'Chris Brown',
-                'is_free': False,
                 'featured': False,
                 'is_published': True
             }
@@ -213,7 +201,19 @@ def setup_complete_database():
         for course_data in courses_data:
             existing = Course.query.filter_by(title=course_data['title']).first()
             if not existing:
-                course = Course(**course_data)
+                # Create course object
+                course = Course(
+                    title=course_data['title'],
+                    description=course_data['description'],
+                    category=course_data['category'],
+                    level=course_data['level'],
+                    price=course_data['price'],
+                    duration_hours=course_data['duration_hours'],
+                    duration_days=course_data['duration_days'],
+                    instructor_name=course_data['instructor_name'],
+                    featured=course_data['featured'],
+                    is_published=course_data['is_published']
+                )
                 db.session.add(course)
                 courses_created += 1
         

@@ -1,96 +1,158 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}{% endblock %} - {{ app_name }}</title>
-    
-    <!-- CSS -->
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-    
-    <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
-    {% block extra_css %}{% endblock %}
-</head>
-<body>
-    <!-- Navbar -->
-    <nav class="navbar">
-        <div class="container">
-            <div class="d-flex align-items-center justify-content-between">
-                <a href="{{ url_for('home') }}" class="navbar-brand">
-                    <i class="fas fa-graduation-cap"></i> {{ app_name }}
-                </a>
-                
-                <div class="d-flex align-items-center gap-4">
-                    <a href="{{ url_for('home') }}" class="nav-link">Home</a>
-                    <a href="{{ url_for('courses') }}" class="nav-link">Courses</a>
-                    <a href="{{ url_for('blogs') }}" class="nav-link">Blog</a>
-                    
-                    {% if current_user.is_authenticated %}
-                        <a href="{{ url_for('dashboard') }}" class="nav-link">Dashboard</a>
-                        {% if current_user.is_admin %}
-                            <a href="{{ url_for('admin_panel') }}" class="nav-link">Admin</a>
-                        {% endif %}
-                        <a href="{{ url_for('logout') }}" class="btn btn-outline btn-sm">Logout</a>
-                    {% else %}
-                        <a href="{{ url_for('login') }}" class="nav-link">Login</a>
-                        <a href="{{ url_for('register') }}" class="btn btn-primary btn-sm">Sign Up</a>
-                    {% endif %}
-                </div>
+{% extends "layout/base.html" %}
+
+{% block title %}Home{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<div class="hero">
+    <div class="container">
+        <h1>Learn Skills That Matter</h1>
+        <p>Master in-demand skills with expert-led courses in Linguistics, Programming, and AI</p>
+        <div style="margin-top: 2rem; display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+            <a href="{{ url_for('courses') }}" class="btn btn-lg" style="background: white; color: var(--primary);">
+                <i class="fas fa-graduation-cap"></i> Browse Courses
+            </a>
+            {% if not current_user.is_authenticated %}
+            <a href="{{ url_for('register') }}" class="btn btn-outline btn-lg" style="border-color: white; color: white;">
+                Get Started Free
+            </a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Stats Section -->
+<div class="stats-section">
+    <div class="container">
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-number">{{ stats.total_courses }}+</div>
+                <div class="stat-label">Expert Courses</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">{{ stats.total_students }}+</div>
+                <div class="stat-label">Active Students</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">{{ stats.total_enrollments }}+</div>
+                <div class="stat-label">Enrollments</div>
             </div>
         </div>
-    </nav>
+    </div>
+</div>
 
-    <!-- Flash Messages -->
-    {% with messages = get_flashed_messages(with_categories=true) %}
-        {% if messages %}
-            <div class="container my-4">
-                {% for category, message in messages %}
-                    <div class="alert alert-{{ category }}">
-                        {{ message }}
+<!-- Featured Courses -->
+{% if featured_courses %}
+<section style="padding: 4rem 0;">
+    <div class="container">
+        <div class="section-title">
+            <h2>Featured Courses</h2>
+            <p>Start learning with our most popular courses</p>
+        </div>
+
+        <div class="grid grid-3">
+            {% for course in featured_courses %}
+            <div class="course-card">
+                <div style="position: relative;">
+                    {% if course.thumbnail_url %}
+                    <img src="{{ course.thumbnail_url }}" class="course-image" alt="{{ course.title }}">
+                    {% else %}
+                    <div class="course-image">
+                        <i class="fas fa-book"></i>
                     </div>
-                {% endfor %}
+                    {% endif %}
+                    
+                    {% if course.is_free %}
+                    <span class="badge badge-success" style="position: absolute; top: 1rem; right: 1rem;">FREE</span>
+                    {% endif %}
+                </div>
+                
+                <div class="course-content">
+                    <h3 class="course-title">{{ course.title }}</h3>
+                    
+                    <div class="course-meta">
+                        <span><i class="fas fa-signal"></i> {{ course.level }}</span>
+                        <span><i class="fas fa-clock"></i> {{ course.duration_hours }}h</span>
+                    </div>
+                    
+                    <p class="course-description">{{ course.description[:120] }}...</p>
+                    
+                    <div class="course-footer">
+                        <div class="course-price">
+                            {% if course.is_free %}
+                            FREE
+                            {% else %}
+                            ${{ "%.0f"|format(course.price) }}
+                            {% endif %}
+                        </div>
+                        <a href="{{ url_for('course_detail', course_id=course.id) }}" class="btn btn-primary">
+                            View Details
+                        </a>
+                    </div>
+                </div>
             </div>
-        {% endif %}
-    {% endwith %}
+            {% endfor %}
+        </div>
 
-    <!-- Main Content -->
-    <main>
-        {% block content %}{% endblock %}
-    </main>
+        <div class="text-center mt-4">
+            <a href="{{ url_for('courses') }}" class="btn btn-outline btn-lg">
+                View All Courses <i class="fas fa-arrow-right"></i>
+            </a>
+        </div>
+    </div>
+</section>
+{% endif %}
 
-    <!-- Footer -->
-    <footer>
-        <div class="container">
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 2rem; margin-bottom: 2rem;">
-                <div>
-                    <h5>{{ app_name }}</h5>
-                    <p style="color: var(--gray-400);">Professional online learning platform for skill development and career growth.</p>
-                </div>
-                
-                <div>
-                    <h5>Quick Links</h5>
-                    <a href="{{ url_for('courses') }}">Browse Courses</a>
-                    <a href="{{ url_for('blogs') }}">Blog</a>
-                    <a href="{{ url_for('home') }}">About Us</a>
-                </div>
-                
-                <div>
-                    <h5>Support</h5>
-                    <a href="#">Help Center</a>
-                    <a href="#">Contact Us</a>
-                    <a href="#">Terms of Service</a>
-                    <a href="#">Privacy Policy</a>
+<!-- Why Choose Us -->
+<section style="padding: 4rem 0; background: white;">
+    <div class="container">
+        <div class="section-title">
+            <h2>Why Choose LearnHub?</h2>
+            <p>Professional learning experience designed for your success</p>
+        </div>
+
+        <div class="grid grid-3">
+            <div class="card">
+                <div class="card-body text-center">
+                    <i class="fas fa-chalkboard-teacher" style="font-size: 3rem; color: var(--primary); margin-bottom: 1rem;"></i>
+                    <h4>Expert Instructors</h4>
+                    <p class="text-muted">Learn from experienced professionals in their fields</p>
                 </div>
             </div>
             
-            <div class="footer-bottom">
-                <p>&copy; {{ current_year }} {{ app_name }}. All rights reserved.</p>
+            <div class="card">
+                <div class="card-body text-center">
+                    <i class="fas fa-infinity" style="font-size: 3rem; color: var(--primary); margin-bottom: 1rem;"></i>
+                    <h4>Lifetime Access</h4>
+                    <p class="text-muted">Access your courses anytime, anywhere, forever</p>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-body text-center">
+                    <i class="fas fa-certificate" style="font-size: 3rem; color: var(--primary); margin-bottom: 1rem;"></i>
+                    <h4>Certificates</h4>
+                    <p class="text-muted">Earn certificates upon course completion</p>
+                </div>
             </div>
         </div>
-    </footer>
+    </div>
+</section>
 
-    {% block extra_js %}{% endblock %}
-</body>
-</html>
+<!-- CTA Section -->
+<section style="padding: 4rem 0; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+    <div class="container text-center">
+        <h2 style="color: white; margin-bottom: 1rem;">Ready to Start Learning?</h2>
+        <p style="font-size: 1.25rem; color: rgba(255,255,255,0.95); margin-bottom: 2rem;">Join thousands of students achieving their goals</p>
+        {% if not current_user.is_authenticated %}
+        <a href="{{ url_for('register') }}" class="btn btn-lg" style="background: white; color: var(--primary);">
+            <i class="fas fa-user-plus"></i> Create Free Account
+        </a>
+        {% else %}
+        <a href="{{ url_for('courses') }}" class="btn btn-lg" style="background: white; color: var(--primary);">
+            <i class="fas fa-graduation-cap"></i> Browse Courses
+        </a>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}
