@@ -1,29 +1,26 @@
 """
-Initialize Database - Creates all tables and admin user
-Run this FIRST before starting the app
+Auto-Initialize Database on Startup
+This runs before the app starts and creates tables if they don't exist
 """
 
+import os
 from app import app, db
-from models import User
+from models import User, Course
 
-def init_database():
-    """Create all database tables and admin user"""
+def init_db_if_needed():
+    """Initialize database if it doesn't exist"""
     
     with app.app_context():
-        print("\n" + "="*60)
-        print("🔧 INITIALIZING DATABASE")
-        print("="*60 + "\n")
-        
-        # Create all tables
-        print("Creating database tables...")
+        # Create tables if they don't exist
         db.create_all()
-        print("✅ Tables created successfully!\n")
         
         # Check if admin exists
         admin = User.query.filter_by(username='admin').first()
         
         if not admin:
-            print("Creating admin user...")
+            print("🔧 First-time setup: Creating admin user and courses...")
+            
+            # Create admin
             admin = User(
                 username='admin',
                 email='admin@learnhub.com',
@@ -33,32 +30,66 @@ def init_database():
             )
             admin.set_password('admin123')
             db.session.add(admin)
+            
+            # Create 4 featured courses
+            courses = [
+                Course(
+                    title='General Linguistics',
+                    description='Comprehensive introduction to linguistic theory and analysis',
+                    category='Linguistics',
+                    level='Beginner',
+                    price=99.00,
+                    duration_hours=40,
+                    duration_days=60,
+                    instructor_name='Dr. Sarah Johnson',
+                    featured=True,
+                    is_published=True
+                ),
+                Course(
+                    title='Python Programming',
+                    description='Complete Python course from basics to advanced',
+                    category='Programming',
+                    level='Beginner',
+                    price=79.00,
+                    duration_hours=50,
+                    duration_days=90,
+                    instructor_name='John Davis',
+                    featured=True,
+                    is_published=True
+                ),
+                Course(
+                    title='Corpus Linguistics',
+                    description='Learn to analyze large text collections using computational methods',
+                    category='Linguistics',
+                    level='Intermediate',
+                    price=129.00,
+                    duration_hours=35,
+                    duration_days=50,
+                    instructor_name='Prof. Michael Chen',
+                    featured=True,
+                    is_published=True
+                ),
+                Course(
+                    title='Computational Linguistics',
+                    description='Advanced course combining linguistics with computer science',
+                    category='Linguistics',
+                    level='Advanced',
+                    price=149.00,
+                    duration_hours=45,
+                    duration_days=70,
+                    instructor_name='Dr. Emily Rodriguez',
+                    featured=True,
+                    is_published=True
+                )
+            ]
+            
+            for course in courses:
+                db.session.add(course)
+            
             db.session.commit()
-            print("✅ Admin user created!\n")
+            print("✅ Database initialized with admin and 4 courses!")
         else:
-            print("✅ Admin user already exists\n")
-        
-        print("="*60)
-        print("✅ DATABASE INITIALIZED!")
-        print("="*60)
-        print("\n📋 Tables created:")
-        print("   • users")
-        print("   • courses")
-        print("   • lectures")
-        print("   • enrollments")
-        print("   • blogs")
-        print("   • bundles")
-        print("   • events")
-        print("   • tags")
-        
-        print("\n🔑 Admin Credentials:")
-        print("   Username: admin")
-        print("   Password: admin123")
-        
-        print("\n📌 Next Steps:")
-        print("   1. Run: python populate_courses_enhanced.py")
-        print("   2. Start server: python app.py")
-        print("   3. Visit: http://localhost:5000\n")
+            print("✅ Database already exists")
 
 if __name__ == '__main__':
-    init_database()
+    init_db_if_needed()
