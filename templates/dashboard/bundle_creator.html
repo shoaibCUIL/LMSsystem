@@ -82,17 +82,18 @@
                                 </label>
                                 <div class="input-group">
                                     <input type="number" class="form-control" id="duration_days" name="duration_days" 
-                                           min="30" max="365" value="120" required>
+                                           min="7" value="120" required>
                                     <span class="input-group-text">days</span>
                                 </div>
-                                <small class="text-muted">Min: 30 days | Max: 365 days</small>
+                                <small class="text-muted">Min: 7 days | Max: No limit</small>
                                 
                                 <!-- Quick Duration Buttons -->
                                 <div class="mt-2">
                                     <button type="button" class="btn btn-sm btn-outline-secondary quick-duration" data-days="60">60 days</button>
                                     <button type="button" class="btn btn-sm btn-outline-secondary quick-duration" data-days="120">120 days</button>
-                                    <button type="button" class="btn btn-sm btn-outline-secondary quick-duration" data-days="180">180 days</button>
+                                    <button type="button" class="btn btn-sm btn-outline-secondary quick-duration" data-days="180">6 months</button>
                                     <button type="button" class="btn btn-sm btn-outline-secondary quick-duration" data-days="365">1 year</button>
+                                    <button type="button" class="btn btn-sm btn-outline-secondary quick-duration" data-days="730">2 years</button>
                                 </div>
                             </div>
 
@@ -343,12 +344,16 @@ document.addEventListener('DOMContentLoaded', function() {
             const customPrice = parseFloat(this.value);
             const selectedCount = selectedCourses.length;
             
-            if (selectedCount > 0 && basePrice > 0) {
-                // Calculate days based on price
-                // Formula: days = (price / basePrice) * 120 (baseline)
-                const priceRatio = customPrice / (basePrice * 0.85); // Account for 15% discount
-                const calculatedDays = Math.round(priceRatio * 120);
-                const clampedDays = Math.max(30, Math.min(365, calculatedDays));
+            if (selectedCount > 0) {
+                // Reverse formula: days = (price / (courseCount * $10 * 0.85)) * 7
+                // price = courseCount * (days/7) * $10 * 0.85
+                // price / (courseCount * 0.85 * 10) = days / 7
+                // days = (price / (courseCount * 0.85 * 10)) * 7
+                const baseRatePerWeek = 10;
+                const discount = 0.85; // After 15% discount
+                const weeks = customPrice / (selectedCount * baseRatePerWeek * discount);
+                const calculatedDays = Math.round(weeks * 7);
+                const clampedDays = Math.max(7, calculatedDays);
                 
                 durationInput.value = clampedDays;
                 updateSummary();
@@ -389,7 +394,7 @@ document.addEventListener('DOMContentLoaded', function() {
             list.innerHTML = selectedCourses.map(course => 
                 `<li class="mb-2">
                     <small>${course.title}</small>
-                    <span class="float-end text-primary">$${course.price.toFixed(2)}</span>
+                    <span class="float-end text-primary">$10/week</span>
                 </li>`
             ).join('');
             
@@ -406,20 +411,24 @@ document.addEventListener('DOMContentLoaded', function() {
         isUpdatingPrice = true;
         
         const days = parseInt(durationInput.value) || 120;
+        const courseCount = selectedCourses.length;
         
-        // AI Pricing Algorithm based on duration
-        // Base: 120 days = 100% price
-        // Formula: price = basePrice * (days/120) * 0.85 (15% bundle discount)
-        const durationMultiplier = days / 120;
+        // NEW PRICING FORMULA: $10 for 7 days as baseline
+        // Base rate: $10 per 7 days per course
+        // Formula: price = courseCount * (days / 7) * $10 * 0.85 (15% bundle discount)
+        const baseRatePerWeek = 10; // $10 per week
+        const weeks = days / 7;
+        const basePriceCalculated = courseCount * weeks * baseRatePerWeek;
         const discount = 0.15;
-        const finalPrice = basePrice * durationMultiplier * (1 - discount);
+        const finalPrice = basePriceCalculated * (1 - discount);
+        const discountAmount = basePriceCalculated * discount;
         
         // Update summary
         document.getElementById('summaryDays').textContent = days + ' days';
-        document.getElementById('summaryBasePrice').textContent = '$' + (basePrice * durationMultiplier).toFixed(2);
-        document.getElementById('summaryDiscount').textContent = '-$' + (basePrice * durationMultiplier * discount).toFixed(2);
+        document.getElementById('summaryBasePrice').textContent = '$' + basePriceCalculated.toFixed(2);
+        document.getElementById('summaryDiscount').textContent = '-$' + discountAmount.toFixed(2);
         document.getElementById('summaryFinalPrice').textContent = '$' + finalPrice.toFixed(2);
-        document.getElementById('savingsAmount').textContent = '$' + (basePrice * durationMultiplier * discount).toFixed(2);
+        document.getElementById('savingsAmount').textContent = '$' + discountAmount.toFixed(2);
         
         // Update custom price placeholder
         customPriceInput.placeholder = finalPrice.toFixed(2);
@@ -436,14 +445,16 @@ document.addEventListener('DOMContentLoaded', function() {
         
         let suggestion = '';
         
-        if (days <= 60) {
+        if (days <= 30) {
             suggestion = `Short-term access (${days} days). Great for quick learning! Suggested: $${price.toFixed(2)}`;
-        } else if (days <= 120) {
+        } else if (days <= 90) {
             suggestion = `Standard access (${days} days). Perfect for thorough learning. Suggested: $${price.toFixed(2)}`;
         } else if (days <= 180) {
             suggestion = `Extended access (${days} days). Ideal for mastery. Suggested: $${price.toFixed(2)}`;
+        } else if (days <= 365) {
+            suggestion = `Long-term access (${days} days). Excellent value! Suggested: $${price.toFixed(2)}`;
         } else {
-            suggestion = `Long-term access (${days} days). Maximum value! Suggested: $${price.toFixed(2)}`;
+            suggestion = `Extended long-term access (${days} days / ${Math.round(days/30)} months). Premium investment! Suggested: $${price.toFixed(2)}`;
         }
         
         suggestionText.textContent = suggestion;
