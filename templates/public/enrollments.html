@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+
+{% block title %}My Enrollments - LMS Platform{% endblock %}
+
+{% block content %}
+<div class="container" style="margin-top: 2rem; margin-bottom: 3rem;">
+    <div style="margin-bottom: 2rem;">
+        <h1 style="color: #2c3e50;">My Enrollments</h1>
+        <p style="color: #7f8c8d;">View and manage all your course enrollments</p>
+    </div>
+    
+    {% if enrollments %}
+    <div class="card">
+        <div class="table" style="overflow-x: auto;">
+            <table style="width: 100%;">
+                <thead>
+                    <tr>
+                        <th>Course</th>
+                        <th>Duration</th>
+                        <th>Amount Paid</th>
+                        <th>Payment Method</th>
+                        <th>Enrolled Date</th>
+                        <th>Expires</th>
+                        <th>Status</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for enrollment in enrollments %}
+                    <tr>
+                        <td>
+                            <strong style="color: #34495e;">{{ enrollment.course.title }}</strong>
+                        </td>
+                        <td>{{ enrollment.total_days }} days</td>
+                        <td>Rs. {{ "%.0f"|format(enrollment.price_paid_pkr) }}</td>
+                        <td>
+                            {% if enrollment.payment_method == 'jazzcash' %}
+                                <span class="badge" style="background: #e74c3c; color: white;">JazzCash</span>
+                            {% elif enrollment.payment_method == 'easypaisa' %}
+                                <span class="badge" style="background: #27ae60; color: white;">Easypaisa</span>
+                            {% elif enrollment.payment_method == 'bank' %}
+                                <span class="badge" style="background: #3498db; color: white;">Bank</span>
+                            {% else %}
+                                {{ enrollment.payment_method }}
+                            {% endif %}
+                        </td>
+                        <td>{{ enrollment.enrolled_at.strftime('%b %d, %Y') }}</td>
+                        <td>
+                            {% if enrollment.expires_at %}
+                                {{ enrollment.expires_at.strftime('%b %d, %Y') }}
+                            {% else %}
+                                -
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if enrollment.status == 'pending' %}
+                                <span class="badge badge-warning">Pending</span>
+                            {% elif enrollment.status == 'approved' %}
+                                {% if enrollment.is_active() %}
+                                    <span class="badge badge-success">Active</span>
+                                {% else %}
+                                    <span class="badge" style="background: #95a5a6; color: white;">Expired</span>
+                                {% endif %}
+                            {% elif enrollment.status == 'rejected' %}
+                                <span class="badge badge-danger">Rejected</span>
+                            {% else %}
+                                <span class="badge" style="background: #7f8c8d; color: white;">{{ enrollment.status }}</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if enrollment.status == 'approved' and enrollment.is_active() %}
+                                <a href="{{ url_for('courses.detail', slug=enrollment.course.slug) }}" class="btn btn-primary btn-sm">
+                                    View Course
+                                </a>
+                            {% elif enrollment.status == 'pending' %}
+                                <span style="font-size: 0.85rem; color: #7f8c8d;">Awaiting Approval</span>
+                            {% elif enrollment.status == 'rejected' %}
+                                {% if enrollment.admin_notes %}
+                                    <button class="btn btn-sm" style="background: #95a5a6; color: white;" onclick="alert('Admin Note: {{ enrollment.admin_notes }}')">
+                                        View Note
+                                    </button>
+                                {% else %}
+                                    <span style="font-size: 0.85rem; color: #e74c3c;">Contact Support</span>
+                                {% endif %}
+                            {% else %}
+                                <span style="font-size: 0.85rem; color: #95a5a6;">Expired</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+    <div class="card" style="margin-top: 2rem; background: #f8f9fa;">
+        <h3 style="color: #34495e; margin-bottom: 1rem;">Need Help?</h3>
+        <p style="color: #7f8c8d; margin-bottom: 1rem;">
+            If you have questions about your enrollments or payment status:
+        </p>
+        <ul style="color: #7f8c8d; margin-left: 1.5rem;">
+            <li>Contact us at: <a href="mailto:{{ config.PAYMENT_INFO.contact_email }}" style="color: #3498db;">{{ config.PAYMENT_INFO.contact_email }}</a></li>
+            <li>Pending enrollments are usually approved within 24-48 hours</li>
+            <li>Make sure your payment receipt was clear and complete</li>
+        </ul>
+    </div>
+    
+    {% else %}
+    <div class="card text-center" style="padding: 3rem; background: linear-gradient(135deg, #667eea10 0%, #764ba210 100%);">
+        <div style="font-size: 4rem; margin-bottom: 1rem;">📚</div>
+        <h3 style="color: #34495e; margin-bottom: 1rem;">No Enrollments Yet</h3>
+        <p style="color: #7f8c8d; margin-bottom: 2rem;">You haven't enrolled in any courses yet. Start your learning journey today!</p>
+        <a href="{{ url_for('main.courses') }}" class="btn btn-primary btn-lg">Browse Courses</a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

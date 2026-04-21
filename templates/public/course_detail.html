@@ -1,281 +1,142 @@
-{% extends "layout/base.html" %}
+{% extends "base.html" %}
 
-{% block title %}{{ course.title }} - {{ app_name }}{% endblock %}
+{% block title %}{{ course.title }} - LMS Platform{% endblock %}
 
 {% block content %}
-<div style="padding: 3rem 5vw;">
-    <div style="display: grid; grid-template-columns: 1fr 400px; gap: 3rem; max-width: 1400px; margin: 0 auto;">
+<div class="hero" style="padding: 2rem 0;">
+    <div class="container">
+        <div style="display: inline-block; margin-bottom: 1rem;">
+            <span class="badge" style="background: white; color: #667eea;">{{ course.level or 'All Levels' }}</span>
+        </div>
+        <h1 style="font-size: 2.5rem; margin-bottom: 0.5rem;">{{ course.title }}</h1>
+        <p style="font-size: 1.1rem;">{{ course.description }}</p>
+    </div>
+</div>
+
+<div class="container" style="margin-top: 2rem; margin-bottom: 3rem;">
+    <div class="row">
         <!-- Main Content -->
-        <div>
-            <!-- Coming Soon Badge -->
-            {% if '🔜 COMING SOON' in course.description %}
-            <div class="alert alert-warning" style="display: flex; align-items: center; gap: 1rem; margin-bottom: 2rem;">
-                <i class="fas fa-clock" style="font-size: 2rem;"></i>
+        <div class="col-8">
+            <div class="card">
+                <h2 style="color: #2c3e50; margin-bottom: 1rem;">About This Course</h2>
+                {% if course.detailed_description %}
+                    <div style="line-height: 1.8; color: #34495e;">
+                        {{ course.detailed_description|safe }}
+                    </div>
+                {% else %}
+                    <p style="color: #7f8c8d;">{{ course.description }}</p>
+                {% endif %}
+            </div>
+            
+            <!-- Lectures List -->
+            {% if lectures %}
+            <div class="card">
+                <h2 style="color: #2c3e50; margin-bottom: 1.5rem;">Course Content</h2>
                 <div>
-                    <h5 style="margin: 0 0 0.25rem 0; font-weight: 700;">Coming Soon!</h5>
-                    <p style="margin: 0; font-size: 0.9rem;">This course is under development. Stay tuned for updates!</p>
+                    {% for lecture in lectures %}
+                    <div style="padding: 1rem; border: 1px solid #ecf0f1; border-radius: 8px; margin-bottom: 1rem; display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <h4 style="color: #34495e; margin-bottom: 0.25rem;">{{ lecture.title }}</h4>
+                            {% if lecture.description %}
+                                <p style="color: #7f8c8d; font-size: 0.9rem; margin: 0;">{{ lecture.description[:100] }}...</p>
+                            {% endif %}
+                            {% if lecture.duration_minutes %}
+                                <span style="font-size: 0.85rem; color: #95a5a6;">{{ lecture.duration_minutes }} minutes</span>
+                            {% endif %}
+                        </div>
+                        <div>
+                            {% if lecture.is_free %}
+                                <a href="{{ url_for('courses.lecture', slug=course.slug, lecture_id=lecture.id) }}" class="btn btn-outline btn-sm">Preview</a>
+                            {% elif is_enrolled %}
+                                <a href="{{ url_for('courses.lecture', slug=course.slug, lecture_id=lecture.id) }}" class="btn btn-primary btn-sm">View</a>
+                            {% else %}
+                                <button class="btn btn-sm" style="background: #ecf0f1; color: #7f8c8d;" disabled>
+                                    🔒 Locked
+                                </button>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
                 </div>
             </div>
             {% endif %}
-
-            <!-- Course Header -->
-            <div style="margin-bottom: 3rem;">
-                <h1 style="font-family: 'IBM Plex Serif', serif; font-size: 2.5rem; font-weight: 600; color: var(--ink); margin-bottom: 1rem;">
-                    {{ course.title }}
-                </h1>
-                
-                <div style="display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1.5rem;">
-                    <span class="course-subject" style="background: var(--red-light); color: var(--red); padding: 4px 12px; border-radius: 3px; font-size: 0.75rem;">
-                        {{ course.category }}
-                    </span>
-                    <span style="background: var(--teal-light); color: var(--teal); padding: 4px 12px; border-radius: 3px; font-size: 0.75rem; font-weight: 600;">
-                        {{ course.level }}
-                    </span>
-                    {% if course.featured %}
-                    <span style="background: var(--yellow); color: var(--ink); padding: 4px 12px; border-radius: 3px; font-size: 0.75rem; font-weight: 600;">
-                        <i class="fas fa-star"></i> Featured
-                    </span>
-                    {% endif %}
-                    {% if course.is_free %}
-                    <span style="background: var(--teal); color: white; padding: 4px 12px; border-radius: 3px; font-size: 0.75rem; font-weight: 600;">
-                        FREE
-                    </span>
-                    {% endif %}
-                </div>
-
-                <div style="display: flex; align-items: center; gap: 2rem; flex-wrap: wrap; color: var(--ink-3); font-size: 0.88rem;">
-                    <span><i class="fas fa-user"></i> {{ course.instructor_name }}</span>
-                    <span><i class="fas fa-clock"></i> {{ course.duration_hours }} hours</span>
-                    <span><i class="fas fa-calendar-alt"></i> {{ course.duration_days }} days access</span>
-                    <span><i class="fas fa-users"></i> {{ course.enrollment_count }} enrolled</span>
-                </div>
-            </div>
-
-            <!-- Course Description -->
-            <div class="card" style="margin-bottom: 2rem;">
-                <div class="card-header" style="background: var(--surface); border-bottom: 1px solid var(--border); padding: 1.25rem;">
-                    <h5 style="margin: 0; font-weight: 700; color: var(--ink);">About This Course</h5>
-                </div>
-                <div class="card-body" style="padding: 1.5rem;">
-                    <p style="font-size: 1.05rem; line-height: 1.7; color: var(--ink-2); margin: 0;">
-                        {{ course.description.replace('🔜 COMING SOON! ', '') }}
-                    </p>
-                </div>
-            </div>
-
-            <!-- Course Curriculum -->
-            <div class="card" style="margin-bottom: 2rem;">
-                <div class="card-header" style="background: var(--surface); border-bottom: 1px solid var(--border); padding: 1.25rem; display: flex; justify-content: space-between; align-items: center;">
-                    <h5 style="margin: 0; font-weight: 700; color: var(--ink);">
-                        <i class="fas fa-list"></i> Course Curriculum
-                    </h5>
-                    {% if lectures %}
-                    <span style="background: var(--red); color: white; padding: 4px 12px; border-radius: 3px; font-size: 0.75rem; font-weight: 600;">
-                        {{ lectures|length }} Lectures
-                    </span>
-                    {% endif %}
-                </div>
-                <div class="card-body" style="padding: 1.5rem;">
-                    {% if lectures %}
-                        <div style="display: flex; flex-direction: column; gap: 0.75rem;">
-                            {% for lecture in lectures %}
-                            <div style="border: 1px solid var(--border); border-radius: 4px; overflow: hidden;">
-                                <div style="padding: 1rem; background: {% if loop.index == 1 %}var(--surface){% else %}white{% endif %}; cursor: pointer;" 
-                                     onclick="this.nextElementSibling.style.display = this.nextElementSibling.style.display === 'none' ? 'block' : 'none'">
-                                    <div style="display: flex; justify-content: space-between; align-items: center;">
-                                        <div style="display: flex; align-items: center; gap: 1rem; flex: 1;">
-                                            <span style="color: var(--ink-3); font-weight: 600; min-width: 30px;">{{ loop.index }}.</span>
-                                            <span style="font-weight: 600; color: var(--ink);">{{ lecture.title }}</span>
-                                            {% if lecture.is_preview %}
-                                            <span style="background: var(--teal); color: white; padding: 2px 8px; border-radius: 2px; font-size: 0.7rem; font-weight: 600;">
-                                                Preview
-                                            </span>
-                                            {% endif %}
-                                        </div>
-                                        <span style="color: var(--ink-3); font-size: 0.85rem;">{{ lecture.duration_minutes }} min</span>
-                                    </div>
-                                </div>
-                                <div style="display: {% if loop.index == 1 %}block{% else %}none{% endif %}; padding: 1rem; background: white; border-top: 1px solid var(--border);">
-                                    {% if lecture.description %}
-                                    <p style="margin: 0 0 1rem 0; color: var(--ink-2); font-size: 0.9rem;">{{ lecture.description }}</p>
-                                    {% else %}
-                                    <p style="margin: 0 0 1rem 0; color: var(--ink-3); font-size: 0.9rem;">No description available</p>
-                                    {% endif %}
-                                    
-                                    {% if lecture.is_preview or is_enrolled %}
-                                    <a href="{{ lecture.video_url }}" class="btn-enroll" target="_blank" style="display: inline-flex; align-items: center; gap: 0.5rem;">
-                                        <i class="fas fa-play"></i> Watch Lecture
-                                    </a>
-                                    {% else %}
-                                    <button class="btn-enroll" disabled style="opacity: 0.5; cursor: not-allowed;">
-                                        <i class="fas fa-lock"></i> Enroll to Access
-                                    </button>
-                                    {% endif %}
-                                </div>
-                            </div>
-                            {% endfor %}
-                        </div>
-                    {% elif '🔜 COMING SOON' in course.description %}
-                        <div style="text-align: center; padding: 4rem 0;">
-                            <i class="fas fa-hourglass-half" style="font-size: 4rem; color: var(--yellow); margin-bottom: 1rem; display: block;"></i>
-                            <h5 style="color: var(--ink-2); margin-bottom: 0.5rem;">Curriculum Coming Soon</h5>
-                            <p style="color: var(--ink-3); margin: 0;">We're preparing amazing content for you. Check back soon!</p>
-                        </div>
-                    {% else %}
-                        <div style="text-align: center; padding: 4rem 0;">
-                            <i class="fas fa-book-open" style="font-size: 4rem; color: var(--border); margin-bottom: 1rem; display: block;"></i>
-                            <h5 style="color: var(--ink-2); margin-bottom: 0.5rem;">No Lectures Yet</h5>
-                            <p style="color: var(--ink-3); margin: 0;">Course content is being prepared.</p>
-                        </div>
-                    {% endif %}
-                </div>
-            </div>
-
-            <!-- What You'll Learn -->
-            <div class="card">
-                <div class="card-header" style="background: var(--surface); border-bottom: 1px solid var(--border); padding: 1.25rem;">
-                    <h5 style="margin: 0; font-weight: 700; color: var(--ink);">What You'll Learn</h5>
-                </div>
-                <div class="card-body" style="padding: 1.5rem;">
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
-                        <ul style="list-style: none; padding: 0; margin: 0;">
-                            <li style="margin-bottom: 0.75rem; display: flex; align-items: start; gap: 0.75rem;">
-                                <i class="fas fa-check-circle" style="color: var(--teal); margin-top: 3px;"></i>
-                                <span>Master core concepts</span>
-                            </li>
-                            <li style="margin-bottom: 0.75rem; display: flex; align-items: start; gap: 0.75rem;">
-                                <i class="fas fa-check-circle" style="color: var(--teal); margin-top: 3px;"></i>
-                                <span>Hands-on practice</span>
-                            </li>
-                            <li style="margin-bottom: 0.75rem; display: flex; align-items: start; gap: 0.75rem;">
-                                <i class="fas fa-check-circle" style="color: var(--teal); margin-top: 3px;"></i>
-                                <span>Real-world projects</span>
-                            </li>
-                        </ul>
-                        <ul style="list-style: none; padding: 0; margin: 0;">
-                            <li style="margin-bottom: 0.75rem; display: flex; align-items: start; gap: 0.75rem;">
-                                <i class="fas fa-check-circle" style="color: var(--teal); margin-top: 3px;"></i>
-                                <span>Industry best practices</span>
-                            </li>
-                            <li style="margin-bottom: 0.75rem; display: flex; align-items: start; gap: 0.75rem;">
-                                <i class="fas fa-check-circle" style="color: var(--teal); margin-top: 3px;"></i>
-                                <span>Certificate upon completion</span>
-                            </li>
-                            <li style="margin-bottom: 0.75rem; display: flex; align-items: start; gap: 0.75rem;">
-                                <i class="fas fa-check-circle" style="color: var(--teal); margin-top: 3px;"></i>
-                                <span>Lifetime access</span>
-                            </li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
         </div>
-
+        
         <!-- Sidebar -->
-        <div>
-            <div style="position: sticky; top: 80px;">
-                <!-- Course Card -->
-                <div class="card" style="margin-bottom: 1.5rem; overflow: hidden;">
-                    {% if course.thumbnail_url %}
-                    <img src="{{ course.thumbnail_url }}" style="width: 100%; height: 200px; object-fit: cover;" alt="{{ course.title }}">
-                    {% else %}
-                    <div style="width: 100%; height: 200px; background: linear-gradient(135deg, var(--navy) 0%, var(--navy-light) 100%); display: flex; align-items: center; justify-content: center; color: white;">
-                        <i class="fas fa-graduation-cap" style="font-size: 4rem;"></i>
-                    </div>
-                    {% endif %}
-                    
-                    <div class="card-body" style="padding: 1.5rem;">
-                        <!-- Price -->
-                        <div style="text-align: center; margin-bottom: 1.5rem;">
-                            {% if course.is_free %}
-                            <h2 style="font-family: 'IBM Plex Serif', serif; font-size: 2.5rem; font-weight: 700; color: var(--teal); margin: 0;">FREE</h2>
-                            {% else %}
-                            <h2 style="font-family: 'IBM Plex Serif', serif; font-size: 2.5rem; font-weight: 700; color: var(--red); margin: 0;">${{ "%.0f"|format(course.price) }}</h2>
-                            {% endif %}
+        <div class="col-4">
+            <div class="card" style="position: sticky; top: 80px;">
+                {% if course.thumbnail %}
+                    <img src="{{ url_for('main.uploaded_file', folder='thumbnails', filename=course.thumbnail) }}" 
+                         alt="{{ course.title }}" 
+                         style="width: 100%; height: 200px; object-fit: cover; border-radius: 8px; margin-bottom: 1.5rem;">
+                {% endif %}
+                
+                <h3 style="color: #2c3e50; margin-bottom: 1rem;">Pricing</h3>
+                
+                <div style="background: #f8f9fa; padding: 1.5rem; border-radius: 8px; margin-bottom: 1.5rem;">
+                    <div style="margin-bottom: 1rem;">
+                        <div style="font-size: 0.9rem; color: #7f8c8d;">Starting from</div>
+                        <div style="font-size: 2rem; font-weight: 700; color: #3498db;">
+                            Rs. {{ "%.0f"|format(course.min_price_pkr) }}
                         </div>
-
-                        <!-- Enrollment Status -->
-                        {% if current_user.is_authenticated %}
-                            {% if is_enrolled %}
-                                <div class="alert alert-success" style="text-align: center; margin-bottom: 1rem;">
-                                    <i class="fas fa-check-circle"></i> You're enrolled!
-                                </div>
-                                <a href="{{ url_for('dashboard') }}" class="btn-hero-primary" style="width: 100%; justify-content: center; text-decoration: none; margin-bottom: 0.75rem;">
-                                    <i class="fas fa-book-open"></i> Go to Dashboard
-                                </a>
-                            {% elif enrollment and enrollment.payment_status == 'pending' %}
-                                <div class="alert alert-warning" style="text-align: center; margin-bottom: 1rem;">
-                                    <i class="fas fa-clock"></i> Payment Pending
-                                    <small style="display: block; margin-top: 0.25rem;">Awaiting admin approval</small>
-                                </div>
-                                <a href="{{ url_for('payment_instructions', course_id=course.id) }}" class="btn-hero-outline" style="width: 100%; justify-content: center; text-decoration: none; color: var(--yellow); border-color: var(--yellow);">
-                                    <i class="fas fa-receipt"></i> View Payment Instructions
-                                </a>
-                            {% elif '🔜 COMING SOON' in course.description %}
-                                <button class="btn-hero-outline" disabled style="width: 100%; opacity: 0.5; cursor: not-allowed; justify-content: center;">
-                                    <i class="fas fa-clock"></i> Coming Soon
-                                </button>
-                                <p style="text-align: center; color: var(--ink-3); font-size: 0.85rem; margin: 0.75rem 0 0 0;">
-                                    Course launching soon. Stay tuned!
-                                </p>
-                            {% else %}
-                                <form method="POST" action="{{ url_for('enroll_course', course_id=course.id) }}">
-                                    <button type="submit" class="btn-hero-primary" style="width: 100%; justify-content: center; margin-bottom: 0.75rem;">
-                                        <i class="fas fa-shopping-cart"></i> Enroll Now
-                                    </button>
-                                </form>
-                                {% if not course.is_free %}
-                                <p style="text-align: center; color: var(--ink-3); font-size: 0.85rem; margin: 0;">
-                                    <i class="fas fa-shield-alt"></i> Secure payment required
-                                </p>
-                                {% endif %}
-                            {% endif %}
-                        {% else %}
-                            <a href="{{ url_for('login', next=url_for('course_detail', course_id=course.id)) }}" 
-                               class="btn-hero-primary" style="width: 100%; justify-content: center; text-decoration: none; margin-bottom: 0.75rem;">
-                                <i class="fas fa-sign-in-alt"></i> Login to Enroll
-                            </a>
-                            <a href="{{ url_for('register') }}" class="btn-hero-outline" style="width: 100%; justify-content: center; text-decoration: none; color: var(--red); border-color: var(--red);">
-                                <i class="fas fa-user-plus"></i> Create Account
-                            </a>
-                        {% endif %}
+                        <div style="font-size: 0.85rem; color: #7f8c8d;">Minimum {{ course.min_days }} days</div>
+                    </div>
+                    
+                    <div style="padding-top: 1rem; border-top: 1px solid #dee2e6;">
+                        <div style="font-size: 0.9rem; color: #7f8c8d; margin-bottom: 0.5rem;">Flexible Duration:</div>
+                        <ul style="margin: 0; padding-left: 1.5rem; color: #34495e; font-size: 0.9rem;">
+                            <li>Choose days, weeks, or months</li>
+                            <li>Or set your custom price</li>
+                            <li>Rs. {{ "%.0f"|format(course.price_per_day) }} per day</li>
+                        </ul>
                     </div>
                 </div>
-
-                <!-- Course Includes -->
-                <div class="card">
-                    <div class="card-header" style="background: var(--surface); border-bottom: 1px solid var(--border); padding: 1.25rem;">
-                        <h6 style="margin: 0; font-weight: 700; color: var(--ink);">This Course Includes</h6>
-                    </div>
-                    <div class="card-body" style="padding: 1.5rem;">
-                        <ul style="list-style: none; padding: 0; margin: 0;">
-                            <li style="margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.75rem; font-size: 0.9rem;">
-                                <i class="fas fa-video" style="color: var(--red); width: 20px;"></i>
-                                {{ course.duration_hours }} hours video content
-                            </li>
-                            <li style="margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.75rem; font-size: 0.9rem;">
-                                <i class="fas fa-infinity" style="color: var(--red); width: 20px;"></i>
-                                {{ course.duration_days }} days access
-                            </li>
-                            <li style="margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.75rem; font-size: 0.9rem;">
-                                <i class="fas fa-mobile-alt" style="color: var(--red); width: 20px;"></i>
-                                Access on mobile and desktop
-                            </li>
-                            <li style="margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.75rem; font-size: 0.9rem;">
-                                <i class="fas fa-certificate" style="color: var(--red); width: 20px;"></i>
-                                Certificate of completion
-                            </li>
-                            {% if enrollment %}
-                            <li style="margin-bottom: 0; display: flex; align-items: center; gap: 0.75rem; font-size: 0.9rem;">
-                                <i class="fas fa-calendar-check" style="color: var(--red); width: 20px;"></i>
-                                {% if enrollment.expires_at %}
-                                Expires: {{ enrollment.expires_at.strftime('%b %d, %Y') }}
-                                {% else %}
-                                Lifetime access
-                                {% endif %}
-                            </li>
+                
+                {% if current_user.is_authenticated %}
+                    {% if is_enrolled %}
+                        <div class="alert alert-success" style="margin-bottom: 1rem;">
+                            <strong>✅ You're Enrolled!</strong><br>
+                            {% if enrollment.expires_at %}
+                                Valid until: {{ enrollment.expires_at.strftime('%B %d, %Y') }}
                             {% endif %}
-                        </ul>
+                        </div>
+                        <a href="{{ url_for('dashboard.my_enrollments') }}" class="btn btn-primary btn-block">
+                            Go to My Enrollments
+                        </a>
+                    {% else %}
+                        <a href="{{ url_for('courses.enroll', slug=course.slug) }}" class="btn btn-success btn-block btn-lg">
+                            Enroll Now
+                        </a>
+                        <p style="font-size: 0.85rem; color: #7f8c8d; text-align: center; margin-top: 1rem;">
+                            Secure enrollment with multiple payment options
+                        </p>
+                    {% endif %}
+                {% else %}
+                    <a href="{{ url_for('auth.login') }}?next={{ url_for('courses.detail', slug=course.slug) }}" class="btn btn-primary btn-block btn-lg">
+                        Login to Enroll
+                    </a>
+                    <p style="font-size: 0.85rem; color: #7f8c8d; text-align: center; margin-top: 1rem;">
+                        Don't have an account? <a href="{{ url_for('auth.register') }}" style="color: #3498db;">Register here</a>
+                    </p>
+                {% endif %}
+                
+                <div style="margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid #ecf0f1;">
+                    <h4 style="color: #2c3e50; margin-bottom: 1rem; font-size: 1.1rem;">Course Info</h4>
+                    <div style="font-size: 0.9rem; color: #7f8c8d;">
+                        <div style="margin-bottom: 0.75rem;">
+                            <strong style="color: #34495e;">Level:</strong> {{ course.level or 'All Levels' }}
+                        </div>
+                        {% if course.duration_estimate %}
+                        <div style="margin-bottom: 0.75rem;">
+                            <strong style="color: #34495e;">Duration:</strong> {{ course.duration_estimate }}
+                        </div>
+                        {% endif %}
+                        <div style="margin-bottom: 0.75rem;">
+                            <strong style="color: #34495e;">Lectures:</strong> {{ lectures|length if lectures else 'Coming Soon' }}
+                        </div>
+                        <div>
+                            <strong style="color: #34495e;">Access:</strong> Flexible enrollment period
+                        </div>
                     </div>
                 </div>
             </div>

@@ -1,214 +1,145 @@
-{% extends "layout/base.html" %}
+{% extends "base.html" %}
 
-{% block title %}Dashboard - {{ app_name }}{% endblock %}
+{% block title %}Dashboard - LMS Platform{% endblock %}
 
 {% block content %}
-<div class="container" style="padding: 3rem 0;">
-    <!-- Dashboard Header -->
-    <div class="dashboard-header">
-        <h1 style="font-size: 2.5rem; font-weight: 900; color: white; margin-bottom: 0.5rem;">
-            Welcome back, {{ current_user.full_name }}!
-        </h1>
-        <p style="color: rgba(255,255,255,0.95); font-size: 1.125rem; margin: 0;">Continue your learning journey</p>
+<div class="container" style="margin-top: 2rem; margin-bottom: 3rem;">
+    <div style="margin-bottom: 2rem;">
+        <h1 style="color: #2c3e50;">Welcome back, {{ current_user.first_name }}!</h1>
+        <p style="color: #7f8c8d;">Manage your courses and track your learning progress</p>
     </div>
     
-    <!-- Stats -->
-    <div class="stats-grid" style="margin: 3rem 0;">
+    <!-- Dashboard Stats -->
+    <div class="dashboard-stats">
         <div class="stat-card">
-            <div class="stat-number">{{ stats.total_courses }}</div>
-            <div class="stat-label">Enrolled Courses</div>
+            <div class="stat-number">{{ active_enrollments|length }}</div>
+            <div class="stat-label">Active Enrollments</div>
         </div>
         
         <div class="stat-card">
-            <div class="stat-number" style="color: #10B981;">{{ stats.completed_courses }}</div>
-            <div class="stat-label">Completed</div>
+            <div class="stat-number">{{ pending_enrollments|length }}</div>
+            <div class="stat-label">Pending Approvals</div>
         </div>
         
         <div class="stat-card">
-            <div class="stat-number" style="color: #F59E0B;">{{ stats.in_progress }}</div>
-            <div class="stat-label">In Progress</div>
-        </div>
-        
-        <div class="stat-card">
-            <div class="stat-number" style="color: #3B82F6;">{{ stats.total_bundles }}</div>
-            <div class="stat-label">Custom Bundles</div>
+            <div class="stat-number">{{ (active_enrollments|length + pending_enrollments|length) }}</div>
+            <div class="stat-label">Total Enrollments</div>
         </div>
     </div>
     
-    <!-- Quick Actions -->
-    <div class="card" style="margin-bottom: 2rem;">
-        <div class="card-body">
-            <h4 style="font-weight: 700; margin-bottom: 1.5rem;">Quick Actions</h4>
-            <div style="display: flex; flex-wrap: wrap; gap: 1rem;">
-                <a href="{{ url_for('courses') }}" class="btn btn-primary">
-                    <i class="fas fa-plus"></i> Browse Courses
-                </a>
-                <a href="{{ url_for('bundle_creator') }}" class="btn btn-success">
-                    <i class="fas fa-layer-group"></i> Create Custom Bundle
-                </a>
-                <a href="{{ url_for('blogs') }}" class="btn btn-outline">
-                    <i class="fas fa-newspaper"></i> Read Blog
-                </a>
-            </div>
-        </div>
-    </div>
-    
-    <!-- My Courses -->
-    <div class="card" style="margin-bottom: 2rem;">
-        <div class="card-body">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
-                <h4 style="font-weight: 700; margin: 0;">My Courses</h4>
-                {% if enrollments %}
-                <span class="badge badge-primary">{{ enrollments|length }} active</span>
-                {% endif %}
-            </div>
-            
-            {% if enrollments %}
-                {% for enrollment in enrollments %}
-                <div class="enrollment-card">
-                    {% if enrollment.course.thumbnail_url %}
-                        <img src="{{ enrollment.course.thumbnail_url }}" style="width: 120px; height: 120px; object-fit: cover; border-radius: 12px; flex-shrink: 0;" alt="{{ enrollment.course.title }}">
-                    {% else %}
-                        <div style="width: 120px; height: 120px; background: var(--primary-gradient); border-radius: 12px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; color: white; font-size: 2rem;">
-                            <i class="fas fa-book"></i>
-                        </div>
-                    {% endif %}
+    <!-- Active Enrollments -->
+    {% if active_enrollments %}
+    <div class="card">
+        <h2 style="color: #2c3e50; margin-bottom: 1.5rem;">🎓 Active Courses</h2>
+        <div class="row">
+            {% for enrollment in active_enrollments %}
+            <div class="col-6">
+                <div style="border: 1px solid #ecf0f1; border-radius: 8px; padding: 1.5rem; margin-bottom: 1rem;">
+                    <h3 style="color: #34495e; margin-bottom: 0.5rem;">{{ enrollment.course.title }}</h3>
+                    <p style="color: #7f8c8d; font-size: 0.9rem; margin-bottom: 1rem;">
+                        {{ enrollment.course.description[:100] }}...
+                    </p>
                     
-                    <div style="flex: 1;">
-                        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 0.75rem;">
-                            <div>
-                                <h5 style="font-weight: 700; margin-bottom: 0.5rem;">{{ enrollment.course.title }}</h5>
-                                <div style="display: flex; gap: 0.5rem;">
-                                    <span class="badge" style="background: rgba(102, 126, 234, 0.1); color: #667eea;">{{ enrollment.course.category }}</span>
-                                    <span class="badge" style="background: rgba(59, 130, 246, 0.1); color: #3B82F6;">{{ enrollment.course.level }}</span>
-                                </div>
-                            </div>
-                            
-                            {% if enrollment.expires_at %}
-                            <div style="text-align: right;">
-                                <small style="color: #718096;">
-                                    <i class="fas fa-calendar"></i>
-                                    {% if enrollment.is_expired %}
-                                        <span style="color: #EF4444;">Expired</span>
-                                    {% elif enrollment.days_remaining %}
-                                        {{ enrollment.days_remaining }} days left
-                                    {% endif %}
-                                </small>
-                            </div>
-                            {% endif %}
+                    <div style="background: #f8f9fa; padding: 1rem; border-radius: 4px; margin-bottom: 1rem;">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                            <span style="color: #7f8c8d; font-size: 0.85rem;">Enrolled:</span>
+                            <span style="color: #34495e; font-size: 0.85rem;">{{ enrollment.enrolled_at.strftime('%b %d, %Y') }}</span>
                         </div>
-                        
-                        <p style="color: #718096; font-size: 0.875rem; margin-bottom: 0.75rem;">
-                            Enrolled on {{ enrollment.enrolled_at.strftime('%b %d, %Y') }}
-                        </p>
-                        
-                        <!-- Progress Bar -->
-                        <div style="margin-bottom: 1rem;">
-                            <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
-                                <small style="color: #718096;">Progress</small>
-                                <small style="font-weight: 700; color: #1a202c;">{{ enrollment.progress_percentage|int }}%</small>
-                            </div>
-                            <div class="progress">
-                                <div class="progress-bar" style="width: {{ enrollment.progress_percentage }}%"></div>
-                            </div>
+                        {% if enrollment.expires_at %}
+                        <div style="display: flex; justify-content: space-between;">
+                            <span style="color: #7f8c8d; font-size: 0.85rem;">Expires:</span>
+                            <span style="color: #34495e; font-size: 0.85rem; font-weight: 600;">{{ enrollment.expires_at.strftime('%b %d, %Y') }}</span>
                         </div>
-                        
-                        <div style="display: flex; gap: 0.75rem;">
-                            <a href="{{ url_for('course_detail', course_id=enrollment.course.id) }}" class="btn btn-primary btn-sm">
-                                <i class="fas fa-play"></i> Continue Learning
-                            </a>
-                            
-                            <form method="POST" action="{{ url_for('unenroll_course', enrollment_id=enrollment.id) }}" style="display: inline;">
-                                <button type="submit" class="btn btn-sm" style="background: transparent; border: 2px solid #EF4444; color: #EF4444;" onclick="return confirm('Are you sure you want to unenroll?')">
-                                    <i class="fas fa-times"></i> Unenroll
-                                </button>
-                            </form>
-                        </div>
+                        {% endif %}
                     </div>
-                </div>
-                {% endfor %}
-            {% else %}
-                <div style="text-align: center; padding: 4rem 0;">
-                    <i class="fas fa-book-open" style="font-size: 4rem; color: #cbd5e0; margin-bottom: 1rem; display: block;"></i>
-                    <h5 style="color: #4a5568; margin-bottom: 0.5rem;">No courses yet</h5>
-                    <p style="color: #718096; margin-bottom: 1.5rem;">Start learning by enrolling in a course</p>
-                    <a href="{{ url_for('courses') }}" class="btn btn-primary">
-                        <i class="fas fa-search"></i> Browse Courses
+                    
+                    <a href="{{ url_for('courses.detail', slug=enrollment.course.slug) }}" class="btn btn-primary btn-block">
+                        Continue Learning
                     </a>
                 </div>
-            {% endif %}
+            </div>
+            {% endfor %}
         </div>
     </div>
+    {% else %}
+    <div class="card text-center" style="padding: 3rem; background: linear-gradient(135deg, #667eea10 0%, #764ba210 100%);">
+        <h3 style="color: #34495e; margin-bottom: 1rem;">No Active Courses Yet</h3>
+        <p style="color: #7f8c8d; margin-bottom: 2rem;">Start your learning journey by enrolling in a course</p>
+        <a href="{{ url_for('main.courses') }}" class="btn btn-primary btn-lg">Browse Available Courses</a>
+    </div>
+    {% endif %}
     
-    <!-- Custom Bundles -->
-    {% if bundles %}
-    <div class="card">
-        <div class="card-body">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
-                <h4 style="font-weight: 700; margin: 0;">My Custom Bundles</h4>
-                <span class="badge badge-success">{{ bundles|length }} bundles</span>
-            </div>
-            
-            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 1.5rem;">
-                {% for bundle in bundles %}
-                <div class="card" style="border: 2px solid #667eea;">
-                    <div class="card-body">
-                        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 1rem;">
-                            <h5 style="font-weight: 700; margin: 0;">{{ bundle.bundle_name }}</h5>
-                            {% if bundle.is_active %}
-                                <span class="badge badge-success">Active</span>
+    <!-- Pending Enrollments -->
+    {% if pending_enrollments %}
+    <div class="card" style="margin-top: 2rem;">
+        <h2 style="color: #2c3e50; margin-bottom: 1.5rem;">⏳ Pending Enrollments</h2>
+        <p style="color: #7f8c8d; margin-bottom: 1.5rem;">These enrollments are awaiting admin approval</p>
+        
+        <div class="table" style="overflow-x: auto;">
+            <table style="width: 100%;">
+                <thead>
+                    <tr>
+                        <th>Course</th>
+                        <th>Amount Paid</th>
+                        <th>Payment Method</th>
+                        <th>Submitted</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for enrollment in pending_enrollments %}
+                    <tr>
+                        <td>
+                            <strong>{{ enrollment.course.title }}</strong>
+                        </td>
+                        <td>Rs. {{ "%.0f"|format(enrollment.price_paid_pkr) }}</td>
+                        <td>
+                            {% if enrollment.payment_method == 'jazzcash' %}
+                                JazzCash
+                            {% elif enrollment.payment_method == 'easypaisa' %}
+                                Easypaisa
+                            {% elif enrollment.payment_method == 'bank' %}
+                                Bank Transfer
                             {% else %}
-                                <span class="badge" style="background: #9CA3AF; color: white;">Inactive</span>
+                                {{ enrollment.payment_method }}
                             {% endif %}
-                        </div>
-                        
-                        {% if bundle.description %}
-                        <p style="color: #718096; font-size: 0.875rem; margin-bottom: 1rem;">{{ bundle.description }}</p>
-                        {% endif %}
-                        
-                        <div style="margin-bottom: 1rem;">
-                            <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
-                                <span style="color: #4a5568;"><i class="fas fa-book"></i> {{ bundle.course_count }} courses</span>
-                                <span style="color: #4a5568;"><i class="fas fa-clock"></i> {{ bundle.duration_days }} days</span>
-                            </div>
-                            
-                            <div style="display: flex; justify-content: space-between; align-items: center;">
-                                <span style="color: #9CA3AF; text-decoration: line-through;">${{ "%.2f"|format(bundle.total_price) }}</span>
-                                <span style="color: #10B981; font-weight: 700; font-size: 1.25rem;">${{ "%.2f"|format(bundle.final_price) }}</span>
-                            </div>
-                            <small style="color: #10B981;">{{ bundle.discount_percentage }}% discount applied</small>
-                        </div>
-                        
-                        {% if bundle.activated_at %}
-                        <p style="font-size: 0.875rem; color: #718096; margin-bottom: 1rem;">
-                            Activated: {{ bundle.activated_at.strftime('%b %d, %Y') }}
-                            {% if bundle.expires_at %}
-                                <br>Expires: {{ bundle.expires_at.strftime('%b %d, %Y') }}
-                            {% endif %}
-                        </p>
-                        {% endif %}
-                        
-                        <div style="display: flex; gap: 0.75rem;">
-                            {% if not bundle.activated_at %}
-                                <form method="POST" action="{{ url_for('activate_bundle', bundle_id=bundle.id) }}" style="flex: 1;">
-                                    <button type="submit" class="btn btn-success btn-sm" style="width: 100%;">
-                                        <i class="fas fa-check"></i> Activate Bundle
-                                    </button>
-                                </form>
-                            {% endif %}
-                            
-                            <form method="POST" action="{{ url_for('delete_bundle', bundle_id=bundle.id) }}">
-                                <button type="submit" class="btn btn-sm" style="background: transparent; border: 2px solid #EF4444; color: #EF4444;" onclick="return confirm('Delete this bundle?')">
-                                    <i class="fas fa-trash"></i>
-                                </button>
-                            </form>
-                        </div>
-                    </div>
-                </div>
-                {% endfor %}
-            </div>
+                        </td>
+                        <td>{{ enrollment.enrolled_at.strftime('%b %d, %Y') }}</td>
+                        <td>
+                            <span class="badge badge-warning">Pending Review</span>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        
+        <div class="alert alert-info" style="margin-top: 1rem;">
+            <strong>ℹ️ Note:</strong> Your enrollment will be activated once the admin verifies your payment receipt. This usually takes 24-48 hours.
         </div>
     </div>
     {% endif %}
+    
+    <!-- Quick Actions -->
+    <div class="card" style="margin-top: 2rem;">
+        <h2 style="color: #2c3e50; margin-bottom: 1.5rem;">Quick Actions</h2>
+        <div class="row">
+            <div class="col-4">
+                <a href="{{ url_for('main.courses') }}" class="btn btn-outline btn-block" style="padding: 1.5rem;">
+                    📚 Browse Courses
+                </a>
+            </div>
+            <div class="col-4">
+                <a href="{{ url_for('dashboard.my_enrollments') }}" class="btn btn-outline btn-block" style="padding: 1.5rem;">
+                    📋 My Enrollments
+                </a>
+            </div>
+            <div class="col-4">
+                <a href="{{ url_for('dashboard.profile') }}" class="btn btn-outline btn-block" style="padding: 1.5rem;">
+                    👤 My Profile
+                </a>
+            </div>
+        </div>
+    </div>
 </div>
 {% endblock %}

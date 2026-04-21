@@ -1,893 +1,135 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>LearnHub — Learn Skills That Matter</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&family=IBM+Plex+Serif:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-<style>
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+{% extends "base.html" %}
 
-:root {
-  --red: #c31a24;
-  --red-dark: #a01219;
-  --red-light: #fdf2f2;
-  --ink: #1c1c1c;
-  --ink-2: #454545;
-  --ink-3: #767676;
-  --border: #d6d6d6;
-  --surface: #f7f7f7;
-  --white: #ffffff;
-  --navy: #0d2240;
-  --navy-light: #1a3a5c;
-  --teal: #00748c;
-  --teal-light: #e6f4f6;
-  --yellow: #f0be00;
-}
+{% block title %}Home - LMS Platform{% endblock %}
 
-html { scroll-behavior: smooth; }
-body {
-  font-family: 'IBM Plex Sans', sans-serif;
-  background: var(--white);
-  color: var(--ink);
-  line-height: 1.6;
-  font-size: 16px;
-}
-
-/* ── TOPBAR ── */
-.topbar {
-  background: var(--navy);
-  color: white;
-  font-size: 0.78rem;
-  padding: 8px 0;
-  text-align: center;
-  letter-spacing: 0.02em;
-}
-.topbar span { opacity: 0.8; }
-.topbar a { color: var(--yellow); text-decoration: none; font-weight: 600; }
-
-/* ── NAVBAR ── */
-nav {
-  position: sticky; top: 0; z-index: 200;
-  background: var(--white);
-  border-bottom: 1px solid var(--border);
-  padding: 0 5vw;
-  height: 64px;
-  display: flex; align-items: center; gap: 2rem;
-}
-.nav-logo {
-  font-family: 'IBM Plex Sans', sans-serif;
-  font-weight: 700; font-size: 1.5rem;
-  color: var(--red); text-decoration: none;
-  letter-spacing: -0.02em; flex-shrink: 0;
-}
-.nav-logo span { color: var(--navy); }
-.nav-search {
-  flex: 1; max-width: 480px;
-  display: flex; align-items: center;
-  border: 1.5px solid var(--border); border-radius: 4px;
-  overflow: hidden; background: var(--surface);
-}
-.nav-search input {
-  flex: 1; border: none; background: transparent;
-  padding: 9px 14px; font-size: 0.88rem;
-  font-family: 'IBM Plex Sans', sans-serif;
-  color: var(--ink); outline: none;
-}
-.nav-search input::placeholder { color: var(--ink-3); }
-.nav-search button {
-  background: var(--red); border: none; cursor: pointer;
-  padding: 9px 16px; color: white; font-size: 0.88rem;
-  transition: background 0.2s;
-}
-.nav-search button:hover { background: var(--red-dark); }
-.nav-links { display: flex; align-items: center; gap: 0; margin-left: auto; }
-.nav-links a {
-  font-size: 0.88rem; font-weight: 500; color: var(--ink-2);
-  text-decoration: none; padding: 0 16px; height: 64px;
-  display: flex; align-items: center;
-  border-bottom: 3px solid transparent;
-  transition: color 0.2s, border-color 0.2s;
-}
-.nav-links a:hover { color: var(--red); border-bottom-color: var(--red); }
-.nav-btn {
-  background: var(--red) !important; color: white !important;
-  padding: 9px 22px !important; border-radius: 4px;
-  height: auto !important; border-bottom: none !important;
-  font-weight: 600 !important; margin-left: 8px;
-  transition: background 0.2s !important;
-}
-.nav-btn:hover { background: var(--red-dark) !important; border-bottom: none !important; }
-
-/* ── HERO ── */
-.hero {
-  background: var(--navy);
-  padding: 0 5vw;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  align-items: center;
-  min-height: 480px;
-  gap: 4rem;
-  position: relative;
-  overflow: hidden;
-}
-.hero::before {
-  content: '';
-  position: absolute; inset: 0;
-  background: linear-gradient(135deg, var(--navy) 55%, #0f2e50 100%);
-}
-.hero-bg-pattern {
-  position: absolute; right: 0; top: 0; bottom: 0; width: 50%;
-  background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
-}
-.hero-content { position: relative; z-index: 1; padding: 5rem 0; }
-.hero-eyebrow {
-  display: inline-flex; align-items: center; gap: 8px;
-  background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15);
-  color: var(--yellow); font-size: 0.75rem; font-weight: 600;
-  letter-spacing: 0.1em; text-transform: uppercase;
-  padding: 5px 14px; border-radius: 2px; margin-bottom: 1.5rem;
-}
-.hero h1 {
-  font-family: 'IBM Plex Serif', serif;
-  font-size: clamp(2rem, 3.5vw, 3rem);
-  font-weight: 600; line-height: 1.2;
-  color: white; margin-bottom: 1.25rem;
-}
-.hero p {
-  font-size: 1rem; color: rgba(255,255,255,0.72);
-  max-width: 460px; line-height: 1.7; margin-bottom: 2rem;
-}
-.hero-btns { display: flex; gap: 12px; flex-wrap: wrap; }
-.btn-hero-primary {
-  display: inline-flex; align-items: center; gap: 8px;
-  background: var(--red); color: white;
-  padding: 13px 28px; border-radius: 4px;
-  font-size: 0.92rem; font-weight: 600;
-  text-decoration: none; transition: background 0.2s;
-  border: none; cursor: pointer;
-}
-.btn-hero-primary:hover { background: var(--red-dark); }
-.btn-hero-outline {
-  display: inline-flex; align-items: center; gap: 8px;
-  background: transparent; color: white;
-  padding: 13px 28px; border-radius: 4px;
-  font-size: 0.92rem; font-weight: 600;
-  text-decoration: none; border: 1.5px solid rgba(255,255,255,0.45);
-  transition: border-color 0.2s, background 0.2s; cursor: pointer;
-}
-.btn-hero-outline:hover { border-color: white; background: rgba(255,255,255,0.06); }
-
-.hero-image-side {
-  position: relative; z-index: 1;
-  display: flex; flex-direction: column; gap: 12px;
-  padding: 3rem 0;
-}
-.hero-card {
-  background: rgba(255,255,255,0.06);
-  border: 1px solid rgba(255,255,255,0.12);
-  border-radius: 6px; padding: 18px 20px;
-  display: flex; align-items: center; gap: 16px;
-  backdrop-filter: blur(8px);
-  animation: slideIn 0.6s ease both;
-}
-.hero-card:nth-child(2) { animation-delay: 0.12s; margin-left: 2rem; }
-.hero-card:nth-child(3) { animation-delay: 0.24s; }
-@keyframes slideIn { from { opacity:0; transform: translateX(30px); } to { opacity:1; transform:translateX(0); } }
-.hero-card-icon {
-  width: 44px; height: 44px; border-radius: 8px; flex-shrink: 0;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 1.3rem;
-}
-.hero-card h4 { font-size: 0.92rem; font-weight: 600; color: white; margin-bottom: 3px; }
-.hero-card p { font-size: 0.78rem; color: rgba(255,255,255,0.55); }
-
-/* ── TRUST BAR ── */
-.trust-bar {
-  background: var(--surface);
-  border-bottom: 1px solid var(--border);
-  padding: 18px 5vw;
-  display: flex; align-items: center; gap: 3rem;
-  flex-wrap: wrap; overflow: hidden;
-}
-.trust-label {
-  font-size: 0.78rem; font-weight: 600; color: var(--ink-3);
-  text-transform: uppercase; letter-spacing: 0.1em;
-  flex-shrink: 0;
-}
-.trust-items { display: flex; gap: 2.5rem; flex-wrap: wrap; align-items: center; }
-.trust-item {
-  font-size: 0.88rem; font-weight: 600; color: var(--ink-2);
-  display: flex; align-items: center; gap: 6px;
-}
-.trust-item i { color: var(--red); font-size: 0.8rem; }
-
-/* ── STATS ── */
-.stats-section {
-  background: white;
-  border-bottom: 1px solid var(--border);
-  padding: 3rem 5vw;
-}
-.stats-inner {
-  max-width: 900px; margin: 0 auto;
-  display: grid; grid-template-columns: repeat(3, 1fr);
-  gap: 0;
-}
-.stat-card {
-  text-align: center; padding: 2rem 1rem;
-  border-right: 1px solid var(--border);
-  transition: background 0.2s;
-}
-.stat-card:last-child { border-right: none; }
-.stat-card:hover { background: var(--surface); }
-.stat-number {
-  font-family: 'IBM Plex Serif', serif;
-  font-size: 3rem; font-weight: 600;
-  color: var(--red); line-height: 1;
-  margin-bottom: 0.4rem;
-}
-.stat-label {
-  font-size: 0.78rem; font-weight: 600; color: var(--ink-3);
-  text-transform: uppercase; letter-spacing: 0.1em;
-}
-
-/* ── SECTIONS COMMON ── */
-.section { padding: 5rem 5vw; }
-.section-alt { background: var(--surface); }
-.section-head {
-  margin-bottom: 2.5rem;
-  display: flex; align-items: flex-end; justify-content: space-between;
-  gap: 1rem; flex-wrap: wrap;
-}
-.section-head-left h2 {
-  font-family: 'IBM Plex Serif', serif;
-  font-size: 1.75rem; font-weight: 600;
-  color: var(--ink); line-height: 1.2;
-  margin-bottom: 0.4rem;
-}
-.section-head-left p { font-size: 0.9rem; color: var(--ink-3); }
-.view-all-link {
-  font-size: 0.88rem; font-weight: 600; color: var(--red);
-  text-decoration: none; display: flex; align-items: center; gap: 6px;
-  white-space: nowrap;
-  transition: gap 0.2s;
-}
-.view-all-link:hover { gap: 10px; }
-
-/* ── COURSE FILTER TABS ── */
-.filter-tabs {
-  display: flex; gap: 0; margin-bottom: 2rem;
-  border-bottom: 2px solid var(--border);
-}
-.filter-tab {
-  padding: 10px 20px;
-  font-size: 0.88rem; font-weight: 500; color: var(--ink-3);
-  cursor: pointer; border: none; background: none;
-  border-bottom: 3px solid transparent; margin-bottom: -2px;
-  font-family: 'IBM Plex Sans', sans-serif;
-  transition: color 0.2s, border-color 0.2s;
-}
-.filter-tab:hover { color: var(--ink); }
-.filter-tab.active { color: var(--red); border-bottom-color: var(--red); font-weight: 600; }
-
-/* ── COURSE CARDS ── */
-.courses-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 20px;
-}
-.course-card {
-  background: white;
-  border: 1px solid var(--border);
-  border-radius: 4px;
-  overflow: hidden;
-  transition: box-shadow 0.25s, transform 0.25s;
-  display: flex; flex-direction: column;
-  cursor: pointer;
-}
-.course-card:hover {
-  box-shadow: 0 8px 32px rgba(0,0,0,0.12);
-  transform: translateY(-4px);
-}
-.course-thumb {
-  height: 180px; position: relative;
-  display: flex; align-items: center; justify-content: center;
-  overflow: hidden;
-}
-.course-thumb-emoji { font-size: 3.5rem; z-index: 1; }
-.free-badge {
-  position: absolute; top: 12px; left: 12px;
-  background: var(--teal); color: white;
-  font-size: 0.7rem; font-weight: 700;
-  letter-spacing: 0.08em; text-transform: uppercase;
-  padding: 3px 10px; border-radius: 2px;
-}
-.course-org {
-  position: absolute; bottom: 12px; left: 12px;
-  background: white; border-radius: 2px;
-  padding: 3px 10px; font-size: 0.72rem; font-weight: 600;
-  color: var(--ink-2); border: 1px solid var(--border);
-}
-.course-body { padding: 1.25rem; flex: 1; display: flex; flex-direction: column; }
-.course-subject {
-  font-size: 0.72rem; font-weight: 700; color: var(--red);
-  text-transform: uppercase; letter-spacing: 0.1em;
-  margin-bottom: 0.5rem;
-}
-.course-title {
-  font-size: 1rem; font-weight: 600; color: var(--ink);
-  line-height: 1.35; margin-bottom: 0.5rem;
-}
-.course-provider {
-  font-size: 0.8rem; color: var(--ink-3);
-  margin-bottom: 0.75rem;
-}
-.course-meta {
-  display: flex; gap: 1rem; margin-bottom: 0.75rem; flex-wrap: wrap;
-}
-.course-meta span {
-  display: flex; align-items: center; gap: 5px;
-  font-size: 0.78rem; color: var(--ink-3);
-}
-.course-meta i { font-size: 0.72rem; color: var(--ink-3); }
-.course-desc {
-  font-size: 0.82rem; color: var(--ink-3); line-height: 1.55;
-  flex: 1; margin-bottom: 1rem;
-}
-.course-footer {
-  display: flex; align-items: center; justify-content: space-between;
-  padding-top: 0.75rem; border-top: 1px solid var(--border);
-}
-.course-price { font-size: 1.1rem; font-weight: 700; color: var(--ink); }
-.course-price.free { color: var(--teal); }
-.btn-enroll {
-  background: var(--red); color: white;
-  border: none; cursor: pointer; border-radius: 3px;
-  padding: 8px 18px; font-size: 0.82rem; font-weight: 600;
-  font-family: 'IBM Plex Sans', sans-serif;
-  transition: background 0.2s;
-  text-decoration: none; display: inline-block;
-}
-.btn-enroll:hover { background: var(--red-dark); }
-
-/* ── FEATURE SECTION ── */
-.features-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-  gap: 2px;
-  background: var(--border);
-  border: 1px solid var(--border);
-  border-radius: 4px; overflow: hidden;
-}
-.feature-card {
-  background: white;
-  padding: 2.5rem 2rem;
-  transition: background 0.2s;
-}
-.feature-card:hover { background: #fafafa; }
-.feature-icon-wrap {
-  width: 52px; height: 52px;
-  background: var(--red-light);
-  border-radius: 4px; display: flex; align-items: center; justify-content: center;
-  margin-bottom: 1.25rem;
-}
-.feature-icon-wrap i { font-size: 1.4rem; color: var(--red); }
-.feature-card h4 {
-  font-size: 1rem; font-weight: 700; color: var(--ink);
-  margin-bottom: 0.6rem;
-}
-.feature-card p { font-size: 0.88rem; color: var(--ink-3); line-height: 1.65; }
-
-/* ── SUBJECTS STRIP ── */
-.subjects-section { padding: 4rem 5vw; background: white; border-top: 1px solid var(--border); }
-.subjects-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-  gap: 12px;
-}
-.subject-pill {
-  display: flex; align-items: center; gap: 10px;
-  border: 1px solid var(--border); border-radius: 4px;
-  padding: 12px 16px;
-  font-size: 0.85rem; font-weight: 500; color: var(--ink-2);
-  text-decoration: none; cursor: pointer;
-  transition: border-color 0.2s, color 0.2s, background 0.2s;
-  background: white;
-}
-.subject-pill:hover { border-color: var(--red); color: var(--red); background: var(--red-light); }
-.subject-pill i { font-size: 1rem; color: var(--teal); width: 20px; text-align: center; }
-
-/* ── CTA BANNER ── */
-.cta-banner {
-  background: var(--navy);
-  padding: 5rem 5vw;
-  display: grid; grid-template-columns: 1fr auto;
-  align-items: center; gap: 3rem;
-}
-.cta-banner h2 {
-  font-family: 'IBM Plex Serif', serif;
-  font-size: clamp(1.6rem, 3vw, 2.4rem);
-  font-weight: 600; color: white; line-height: 1.25;
-  margin-bottom: 0.75rem;
-}
-.cta-banner p { font-size: 0.95rem; color: rgba(255,255,255,0.65); max-width: 560px; }
-.cta-btns { display: flex; gap: 12px; flex-wrap: wrap; flex-shrink: 0; }
-
-/* ── CONTACT SECTION ── */
-.contact-section {
-  background: white;
-  border-top: 4px solid var(--red);
-  padding: 5rem 5vw;
-}
-.contact-inner {
-  max-width: 800px; margin: 0 auto;
-  display: grid; grid-template-columns: 1fr 1fr; gap: 5rem; align-items: start;
-}
-.contact-left h2 {
-  font-family: 'IBM Plex Serif', serif;
-  font-size: 1.8rem; font-weight: 600;
-  color: var(--ink); margin-bottom: 1rem;
-}
-.contact-left p { font-size: 0.9rem; color: var(--ink-3); line-height: 1.7; margin-bottom: 1.5rem; }
-.contact-detail {
-  display: flex; align-items: flex-start; gap: 14px;
-  margin-bottom: 1.25rem;
-}
-.contact-detail-icon {
-  width: 38px; height: 38px; border-radius: 4px;
-  background: var(--red-light);
-  display: flex; align-items: center; justify-content: center;
-  flex-shrink: 0;
-}
-.contact-detail-icon i { font-size: 0.95rem; color: var(--red); }
-.contact-detail h5 { font-size: 0.78rem; font-weight: 700; color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 3px; }
-.contact-detail a, .contact-detail span { font-size: 0.9rem; color: var(--ink-2); text-decoration: none; font-weight: 500; }
-.contact-detail a:hover { color: var(--red); text-decoration: underline; }
-
-.contact-form { display: flex; flex-direction: column; gap: 14px; }
-.form-group { display: flex; flex-direction: column; gap: 5px; }
-.form-label { font-size: 0.8rem; font-weight: 600; color: var(--ink-2); }
-.form-input {
-  border: 1.5px solid var(--border); border-radius: 3px;
-  padding: 10px 14px; font-size: 0.88rem;
-  font-family: 'IBM Plex Sans', sans-serif; color: var(--ink);
-  background: white; outline: none;
-  transition: border-color 0.2s;
-}
-.form-input:focus { border-color: var(--red); }
-.form-input::placeholder { color: var(--ink-3); }
-textarea.form-input { resize: vertical; min-height: 110px; }
-.btn-submit {
-  background: var(--red); color: white;
-  border: none; cursor: pointer; border-radius: 3px;
-  padding: 12px 28px; font-size: 0.92rem; font-weight: 700;
-  font-family: 'IBM Plex Sans', sans-serif;
-  transition: background 0.2s; align-self: flex-start;
-  display: flex; align-items: center; gap: 8px;
-}
-.btn-submit:hover { background: var(--red-dark); }
-
-/* ── FOOTER ── */
-footer {
-  background: #0a0a0a;
-  color: rgba(255,255,255,0.6);
-  padding: 3.5rem 5vw 2rem;
-}
-.footer-grid {
-  display: grid; grid-template-columns: 2fr 1fr 1fr 1fr;
-  gap: 3rem; margin-bottom: 3rem;
-}
-.footer-brand .logo {
-  font-family: 'IBM Plex Sans', sans-serif;
-  font-weight: 700; font-size: 1.4rem;
-  color: white; text-decoration: none; display: block;
-  margin-bottom: 0.75rem;
-}
-.footer-brand .logo span { color: var(--red); }
-.footer-brand p { font-size: 0.82rem; line-height: 1.65; max-width: 280px; }
-.footer-col h5 {
-  font-size: 0.75rem; font-weight: 700; color: white;
-  text-transform: uppercase; letter-spacing: 0.12em;
-  margin-bottom: 1rem;
-}
-.footer-col a {
-  display: block; font-size: 0.85rem; color: rgba(255,255,255,0.5);
-  text-decoration: none; margin-bottom: 0.6rem;
-  transition: color 0.2s;
-}
-.footer-col a:hover { color: white; }
-.footer-bottom {
-  border-top: 1px solid rgba(255,255,255,0.08);
-  padding-top: 1.5rem;
-  display: flex; justify-content: space-between; align-items: center;
-  flex-wrap: wrap; gap: 1rem;
-}
-.footer-bottom p { font-size: 0.8rem; }
-.social-icons { display: flex; gap: 14px; }
-.social-icons a {
-  color: rgba(255,255,255,0.4); font-size: 1rem;
-  text-decoration: none; transition: color 0.2s;
-}
-.social-icons a:hover { color: white; }
-
-/* ── REVEAL ANIMATIONS ── */
-.reveal {
-  opacity: 0; transform: translateY(24px);
-  transition: opacity 0.6s ease, transform 0.6s cubic-bezier(0.22,1,0.36,1);
-}
-.reveal.visible { opacity: 1; transform: translateY(0); }
-.reveal-d1 { transition-delay: 0.08s; }
-.reveal-d2 { transition-delay: 0.16s; }
-.reveal-d3 { transition-delay: 0.24s; }
-
-/* ── RESPONSIVE ── */
-@media (max-width: 900px) {
-  .hero { grid-template-columns: 1fr; }
-  .hero-image-side { display: none; }
-  .cta-banner { grid-template-columns: 1fr; }
-  .contact-inner { grid-template-columns: 1fr; gap: 3rem; }
-  .footer-grid { grid-template-columns: 1fr 1fr; }
-}
-@media (max-width: 640px) {
-  .nav-search { display: none; }
-  .nav-links a:not(.nav-btn) { display: none; }
-  .stats-inner { grid-template-columns: 1fr; }
-  .stat-card { border-right: none; border-bottom: 1px solid var(--border); }
-  .stat-card:last-child { border-bottom: none; }
-  .footer-grid { grid-template-columns: 1fr; }
-  .filter-tabs { overflow-x: auto; }
-}
-</style>
-</head>
-<body>
-
-<!-- TOPBAR -->
-<div class="topbar">
-  <span>Limited time: Get started with a free course — </span>
-  <a href="#">Browse free courses →</a>
-</div>
-
-<!-- NAVBAR -->
-<nav>
-  <a href="#" class="nav-logo">Learn<span>Hub</span></a>
-  <div class="nav-search">
-    <input type="text" placeholder="What do you want to learn?">
-    <button><i class="fas fa-search"></i></button>
-  </div>
-  <div class="nav-links">
-    <a href="#courses">Courses</a>
-    <a href="#why">Why LearnHub</a>
-    <a href="#contact">Contact</a>
-    <a href="#" class="nav-btn">Register Free</a>
-  </div>
-</nav>
-
-<!-- HERO -->
+{% block content %}
+<!-- Hero Section -->
 <section class="hero">
-  <div class="hero-bg-pattern"></div>
-  <div class="hero-content">
-    <div class="hero-eyebrow"><i class="fas fa-bolt"></i> Trusted by 8,400+ learners</div>
-    <h1>Learn Skills<br>That Matter</h1>
-    <p>Master in-demand skills with expert-led courses in Linguistics, Programming, and AI — start free, go at your own pace.</p>
-    <div class="hero-btns">
-      <a href="#courses" class="btn-hero-primary"><i class="fas fa-graduation-cap"></i> Browse Courses</a>
-      <a href="#" class="btn-hero-outline">Get Started Free</a>
+    <div class="container">
+        <h1>Master Linguistics with Expert-Led Courses</h1>
+        <p>Learn General Linguistics, Corpus Linguistics, and Computational Linguistics from industry experts</p>
+        <div style="margin-top: 2rem;">
+            {% if current_user.is_authenticated %}
+                <a href="{{ url_for('main.courses') }}" class="btn btn-success btn-lg">Browse Courses</a>
+                <a href="{{ url_for('dashboard.index') }}" class="btn btn-outline btn-lg" style="margin-left: 1rem; border-color: white; color: white;">Go to Dashboard</a>
+            {% else %}
+                <a href="{{ url_for('auth.register') }}" class="btn btn-success btn-lg">Get Started Free</a>
+                <a href="{{ url_for('main.courses') }}" class="btn btn-outline btn-lg" style="margin-left: 1rem; border-color: white; color: white;">Explore Courses</a>
+            {% endif %}
+        </div>
     </div>
-  </div>
-  <div class="hero-image-side">
-    <div class="hero-card">
-      <div class="hero-card-icon" style="background:rgba(240,190,0,0.15);">🧠</div>
-      <div>
-        <h4>Introduction to Linguistics</h4>
-        <p>Self-paced · Free · Certificate included</p>
-      </div>
-    </div>
-    <div class="hero-card">
-      <div class="hero-card-icon" style="background:rgba(0,116,140,0.2);">💻</div>
-      <div>
-        <h4>Python for Data Science</h4>
-        <p>Self-paced · 28 hours · $49</p>
-      </div>
-    </div>
-    <div class="hero-card">
-      <div class="hero-card-icon" style="background:rgba(195,26,36,0.15);">🤖</div>
-      <div>
-        <h4>AI & Machine Learning</h4>
-        <p>Self-paced · 36 hours · $79</p>
-      </div>
-    </div>
-  </div>
 </section>
 
-<!-- TRUST BAR -->
-<div class="trust-bar">
-  <span class="trust-label">Offered by</span>
-  <div class="trust-items">
-    <div class="trust-item"><i class="fas fa-check-circle"></i> Expert Instructors</div>
-    <div class="trust-item"><i class="fas fa-check-circle"></i> Verified Certificates</div>
-    <div class="trust-item"><i class="fas fa-check-circle"></i> Lifetime Access</div>
-    <div class="trust-item"><i class="fas fa-check-circle"></i> Free Courses Available</div>
-    <div class="trust-item"><i class="fas fa-check-circle"></i> Mobile-Friendly</div>
-  </div>
+<!-- Courses Section -->
+<div class="container" style="margin-top: 3rem;">
+    <div class="text-center" style="margin-bottom: 2rem;">
+        <h2 style="font-size: 2.5rem; color: #2c3e50; margin-bottom: 1rem;">Our Courses</h2>
+        <p style="font-size: 1.1rem; color: #7f8c8d;">Choose from our expert-designed linguistics courses</p>
+    </div>
+    
+    {% if courses %}
+    <div class="courses-grid">
+        {% for course in courses %}
+        <div class="course-card">
+            {% if course.thumbnail %}
+                <img src="{{ url_for('main.uploaded_file', folder='thumbnails', filename=course.thumbnail) }}" alt="{{ course.title }}" class="course-thumbnail">
+            {% else %}
+                <div class="course-thumbnail"></div>
+            {% endif %}
+            
+            <div class="course-content">
+                <h3 class="course-title">{{ course.title }}</h3>
+                <p class="course-description">{{ course.description }}</p>
+                
+                <div class="course-meta">
+                    <span class="badge badge-primary">{{ course.level or 'All Levels' }}</span>
+                    <span style="color: #7f8c8d; font-size: 0.9rem;">
+                        {% if course.duration_estimate %}
+                            {{ course.duration_estimate }}
+                        {% else %}
+                            Self-paced
+                        {% endif %}
+                    </span>
+                </div>
+                
+                <div style="margin-top: 1rem;">
+                    <a href="{{ url_for('courses.detail', slug=course.slug) }}" class="btn btn-primary btn-block">
+                        View Course Details
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="text-center" style="padding: 3rem;">
+        <p style="font-size: 1.2rem; color: #7f8c8d;">No courses available at the moment. Check back soon!</p>
+    </div>
+    {% endif %}
 </div>
 
-<!-- STATS -->
-<section class="stats-section">
-  <div class="stats-inner">
-    <div class="stat-card reveal">
-      <div class="stat-number">120+</div>
-      <div class="stat-label">Expert Courses</div>
-    </div>
-    <div class="stat-card reveal reveal-d1">
-      <div class="stat-number">8,400+</div>
-      <div class="stat-label">Active Students</div>
-    </div>
-    <div class="stat-card reveal reveal-d2">
-      <div class="stat-number">24,000+</div>
-      <div class="stat-label">Total Enrollments</div>
-    </div>
-  </div>
-</section>
-
-<!-- FEATURED COURSES -->
-<section class="section" id="courses">
-  <div class="section-head reveal">
-    <div class="section-head-left">
-      <h2>Featured Courses</h2>
-      <p>Start learning with our most popular courses</p>
-    </div>
-    <a href="#" class="view-all-link">View all courses <i class="fas fa-arrow-right"></i></a>
-  </div>
-
-  <div class="filter-tabs reveal">
-    <button class="filter-tab active" onclick="setTab(this,'all')">All Courses</button>
-    <button class="filter-tab" onclick="setTab(this,'ling')">Linguistics</button>
-    <button class="filter-tab" onclick="setTab(this,'prog')">Programming</button>
-    <button class="filter-tab" onclick="setTab(this,'ai')">AI & ML</button>
-  </div>
-
-  <div class="courses-grid">
-    <div class="course-card reveal">
-      <div class="course-thumb" style="background:linear-gradient(135deg,#1a3a5c,#0d2240);">
-        <span class="course-thumb-emoji">🧠</span>
-        <span class="free-badge">Free</span>
-        <span class="course-org">LearnHub</span>
-      </div>
-      <div class="course-body">
-        <div class="course-subject">Linguistics</div>
-        <div class="course-title">Introduction to Linguistics</div>
-        <div class="course-provider">LearnHub · Expert Faculty</div>
-        <div class="course-meta">
-          <span><i class="fas fa-signal"></i> Beginner</span>
-          <span><i class="fas fa-clock"></i> 12 hours</span>
-          <span><i class="fas fa-star" style="color:#f0be00"></i> 4.9</span>
+<!-- Features Section -->
+<div class="container" style="margin-top: 4rem; margin-bottom: 4rem;">
+    <div class="row">
+        <div class="col-4">
+            <div class="card text-center">
+                <div style="font-size: 3rem; margin-bottom: 1rem;">📚</div>
+                <h3 style="color: #2c3e50; margin-bottom: 1rem;">Expert Content</h3>
+                <p style="color: #7f8c8d;">Learn from comprehensive, research-backed course materials designed by linguistics experts.</p>
+            </div>
         </div>
-        <p class="course-desc">Explore the foundations of human language — phonetics, morphology, syntax, and semantics explained from the ground up.</p>
-        <div class="course-footer">
-          <span class="course-price free">Free</span>
-          <a href="#" class="btn-enroll">Enroll Now</a>
+        
+        <div class="col-4">
+            <div class="card text-center">
+                <div style="font-size: 3rem; margin-bottom: 1rem;">⏰</div>
+                <h3 style="color: #2c3e50; margin-bottom: 1rem;">Flexible Learning</h3>
+                <p style="color: #7f8c8d;">Study at your own pace with flexible enrollment options - days, weeks, or months.</p>
+            </div>
         </div>
-      </div>
+        
+        <div class="col-4">
+            <div class="card text-center">
+                <div style="font-size: 3rem; margin-bottom: 1rem;">🎓</div>
+                <h3 style="color: #2c3e50; margin-bottom: 1rem;">Affordable Pricing</h3>
+                <p style="color: #7f8c8d;">Quality education starting from just Rs. 1,500. Invest in your linguistic knowledge today.</p>
+            </div>
+        </div>
     </div>
-
-    <div class="course-card reveal reveal-d1">
-      <div class="course-thumb" style="background:linear-gradient(135deg,#00748c,#004f61);">
-        <span class="course-thumb-emoji">💻</span>
-        <span class="course-org">LearnHub</span>
-      </div>
-      <div class="course-body">
-        <div class="course-subject">Programming</div>
-        <div class="course-title">Python for Data Science</div>
-        <div class="course-provider">LearnHub · Expert Faculty</div>
-        <div class="course-meta">
-          <span><i class="fas fa-signal"></i> Intermediate</span>
-          <span><i class="fas fa-clock"></i> 28 hours</span>
-          <span><i class="fas fa-star" style="color:#f0be00"></i> 4.8</span>
-        </div>
-        <p class="course-desc">Learn Python from first principles and apply it to real-world data science projects using pandas, NumPy, and matplotlib.</p>
-        <div class="course-footer">
-          <span class="course-price">$49</span>
-          <a href="#" class="btn-enroll">Enroll Now</a>
-        </div>
-      </div>
-    </div>
-
-    <div class="course-card reveal reveal-d2">
-      <div class="course-thumb" style="background:linear-gradient(135deg,#c31a24,#7a0f16);">
-        <span class="course-thumb-emoji">🤖</span>
-        <span class="course-org">LearnHub</span>
-      </div>
-      <div class="course-body">
-        <div class="course-subject">Artificial Intelligence</div>
-        <div class="course-title">AI & Machine Learning Fundamentals</div>
-        <div class="course-provider">LearnHub · Expert Faculty</div>
-        <div class="course-meta">
-          <span><i class="fas fa-signal"></i> Advanced</span>
-          <span><i class="fas fa-clock"></i> 36 hours</span>
-          <span><i class="fas fa-star" style="color:#f0be00"></i> 5.0</span>
-        </div>
-        <p class="course-desc">Understand neural networks, gradient descent, transformers, and the principles driving modern large language models.</p>
-        <div class="course-footer">
-          <span class="course-price">$79</span>
-          <a href="#" class="btn-enroll">Enroll Now</a>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- SUBJECTS -->
-<div class="subjects-section">
-  <div class="section-head reveal" style="margin-bottom:1.5rem">
-    <div class="section-head-left">
-      <h2>Browse by Subject</h2>
-    </div>
-  </div>
-  <div class="subjects-grid reveal">
-    <a class="subject-pill"><i class="fas fa-language"></i> Linguistics</a>
-    <a class="subject-pill"><i class="fas fa-code"></i> Programming</a>
-    <a class="subject-pill"><i class="fas fa-robot"></i> AI & ML</a>
-    <a class="subject-pill"><i class="fas fa-chart-bar"></i> Data Science</a>
-    <a class="subject-pill"><i class="fas fa-brain"></i> Cognitive Science</a>
-    <a class="subject-pill"><i class="fas fa-globe"></i> Applied Linguistics</a>
-    <a class="subject-pill"><i class="fas fa-database"></i> Data Engineering</a>
-    <a class="subject-pill"><i class="fas fa-network-wired"></i> Deep Learning</a>
-  </div>
 </div>
 
-<!-- WHY LEARNHUB -->
-<section class="section section-alt" id="why">
-  <div class="section-head reveal">
-    <div class="section-head-left">
-      <h2>Why Choose LearnHub?</h2>
-      <p>Professional learning experience designed for your success</p>
+<!-- Recent Blog Posts Section (if available) -->
+{% if blogs %}
+<div class="container" style="margin-top: 4rem;">
+    <div class="text-center" style="margin-bottom: 2rem;">
+        <h2 style="font-size: 2.5rem; color: #2c3e50; margin-bottom: 1rem;">Latest Insights</h2>
+        <p style="font-size: 1.1rem; color: #7f8c8d;">Read our latest articles on linguistics and language</p>
     </div>
-  </div>
-  <div class="features-grid">
-    <div class="feature-card reveal">
-      <div class="feature-icon-wrap"><i class="fas fa-chalkboard-teacher"></i></div>
-      <h4>Expert Instructors</h4>
-      <p>Learn from experienced professionals and academics with real-world industry and research backgrounds.</p>
+    
+    <div class="row">
+        {% for blog in blogs %}
+        <div class="col-4">
+            <div class="card">
+                <h4 style="color: #2c3e50; margin-bottom: 0.5rem;">{{ blog.title }}</h4>
+                <p style="color: #7f8c8d; font-size: 0.9rem; margin-bottom: 1rem;">{{ blog.created_at.strftime('%B %d, %Y') }}</p>
+                <p style="color: #34495e;">{{ blog.excerpt or blog.content[:150] + '...' }}</p>
+                <a href="#" class="btn btn-outline btn-sm" style="margin-top: 1rem;">Read More</a>
+            </div>
+        </div>
+        {% endfor %}
     </div>
-    <div class="feature-card reveal reveal-d1">
-      <div class="feature-icon-wrap"><i class="fas fa-infinity"></i></div>
-      <h4>Lifetime Access</h4>
-      <p>Enroll once and access your courses forever — on any device, at any time, with no subscription required.</p>
-    </div>
-    <div class="feature-card reveal reveal-d2">
-      <div class="feature-icon-wrap"><i class="fas fa-certificate"></i></div>
-      <h4>Verified Certificates</h4>
-      <p>Earn shareable, employer-recognized certificates upon successful completion of every course.</p>
-    </div>
-  </div>
-</section>
+</div>
+{% endif %}
 
-<!-- CTA BANNER -->
-<section class="cta-banner">
-  <div class="reveal">
-    <h2>Ready to Start Learning?<br>Join thousands of students achieving their goals.</h2>
-    <p>All courses are self-paced. Start immediately, learn on your schedule. Free courses available with no credit card required.</p>
-  </div>
-  <div class="cta-btns reveal">
-    <a href="#" class="btn-hero-primary"><i class="fas fa-user-plus"></i> Create Free Account</a>
-    <a href="#courses" class="btn-hero-outline">Browse Courses</a>
-  </div>
-</section>
-
-<!-- CONTACT -->
-<section class="contact-section" id="contact">
-  <div class="contact-inner">
-    <div class="contact-left reveal">
-      <h2>Contact Us</h2>
-      <p>Have a question about a course, partnership, or anything else? We'd love to hear from you. Our team typically responds within 24 hours.</p>
-      <div class="contact-detail">
-        <div class="contact-detail-icon"><i class="fas fa-envelope"></i></div>
+<!-- CTA Section -->
+{% if not current_user.is_authenticated %}
+<div class="container" style="margin-top: 4rem; margin-bottom: 4rem;">
+    <div class="card" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; text-align: center; padding: 3rem;">
+        <h2 style="font-size: 2rem; margin-bottom: 1rem;">Ready to Start Learning?</h2>
+        <p style="font-size: 1.2rem; margin-bottom: 2rem; opacity: 0.95;">Join thousands of students mastering linguistics</p>
         <div>
-          <h5>Email</h5>
-          <a href="mailto:shoaibtahir411@gmail.com">shoaibtahir411@gmail.com</a>
+            <a href="{{ url_for('auth.register') }}" class="btn btn-success btn-lg">Create Free Account</a>
         </div>
-      </div>
-      <div class="contact-detail">
-        <div class="contact-detail-icon"><i class="fas fa-globe"></i></div>
-        <div>
-          <h5>Website</h5>
-          <span>www.learnhub.com</span>
-        </div>
-      </div>
-      <div class="contact-detail">
-        <div class="contact-detail-icon"><i class="fas fa-clock"></i></div>
-        <div>
-          <h5>Response Time</h5>
-          <span>Within 24 hours</span>
-        </div>
-      </div>
     </div>
-    <div class="reveal reveal-d1">
-      <form class="contact-form" onsubmit="handleSubmit(event)">
-        <div class="form-group">
-          <label class="form-label">Your Name</label>
-          <input type="text" class="form-input" placeholder="e.g. Ahmad Ali">
-        </div>
-        <div class="form-group">
-          <label class="form-label">Email Address</label>
-          <input type="email" class="form-input" placeholder="you@example.com">
-        </div>
-        <div class="form-group">
-          <label class="form-label">Subject</label>
-          <input type="text" class="form-input" placeholder="Course enquiry, partnership...">
-        </div>
-        <div class="form-group">
-          <label class="form-label">Message</label>
-          <textarea class="form-input" placeholder="Tell us how we can help..."></textarea>
-        </div>
-        <button type="submit" class="btn-submit"><i class="fas fa-paper-plane"></i> Send Message</button>
-        <div id="form-success" style="display:none; color:var(--teal); font-size:0.88rem; font-weight:600; margin-top:4px;">
-          <i class="fas fa-check-circle"></i> Message sent! We'll get back to you soon.
-        </div>
-      </form>
-    </div>
-  </div>
-</section>
-
-<!-- FOOTER -->
-<footer>
-  <div class="footer-grid">
-    <div class="footer-brand">
-      <a href="#" class="logo">Learn<span>Hub</span></a>
-      <p>Empowering learners worldwide with expert-led courses in Linguistics, Programming, and Artificial Intelligence. Learn at your own pace, earn real credentials.</p>
-    </div>
-    <div class="footer-col">
-      <h5>Courses</h5>
-      <a href="#">Linguistics</a>
-      <a href="#">Programming</a>
-      <a href="#">AI & ML</a>
-      <a href="#">Data Science</a>
-    </div>
-    <div class="footer-col">
-      <h5>Company</h5>
-      <a href="#">About Us</a>
-      <a href="#">Careers</a>
-      <a href="#">Blog</a>
-      <a href="#contact">Contact</a>
-    </div>
-    <div class="footer-col">
-      <h5>Support</h5>
-      <a href="#">Help Center</a>
-      <a href="#">Privacy Policy</a>
-      <a href="#">Terms of Use</a>
-      <a href="mailto:shoaibtahir411@gmail.com">shoaibtahir411@gmail.com</a>
-    </div>
-  </div>
-  <div class="footer-bottom">
-    <p>© 2025 LearnHub. All rights reserved.</p>
-    <div class="social-icons">
-      <a href="#"><i class="fab fa-twitter"></i></a>
-      <a href="#"><i class="fab fa-linkedin"></i></a>
-      <a href="#"><i class="fab fa-youtube"></i></a>
-      <a href="#"><i class="fab fa-instagram"></i></a>
-    </div>
-  </div>
-</footer>
-
-<script>
-  const obs = new IntersectionObserver(entries => {
-    entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
-  }, { threshold: 0.1 });
-  document.querySelectorAll('.reveal').forEach(el => obs.observe(el));
-
-  function setTab(el, tab) {
-    document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
-    el.classList.add('active');
-  }
-
-  function handleSubmit(e) {
-    e.preventDefault();
-    document.getElementById('form-success').style.display = 'block';
-    e.target.reset();
-    setTimeout(() => { document.getElementById('form-success').style.display = 'none'; }, 5000);
-  }
-</script>
-</body>
-</html>
+</div>
+{% endif %}
+{% endblock %}

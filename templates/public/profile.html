@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+
+{% block title %}My Profile - LMS Platform{% endblock %}
+
+{% block content %}
+<div class="container container-sm" style="margin-top: 2rem; margin-bottom: 3rem;">
+    <div style="margin-bottom: 2rem;">
+        <h1 style="color: #2c3e50;">My Profile</h1>
+        <p style="color: #7f8c8d;">View your account information</p>
+    </div>
+    
+    <div class="card">
+        <h2 style="color: #2c3e50; margin-bottom: 1.5rem;">Account Information</h2>
+        
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+            <div>
+                <div style="font-size: 0.85rem; color: #7f8c8d; margin-bottom: 0.25rem;">First Name</div>
+                <div style="font-size: 1.1rem; color: #34495e; font-weight: 600;">{{ user.first_name }}</div>
+            </div>
+            
+            <div>
+                <div style="font-size: 0.85rem; color: #7f8c8d; margin-bottom: 0.25rem;">Last Name</div>
+                <div style="font-size: 1.1rem; color: #34495e; font-weight: 600;">{{ user.last_name }}</div>
+            </div>
+            
+            <div>
+                <div style="font-size: 0.85rem; color: #7f8c8d; margin-bottom: 0.25rem;">Email</div>
+                <div style="font-size: 1.1rem; color: #34495e; font-weight: 600;">{{ user.email }}</div>
+            </div>
+            
+            <div>
+                <div style="font-size: 0.85rem; color: #7f8c8d; margin-bottom: 0.25rem;">Designation</div>
+                <div style="font-size: 1.1rem; color: #34495e; font-weight: 600;">{{ user.designation }}</div>
+            </div>
+            
+            <div>
+                <div style="font-size: 0.85rem; color: #7f8c8d; margin-bottom: 0.25rem;">City</div>
+                <div style="font-size: 1.1rem; color: #34495e; font-weight: 600;">{{ user.city }}</div>
+            </div>
+            
+            <div>
+                <div style="font-size: 0.85rem; color: #7f8c8d; margin-bottom: 0.25rem;">Country</div>
+                <div style="font-size: 1.1rem; color: #34495e; font-weight: 600;">{{ user.country }}</div>
+            </div>
+            
+            <div>
+                <div style="font-size: 0.85rem; color: #7f8c8d; margin-bottom: 0.25rem;">Education</div>
+                <div style="font-size: 1.1rem; color: #34495e; font-weight: 600;">{{ user.education }}</div>
+            </div>
+            
+            <div>
+                <div style="font-size: 0.85rem; color: #7f8c8d; margin-bottom: 0.25rem;">University</div>
+                <div style="font-size: 1.1rem; color: #34495e; font-weight: 600;">{{ user.university }}</div>
+            </div>
+            
+            <div>
+                <div style="font-size: 0.85rem; color: #7f8c8d; margin-bottom: 0.25rem;">Member Since</div>
+                <div style="font-size: 1.1rem; color: #34495e; font-weight: 600;">{{ user.created_at.strftime('%B %d, %Y') }}</div>
+            </div>
+            
+            <div>
+                <div style="font-size: 0.85rem; color: #7f8c8d; margin-bottom: 0.25rem;">Account Status</div>
+                <div style="font-size: 1.1rem;">
+                    {% if user.is_active %}
+                        <span class="badge badge-success">Active</span>
+                    {% else %}
+                        <span class="badge" style="background: #95a5a6; color: white;">Inactive</span>
+                    {% endif %}
+                    {% if user.is_admin %}
+                        <span class="badge badge-primary" style="margin-left: 0.5rem;">Admin</span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="card">
+        <h2 style="color: #2c3e50; margin-bottom: 1.5rem;">Quick Actions</h2>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+            <a href="{{ url_for('dashboard.index') }}" class="btn btn-outline">
+                🏠 Dashboard
+            </a>
+            <a href="{{ url_for('dashboard.my_enrollments') }}" class="btn btn-outline">
+                📋 My Enrollments
+            </a>
+            <a href="{{ url_for('main.courses') }}" class="btn btn-outline">
+                📚 Browse Courses
+            </a>
+            <a href="{{ url_for('auth.logout') }}" class="btn btn-outline">
+                🚪 Logout
+            </a>
+        </div>
+    </div>
+    
+    <div class="alert alert-info">
+        <strong>ℹ️ Need to update your information?</strong><br>
+        Please contact support at <a href="mailto:{{ config.PAYMENT_INFO.contact_email }}" style="color: #0c5460; font-weight: 600;">{{ config.PAYMENT_INFO.contact_email }}</a> to request profile changes.
+    </div>
+</div>
+{% endblock %}

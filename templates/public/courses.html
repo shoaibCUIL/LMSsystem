@@ -1,277 +1,75 @@
-{% extends "layout/base.html" %}
+{% extends "base.html" %}
 
-{% block title %}Courses - {{ app_name }}{% endblock %}
+{% block title %}All Courses - LMS Platform{% endblock %}
 
 {% block content %}
-<!-- Page Header -->
-<div class="section" style="padding: 4rem 5vw 2rem;">
-    <div class="section-head">
-        <div class="section-head-left">
-            <h2>Explore Our Courses</h2>
-            <p>Find the perfect course to advance your career and achieve your goals</p>
-        </div>
+<div class="hero" style="padding: 2rem 0;">
+    <div class="container">
+        <h1 style="font-size: 2.5rem;">Explore Our Courses</h1>
+        <p>Comprehensive linguistics courses for all skill levels</p>
     </div>
-    
-    <!-- Filters Section -->
-    <form method="GET" action="{{ url_for('courses') }}" id="filterForm" style="background: var(--surface); padding: 1.5rem; border-radius: 4px; border: 1px solid var(--border); margin-bottom: 2rem;">
-        <div style="display: grid; grid-template-columns: 2fr 1.5fr 1fr 1fr auto; gap: 1rem; align-items: center;">
-            <!-- Search -->
-            <div>
-                <input type="text" 
-                       class="form-input" 
-                       name="search" 
-                       placeholder="Search courses..." 
-                       value="{{ search if search else '' }}"
-                       style="margin: 0;">
-            </div>
-            
-            <!-- Category Filter -->
-            <select class="form-input" name="category" onchange="document.getElementById('filterForm').submit()" style="margin: 0;">
-                <option value="">All Categories</option>
-                {% for cat in categories %}
-                    <option value="{{ cat }}" {% if category == cat %}selected{% endif %}>{{ cat }}</option>
-                {% endfor %}
-            </select>
-            
-            <!-- Level Filter -->
-            <select class="form-input" name="level" onchange="document.getElementById('filterForm').submit()" style="margin: 0;">
-                <option value="">All Levels</option>
-                {% for lvl in levels %}
-                    <option value="{{ lvl }}" {% if level == lvl %}selected{% endif %}>{{ lvl }}</option>
-                {% endfor %}
-            </select>
-            
-            <!-- Sort -->
-            <select class="form-input" name="sort" onchange="document.getElementById('filterForm').submit()" style="margin: 0;">
-                <option value="newest" {% if sort == 'newest' %}selected{% endif %}>Newest</option>
-                <option value="oldest" {% if sort == 'oldest' %}selected{% endif %}>Oldest</option>
-                <option value="price_low" {% if sort == 'price_low' %}selected{% endif %}>Price: Low to High</option>
-                <option value="price_high" {% if sort == 'price_high' %}selected{% endif %}>Price: High to Low</option>
-                <option value="popular" {% if sort == 'popular' %}selected{% endif %}>Most Popular</option>
-            </select>
-            
-            <!-- Search Button -->
-            <button type="submit" class="btn-enroll" style="padding: 10px 20px; margin: 0;">
-                <i class="fas fa-search"></i>
-            </button>
-        </div>
-        
-        <!-- Active Filters -->
-        {% if category or level or search %}
-        <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border); display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap;">
-            <strong style="font-size: 0.88rem; color: var(--ink-2);"><i class="fas fa-filter"></i> Active Filters:</strong>
-            {% if category %}
-                <span style="background: var(--red-light); color: var(--red); padding: 4px 10px; border-radius: 3px; font-size: 0.8rem; font-weight: 600; display: inline-flex; align-items: center; gap: 6px;">
-                    <i class="fas fa-tag"></i> {{ category }}
-                    <a href="{{ url_for('courses', level=level, search=search, sort=sort) }}" style="color: inherit; text-decoration: none;">
-                        <i class="fas fa-times"></i>
-                    </a>
-                </span>
-            {% endif %}
-            {% if level %}
-                <span style="background: var(--teal-light); color: var(--teal); padding: 4px 10px; border-radius: 3px; font-size: 0.8rem; font-weight: 600; display: inline-flex; align-items: center; gap: 6px;">
-                    <i class="fas fa-signal"></i> {{ level }}
-                    <a href="{{ url_for('courses', category=category, search=search, sort=sort) }}" style="color: inherit; text-decoration: none;">
-                        <i class="fas fa-times"></i>
-                    </a>
-                </span>
-            {% endif %}
-            {% if search %}
-                <span style="background: #FEF3C7; color: #92400E; padding: 4px 10px; border-radius: 3px; font-size: 0.8rem; font-weight: 600; display: inline-flex; align-items: center; gap: 6px;">
-                    <i class="fas fa-search"></i> "{{ search }}"
-                    <a href="{{ url_for('courses', category=category, level=level, sort=sort) }}" style="color: inherit; text-decoration: none;">
-                        <i class="fas fa-times"></i>
-                    </a>
-                </span>
-            {% endif %}
-            <a href="{{ url_for('courses') }}" style="color: var(--ink-3); font-size: 0.85rem; text-decoration: none; padding: 4px 12px; border: 1px solid var(--border); border-radius: 3px; transition: all 0.2s;">
-                <i class="fas fa-redo"></i> Clear All
-            </a>
-        </div>
-        {% endif %}
-    </form>
-    
-    <!-- Course Count & Results -->
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
-        <p style="margin: 0; color: var(--ink-2); font-size: 0.9rem;">
-            <i class="fas fa-graduation-cap"></i> 
-            <strong>{{ pagination.total }}</strong> course{% if pagination.total != 1 %}s{% endif %} found
-        </p>
-        
-        {% if pagination.total > 0 %}
-        <p style="margin: 0; color: var(--ink-3); font-size: 0.85rem;">
-            Showing {{ ((pagination.page - 1) * pagination.per_page) + 1 }} - {{ [pagination.page * pagination.per_page, pagination.total] | min }} of {{ pagination.total }}
-        </p>
-        {% endif %}
-    </div>
-    
-    <!-- Courses Grid -->
+</div>
+
+<div class="container" style="margin-top: 2rem; margin-bottom: 3rem;">
     {% if courses %}
-        <div class="courses-grid">
-            {% for course in courses %}
-            <div class="course-card">
-                <!-- Course Thumbnail -->
-                <div class="course-thumb" style="background:linear-gradient(135deg,
-                    {% if course.category == 'Linguistics' %}#1a3a5c,#0d2240
-                    {% elif course.category == 'Programming' %}#00748c,#004f61
-                    {% elif course.category == 'AI' %}#c31a24,#7a0f16
-                    {% else %}#764ba2,#667eea{% endif %});">
-                    
-                    <span class="course-thumb-emoji">
-                        {% if course.category == 'Linguistics' %}🧠
-                        {% elif course.category == 'Programming' %}💻
-                        {% elif course.category == 'AI' %}🤖
-                        {% else %}📚{% endif %}
-                    </span>
-                    
-                    {% if course.is_free %}
-                    <span class="free-badge">Free</span>
-                    {% endif %}
-                    
-                    {% if course.featured %}
-                    <span class="course-org" style="background: var(--yellow); color: var(--ink); border: none;">
-                        <i class="fas fa-star"></i> Featured
-                    </span>
-                    {% else %}
-                    <span class="course-org">LearnHub</span>
+    <div class="courses-grid">
+        {% for course in courses %}
+        <div class="course-card">
+            {% if course.thumbnail %}
+                <img src="{{ url_for('main.uploaded_file', folder='thumbnails', filename=course.thumbnail) }}" 
+                     alt="{{ course.title }}" 
+                     class="course-thumbnail">
+            {% else %}
+                <div class="course-thumbnail"></div>
+            {% endif %}
+            
+            <div class="course-content">
+                <div style="margin-bottom: 1rem;">
+                    <span class="badge badge-primary">{{ course.level or 'All Levels' }}</span>
+                    {% if course.duration_estimate %}
+                        <span class="badge" style="background: #34495e; color: white; margin-left: 0.5rem;">
+                            {{ course.duration_estimate }}
+                        </span>
                     {% endif %}
                 </div>
                 
-                <!-- Course Body -->
-                <div class="course-body">
-                    <div class="course-subject">{{ course.category }}</div>
-                    <div class="course-title">{{ course.title }}</div>
-                    <div class="course-provider">{{ course.instructor_name }}</div>
-                    
-                    <div class="course-meta">
-                        <span><i class="fas fa-signal"></i> {{ course.level }}</span>
-                        <span><i class="fas fa-clock"></i> {{ course.duration_hours }}h</span>
-                        {% if course.enrollment_count > 0 %}
-                        <span><i class="fas fa-users"></i> {{ course.enrollment_count }}</span>
-                        {% endif %}
+                <h3 class="course-title">{{ course.title }}</h3>
+                <p class="course-description">{{ course.description }}</p>
+                
+                <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #ecf0f1;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                        <div>
+                            <div style="font-size: 0.85rem; color: #7f8c8d;">Starting from</div>
+                            <div style="font-size: 1.5rem; font-weight: 700; color: #3498db;">
+                                Rs. {{ "%.0f"|format(course.min_price_pkr) }}
+                            </div>
+                            <div style="font-size: 0.85rem; color: #7f8c8d;">{{ course.min_days }} days minimum</div>
+                        </div>
                     </div>
                     
-                    <p class="course-desc">{{ course.description[:140] }}{% if course.description|length > 140 %}...{% endif %}</p>
-                    
-                    <div class="course-footer">
-                        <span class="course-price{% if course.is_free %} free{% endif %}">
-                            {% if course.is_free %}Free{% else %}${{ "%.0f"|format(course.price) }}{% endif %}
-                        </span>
-                        <a href="{{ url_for('course_detail', course_id=course.id) }}" class="btn-enroll">
-                            View Details
-                        </a>
-                    </div>
+                    <a href="{{ url_for('courses.detail', slug=course.slug) }}" class="btn btn-primary btn-block">
+                        View Details & Enroll
+                    </a>
                 </div>
             </div>
-            {% endfor %}
         </div>
-        
-        <!-- Pagination -->
-        {% if pagination.pages > 1 %}
-        <nav aria-label="Course pagination" style="margin-top: 3rem;">
-            <ul style="display: flex; justify-content: center; align-items: center; gap: 0.5rem; list-style: none; padding: 0; margin: 0;">
-                <!-- Previous -->
-                <li>
-                    {% if pagination.has_prev %}
-                    <a href="{{ url_for('courses', page=pagination.prev_num, category=category, level=level, search=search, sort=sort) }}" 
-                       style="padding: 8px 12px; border: 1px solid var(--border); border-radius: 3px; color: var(--ink-2); text-decoration: none; display: flex; align-items: center; gap: 4px; transition: all 0.2s;">
-                        <i class="fas fa-chevron-left"></i> Previous
-                    </a>
-                    {% else %}
-                    <span style="padding: 8px 12px; border: 1px solid var(--border); border-radius: 3px; color: var(--ink-3); display: flex; align-items: center; gap: 4px; opacity: 0.5;">
-                        <i class="fas fa-chevron-left"></i> Previous
-                    </span>
-                    {% endif %}
-                </li>
-                
-                <!-- Page Numbers -->
-                {% for page_num in pagination.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
-                    {% if page_num %}
-                        <li>
-                            <a href="{{ url_for('courses', page=page_num, category=category, level=level, search=search, sort=sort) }}" 
-                               style="padding: 8px 14px; border: 1px solid var(--border); border-radius: 3px; text-decoration: none; transition: all 0.2s; 
-                               {% if page_num == pagination.page %}background: var(--red); color: white; border-color: var(--red);{% else %}color: var(--ink-2);{% endif %}">
-                                {{ page_num }}
-                            </a>
-                        </li>
-                    {% else %}
-                        <li>
-                            <span style="padding: 8px 14px; color: var(--ink-3);">...</span>
-                        </li>
-                    {% endif %}
-                {% endfor %}
-                
-                <!-- Next -->
-                <li>
-                    {% if pagination.has_next %}
-                    <a href="{{ url_for('courses', page=pagination.next_num, category=category, level=level, search=search, sort=sort) }}" 
-                       style="padding: 8px 12px; border: 1px solid var(--border); border-radius: 3px; color: var(--ink-2); text-decoration: none; display: flex; align-items: center; gap: 4px; transition: all 0.2s;">
-                        Next <i class="fas fa-chevron-right"></i>
-                    </a>
-                    {% else %}
-                    <span style="padding: 8px 12px; border: 1px solid var(--border); border-radius: 3px; color: var(--ink-3); display: flex; align-items: center; gap: 4px; opacity: 0.5;">
-                        Next <i class="fas fa-chevron-right"></i>
-                    </span>
-                    {% endif %}
-                </li>
-            </ul>
-        </nav>
-        {% endif %}
-        
+        {% endfor %}
+    </div>
     {% else %}
-        <!-- No Courses Found -->
-        <div style="text-align: center; padding: 5rem 0;">
-            <i class="fas fa-search" style="font-size: 4rem; color: var(--border); margin-bottom: 1.5rem; display: block;"></i>
-            <h3 style="color: var(--ink-2); margin-bottom: 1rem;">No courses found</h3>
-            <p style="color: var(--ink-3); margin-bottom: 2rem;">
-                {% if search or category or level %}
-                    No courses match your current filters. Try adjusting your search criteria.
-                {% else %}
-                    There are no courses available at the moment. Check back soon!
-                {% endif %}
-            </p>
-            {% if search or category or level %}
-            <a href="{{ url_for('courses') }}" class="btn-hero-primary">
-                <i class="fas fa-redo"></i> View All Courses
-            </a>
-            {% endif %}
-        </div>
+    <div class="card text-center" style="padding: 3rem;">
+        <h3 style="color: #7f8c8d; margin-bottom: 1rem;">No Courses Available</h3>
+        <p style="color: #95a5a6;">We're working on adding new courses. Please check back soon!</p>
+    </div>
     {% endif %}
 </div>
 
-<!-- Categories Quick Links -->
-<div class="subjects-section">
-    <div class="section-head" style="margin-bottom:1.5rem">
-        <div class="section-head-left">
-            <h2>Browse by Category</h2>
-        </div>
-    </div>
-    <div class="subjects-grid">
-        {% for cat in categories %}
-            <a href="{{ url_for('courses', category=cat) }}" 
-               class="subject-pill {% if category == cat %}active{% endif %}"
-               style="{% if category == cat %}border-color: var(--red); color: var(--red); background: var(--red-light);{% endif %}">
-                <i class="fas fa-tag"></i> {{ cat }}
-            </a>
-        {% endfor %}
+{% if not current_user.is_authenticated %}
+<div class="container" style="margin-bottom: 3rem;">
+    <div class="card" style="background: #ecf0f1; text-align: center; padding: 2rem;">
+        <h3 style="color: #2c3e50; margin-bottom: 1rem;">New to our platform?</h3>
+        <p style="color: #7f8c8d; margin-bottom: 1.5rem;">Create a free account to access course details and enroll</p>
+        <a href="{{ url_for('auth.register') }}" class="btn btn-success btn-lg">Create Free Account</a>
     </div>
 </div>
-
-<!-- Call to Action -->
-{% if not current_user.is_authenticated %}
-<section class="cta-banner">
-    <div>
-        <h2>Ready to Start Learning?<br>Join thousands of students achieving their goals.</h2>
-        <p>All courses are self-paced. Start immediately, learn on your schedule.</p>
-    </div>
-    <div class="cta-btns">
-        <a href="{{ url_for('register') }}" class="btn-hero-primary">
-            <i class="fas fa-user-plus"></i> Create Free Account
-        </a>
-        <a href="{{ url_for('login') }}" class="btn-hero-outline">
-            <i class="fas fa-sign-in-alt"></i> Login
-        </a>
-    </div>
-</section>
 {% endif %}
 {% endblock %}
