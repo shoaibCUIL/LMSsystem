@@ -1,121 +1,113 @@
-"""
-Configuration Module for LMS System
-Manages different environment configurations
-"""
-
 import os
 from datetime import timedelta
 
-
 class Config:
-    """Base configuration"""
-    
-    # Application
+    # Basic Flask config
     SECRET_KEY = os.environ.get('SECRET_KEY') or 'dev-secret-key-change-in-production-12345'
-    APP_NAME = 'LearnHub LMS'
     
     # Database
-    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or \
-        'sqlite:///' + os.path.join(os.path.abspath(os.path.dirname(__file__)), 'instance', 'lms.db')
-    SQLALCHEMY_TRACK_MODIFICATIONS = False
-    SQLALCHEMY_ECHO = False
+    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or 'sqlite:///lms.db'
     
-    # Session
+    # Fix for Railway PostgreSQL URL
+    if SQLALCHEMY_DATABASE_URI and SQLALCHEMY_DATABASE_URI.startswith('postgres://'):
+        SQLALCHEMY_DATABASE_URI = SQLALCHEMY_DATABASE_URI.replace('postgres://', 'postgresql://', 1)
+    
+    SQLALCHEMY_TRACK_MODIFICATIONS = False
+    SQLALCHEMY_ENGINE_OPTIONS = {
+        'pool_pre_ping': True,
+        'pool_recycle': 300,
+    }
+    
+    # File uploads
+    UPLOAD_FOLDER = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'uploads')
+    RECEIPTS_FOLDER = os.path.join(UPLOAD_FOLDER, 'receipts')
+    THUMBNAILS_FOLDER = os.path.join(UPLOAD_FOLDER, 'thumbnails')
+    
+    MAX_CONTENT_LENGTH = 16 * 1024 * 1024  # 16MB max file size
+    ALLOWED_RECEIPT_EXTENSIONS = {'png', 'jpg', 'jpeg', 'pdf'}
+    ALLOWED_IMAGE_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'webp'}
+    
+    # Session configuration
     PERMANENT_SESSION_LIFETIME = timedelta(days=7)
-    SESSION_COOKIE_SECURE = False  # Set True in production with HTTPS
+    SESSION_COOKIE_SECURE = os.environ.get('FLASK_ENV') == 'production'
     SESSION_COOKIE_HTTPONLY = True
     SESSION_COOKIE_SAMESITE = 'Lax'
     
-    # File Upload
-    MAX_CONTENT_LENGTH = 16 * 1024 * 1024  # 16MB max file size
-    UPLOAD_FOLDER = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'static', 'uploads')
-    ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'pdf', 'mp4'}
+    # Flask-Login
+    REMEMBER_COOKIE_DURATION = timedelta(days=30)
+    REMEMBER_COOKIE_SECURE = os.environ.get('FLASK_ENV') == 'production'
+    REMEMBER_COOKIE_HTTPONLY = True
     
-    # Pagination
-    COURSES_PER_PAGE = 12
-    BLOGS_PER_PAGE = 10
+    # reCAPTCHA v3 (Google)
+    RECAPTCHA_SITE_KEY = os.environ.get('RECAPTCHA_SITE_KEY') or '6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI'  # Test key
+    RECAPTCHA_SECRET_KEY = os.environ.get('RECAPTCHA_SECRET_KEY') or '6LeIxAcTAAAAAGG-vFI1TnRWxMZNFuojJ4WifJWe'  # Test key
+    RECAPTCHA_SCORE_THRESHOLD = 0.5
     
-    # Course Settings
-    DEFAULT_COURSE_DURATION = 30  # days
-    MAX_BUNDLE_COURSES = 10
-    BUNDLE_DISCOUNT_PERCENTAGE = 15  # Default bundle discount
-    
-    # Email (for future use)
+    # Email configuration (for future use)
     MAIL_SERVER = os.environ.get('MAIL_SERVER')
     MAIL_PORT = int(os.environ.get('MAIL_PORT') or 587)
     MAIL_USE_TLS = os.environ.get('MAIL_USE_TLS', 'true').lower() in ['true', 'on', '1']
     MAIL_USERNAME = os.environ.get('MAIL_USERNAME')
     MAIL_PASSWORD = os.environ.get('MAIL_PASSWORD')
-    MAIL_DEFAULT_SENDER = os.environ.get('MAIL_DEFAULT_SENDER') or 'noreply@learnhub.com'
+    MAIL_DEFAULT_SENDER = os.environ.get('MAIL_DEFAULT_SENDER') or 'noreply@lms.com'
     
-    # Security
-    WTF_CSRF_ENABLED = True
-    WTF_CSRF_TIME_LIMIT = None
+    # Payment information
+    PAYMENT_INFO = {
+        'jazzcash': {
+            'number': '+92-3414763186',
+            'account_name': 'Muhammad Shoaib Tahir'
+        },
+        'easypaisa': {
+            'number': '+92-3414763186',
+            'account_name': 'Muhammad Shoaib Tahir'
+        },
+        'bank': {
+            'bank_name': 'Meezan Bank',
+            'account_title': 'Muhammad Shoaib Tahir',
+            'account_number': '04110104042981',
+            'iban': 'PK41MEZN0004110104042981'
+        },
+        'contact_email': 'shoaibtahir411@gmail.com'
+    }
     
-    # Categories (can be moved to database later)
-    COURSE_CATEGORIES = [
-        'Programming',
-        'Data Science',
-        'Web Development',
-        'Mobile Development',
-        'Machine Learning',
-        'Cybersecurity',
-        'Cloud Computing',
-        'Business',
-        'Design',
-        'Marketing',
-        'Personal Development'
+    # Currency conversion rates (update periodically)
+    CURRENCY_RATES = {
+        'PKR': 1.0,
+        'USD': 0.0036,  # 1 PKR = 0.0036 USD (approx 277 PKR = 1 USD)
+        'EUR': 0.0033,  # 1 PKR = 0.0033 EUR
+        'GBP': 0.0028,  # 1 PKR = 0.0028 GBP
+        'AED': 0.013,   # 1 PKR = 0.013 AED
+        'SAR': 0.013,   # 1 PKR = 0.013 SAR
+    }
+    
+    # International pricing multiplier (20% higher for international)
+    INTERNATIONAL_MULTIPLIER = 1.2
+    
+    # Courses configuration
+    DEFAULT_COURSES = [
+        {
+            'title': 'General Linguistics',
+            'slug': 'general-linguistics',
+            'description': 'Comprehensive introduction to the study of language',
+            'level': 'Beginner',
+            'duration_estimate': '8 weeks'
+        },
+        {
+            'title': 'Corpus Linguistics',
+            'slug': 'corpus-linguistics',
+            'description': 'Learn to analyze language using corpus-based methods',
+            'level': 'Intermediate',
+            'duration_estimate': '10 weeks'
+        },
+        {
+            'title': 'Computational Linguistics',
+            'slug': 'computational-linguistics',
+            'description': 'Explore the intersection of linguistics and computer science',
+            'level': 'Advanced',
+            'duration_estimate': '12 weeks'
+        }
     ]
-    
-    COURSE_LEVELS = ['Beginner', 'Intermediate', 'Advanced']
-    
-    BLOG_CATEGORIES = [
-        'Technology',
-        'Education',
-        'Career',
-        'Industry News',
-        'Tutorials',
-        'Tips & Tricks'
-    ]
-
-
-class DevelopmentConfig(Config):
-    """Development environment configuration"""
-    DEBUG = True
-    TESTING = False
-    SQLALCHEMY_ECHO = True
-
-
-class ProductionConfig(Config):
-    """Production environment configuration"""
-    DEBUG = False
-    TESTING = False
-    
-    # Override with secure settings
-    SESSION_COOKIE_SECURE = True
-    
-    # Use PostgreSQL in production
-    # SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL')
-
-
-class TestingConfig(Config):
-    """Testing environment configuration"""
-    TESTING = True
-    DEBUG = True
-    SQLALCHEMY_DATABASE_URI = 'sqlite:///:memory:'
-    WTF_CSRF_ENABLED = False
-
-
-# Configuration dictionary
-config = {
-    'development': DevelopmentConfig,
-    'production': ProductionConfig,
-    'testing': TestingConfig,
-    'default': DevelopmentConfig
-}
-
 
 def get_config():
-    """Get configuration based on environment"""
-    env = os.environ.get('FLASK_ENV', 'development')
-    return config.get(env, config['default'])
+    """Factory function to get config"""
+    return Config()

@@ -1,135 +1,278 @@
-{% extends "layout/base.html" %}
+{% extends "base.html" %}
 
-{% block title %}Register - {{ app_name }}{% endblock %}
+{% block title %}Register - LMS{% endblock %}
+
+{% block extra_head %}
+<script src="https://www.google.com/recaptcha/api.js?render={{ config.RECAPTCHA_SITE_KEY }}"></script>
+<style>
+    .form-section {
+        background: white;
+        padding: 2rem;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        margin-bottom: 2rem;
+    }
+    
+    .form-section h3 {
+        color: #2c3e50;
+        margin-bottom: 1.5rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 2px solid #3498db;
+    }
+    
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+    
+    .form-group label {
+        display: block;
+        margin-bottom: 0.5rem;
+        color: #34495e;
+        font-weight: 500;
+    }
+    
+    .form-group label .required {
+        color: #e74c3c;
+    }
+    
+    .form-control {
+        width: 100%;
+        padding: 0.75rem;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        font-size: 1rem;
+        transition: border-color 0.3s;
+    }
+    
+    .form-control:focus {
+        outline: none;
+        border-color: #3498db;
+        box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+    }
+    
+    .form-control.is-invalid {
+        border-color: #e74c3c;
+    }
+    
+    .invalid-feedback {
+        color: #e74c3c;
+        font-size: 0.875rem;
+        margin-top: 0.25rem;
+        display: block;
+    }
+    
+    .btn-primary {
+        background: #3498db;
+        color: white;
+        padding: 0.75rem 2rem;
+        border: none;
+        border-radius: 4px;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background 0.3s;
+    }
+    
+    .btn-primary:hover {
+        background: #2980b9;
+    }
+    
+    .btn-primary:disabled {
+        background: #95a5a6;
+        cursor: not-allowed;
+    }
+    
+    .alert {
+        padding: 1rem;
+        border-radius: 4px;
+        margin-bottom: 1.5rem;
+    }
+    
+    .alert-danger {
+        background: #fee;
+        border: 1px solid #fcc;
+        color: #c33;
+    }
+    
+    .login-link {
+        text-align: center;
+        margin-top: 1.5rem;
+        color: #7f8c8d;
+    }
+    
+    .login-link a {
+        color: #3498db;
+        text-decoration: none;
+        font-weight: 500;
+    }
+    
+    .login-link a:hover {
+        text-decoration: underline;
+    }
+    
+    .recaptcha-badge {
+        font-size: 0.75rem;
+        color: #95a5a6;
+        margin-top: 1rem;
+    }
+</style>
+{% endblock %}
 
 {% block content %}
-<div style="min-height: 85vh; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%); padding: 3rem 0;">
-    <div class="container" style="max-width: 600px;">
-        <div class="card">
-            <div class="card-body" style="padding: 3rem;">
-                <!-- Title -->
-                <div style="text-align: center; margin-bottom: 2.5rem;">
-                    <h2 style="font-size: 2rem; font-weight: 900; color: #1a202c; margin-bottom: 0.5rem;">Create Account</h2>
-                    <p style="color: #718096;">Join thousands of learners today</p>
-                </div>
-
-                <!-- Register Form -->
-                <form method="POST" action="{{ url_for('register') }}">
-                    <!-- Name Fields -->
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem;">
-                        <div>
-                            <label class="form-label">First Name</label>
-                            <input 
-                                type="text" 
-                                class="form-control" 
-                                id="first_name" 
-                                name="first_name"
-                                placeholder="John"
-                            >
-                        </div>
-
-                        <div>
-                            <label class="form-label">Last Name</label>
-                            <input 
-                                type="text" 
-                                class="form-control" 
-                                id="last_name" 
-                                name="last_name"
-                                placeholder="Doe"
-                            >
-                        </div>
-                    </div>
-
-                    <!-- Username -->
-                    <div class="form-group">
-                        <label class="form-label">Username *</label>
-                        <input 
-                            type="text" 
-                            class="form-control" 
-                            id="username" 
-                            name="username" 
-                            placeholder="Choose a username"
-                            required 
-                            autofocus
-                        >
-                        <small style="color: #718096; font-size: 0.875rem;">At least 3 characters</small>
-                    </div>
-
-                    <!-- Email -->
-                    <div class="form-group">
-                        <label class="form-label">Email Address *</label>
-                        <input 
-                            type="email" 
-                            class="form-control" 
-                            id="email" 
-                            name="email" 
-                            placeholder="you@example.com"
-                            required
-                        >
-                    </div>
-
-                    <!-- Password -->
-                    <div class="form-group">
-                        <label class="form-label">Password *</label>
-                        <input 
-                            type="password" 
-                            class="form-control" 
-                            id="password" 
-                            name="password" 
-                            placeholder="Create a strong password"
-                            required
-                        >
-                        <small style="color: #718096; font-size: 0.875rem;">At least 6 characters</small>
-                    </div>
-
-                    <!-- Confirm Password -->
-                    <div class="form-group">
-                        <label class="form-label">Confirm Password *</label>
-                        <input 
-                            type="password" 
-                            class="form-control" 
-                            id="confirm_password" 
-                            name="confirm_password" 
-                            placeholder="Re-enter your password"
-                            required
-                        >
-                    </div>
-
-                    <!-- Terms Checkbox -->
-                    <div style="display: flex; align-items: start; margin-bottom: 2rem; gap: 0.75rem;">
-                        <input 
-                            type="checkbox" 
-                            id="terms" 
-                            required
-                            style="width: 18px; height: 18px; margin-top: 0.2rem; cursor: pointer; flex-shrink: 0;"
-                        >
-                        <label for="terms" style="margin: 0; color: #4a5568; cursor: pointer; line-height: 1.5;">
-                            I agree to the <a href="#" style="color: #667eea; font-weight: 600;">Terms of Service</a> and <a href="#" style="color: #667eea; font-weight: 600;">Privacy Policy</a>
-                        </label>
-                    </div>
-                    
-                    <!-- Submit Button -->
-                    <button type="submit" class="btn btn-primary" style="width: 100%; padding: 1rem; font-size: 1.125rem;">
-                        <i class="fas fa-user-plus"></i> Create My Account
-                    </button>
-                </form>
-
-                <!-- Login Link -->
-                <div style="text-align: center; margin-top: 2rem; padding-top: 2rem; border-top: 1px solid #e2e8f0;">
-                    <p style="color: #4a5568; margin-bottom: 1rem;">Already have an account?</p>
-                    <a href="{{ url_for('login') }}" class="btn btn-outline" style="width: 100%; padding: 1rem;">
-                        <i class="fas fa-sign-in-alt"></i> Login Here
-                    </a>
-                </div>
+<div class="container" style="max-width: 800px; margin: 3rem auto; padding: 0 1rem;">
+    <h2 style="text-align: center; color: #2c3e50; margin-bottom: 2rem;">Create Your Account</h2>
+    
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }}">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+    
+    <form method="POST" action="{{ url_for('auth.register') }}" id="registrationForm" novalidate>
+        {{ form.hidden_tag() }}
+        
+        <!-- Account Credentials Section -->
+        <div class="form-section">
+            <h3>Account Credentials</h3>
+            
+            <div class="form-group">
+                {{ form.email.label(class="form-label") }} <span class="required">*</span>
+                {{ form.email(class="form-control" + (" is-invalid" if form.email.errors else ""), placeholder="your.email@example.com") }}
+                {% if form.email.errors %}
+                    <span class="invalid-feedback">{{ form.email.errors[0] }}</span>
+                {% endif %}
+            </div>
+            
+            <div class="form-group">
+                {{ form.password.label(class="form-label") }} <span class="required">*</span>
+                {{ form.password(class="form-control" + (" is-invalid" if form.password.errors else ""), placeholder="Min. 8 characters") }}
+                {% if form.password.errors %}
+                    <span class="invalid-feedback">{{ form.password.errors[0] }}</span>
+                {% endif %}
+            </div>
+            
+            <div class="form-group">
+                {{ form.confirm_password.label(class="form-label") }} <span class="required">*</span>
+                {{ form.confirm_password(class="form-control" + (" is-invalid" if form.confirm_password.errors else "")) }}
+                {% if form.confirm_password.errors %}
+                    <span class="invalid-feedback">{{ form.confirm_password.errors[0] }}</span>
+                {% endif %}
             </div>
         </div>
-
-        <!-- Benefits -->
-        <div style="text-align: center; margin-top: 1.5rem;">
-            <p style="color: #718096;">
-                <i class="fas fa-check-circle" style="color: #48bb78;"></i> Free forever • No credit card required
-            </p>
+        
+        <!-- Personal Information Section -->
+        <div class="form-section">
+            <h3>Personal Information</h3>
+            
+            <div class="form-group">
+                {{ form.first_name.label(class="form-label") }} <span class="required">*</span>
+                {{ form.first_name(class="form-control" + (" is-invalid" if form.first_name.errors else "")) }}
+                {% if form.first_name.errors %}
+                    <span class="invalid-feedback">{{ form.first_name.errors[0] }}</span>
+                {% endif %}
+            </div>
+            
+            <div class="form-group">
+                {{ form.last_name.label(class="form-label") }} <span class="required">*</span>
+                {{ form.last_name(class="form-control" + (" is-invalid" if form.last_name.errors else "")) }}
+                {% if form.last_name.errors %}
+                    <span class="invalid-feedback">{{ form.last_name.errors[0] }}</span>
+                {% endif %}
+            </div>
+            
+            <div class="form-group">
+                {{ form.designation.label(class="form-label") }} <span class="required">*</span>
+                {{ form.designation(class="form-control" + (" is-invalid" if form.designation.errors else "")) }}
+                {% if form.designation.errors %}
+                    <span class="invalid-feedback">{{ form.designation.errors[0] }}</span>
+                {% endif %}
+            </div>
         </div>
+        
+        <!-- Location Section -->
+        <div class="form-section">
+            <h3>Location</h3>
+            
+            <div class="form-group">
+                {{ form.city.label(class="form-label") }} <span class="required">*</span>
+                {{ form.city(class="form-control" + (" is-invalid" if form.city.errors else "")) }}
+                {% if form.city.errors %}
+                    <span class="invalid-feedback">{{ form.city.errors[0] }}</span>
+                {% endif %}
+            </div>
+            
+            <div class="form-group">
+                {{ form.country.label(class="form-label") }} <span class="required">*</span>
+                {{ form.country(class="form-control" + (" is-invalid" if form.country.errors else "")) }}
+                {% if form.country.errors %}
+                    <span class="invalid-feedback">{{ form.country.errors[0] }}</span>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Educational Background Section -->
+        <div class="form-section">
+            <h3>Educational Background</h3>
+            
+            <div class="form-group">
+                {{ form.education.label(class="form-label") }} <span class="required">*</span>
+                {{ form.education(class="form-control" + (" is-invalid" if form.education.errors else "")) }}
+                {% if form.education.errors %}
+                    <span class="invalid-feedback">{{ form.education.errors[0] }}</span>
+                {% endif %}
+            </div>
+            
+            <div class="form-group">
+                {{ form.university.label(class="form-label") }} <span class="required">*</span>
+                {{ form.university(class="form-control" + (" is-invalid" if form.university.errors else ""), placeholder="Name of your university or institution") }}
+                {% if form.university.errors %}
+                    <span class="invalid-feedback">{{ form.university.errors[0] }}</span>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Hidden reCAPTCHA token field -->
+        {{ form.recaptcha_token(id="recaptchaToken") }}
+        
+        <button type="submit" class="btn-primary" id="submitBtn" style="width: 100%;">
+            Create Account
+        </button>
+        
+        <p class="recaptcha-badge">
+            This site is protected by reCAPTCHA and the Google
+            <a href="https://policies.google.com/privacy" target="_blank">Privacy Policy</a> and
+            <a href="https://policies.google.com/terms" target="_blank">Terms of Service</a> apply.
+        </p>
+    </form>
+    
+    <div class="login-link">
+        Already have an account? <a href="{{ url_for('auth.login') }}">Login here</a>
     </div>
 </div>
+
+<script>
+document.getElementById('registrationForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const submitBtn = document.getElementById('submitBtn');
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Verifying...';
+    
+    grecaptcha.ready(function() {
+        grecaptcha.execute('{{ config.RECAPTCHA_SITE_KEY }}', {action: 'register'})
+        .then(function(token) {
+            document.getElementById('recaptchaToken').value = token;
+            document.getElementById('registrationForm').submit();
+        })
+        .catch(function(error) {
+            console.error('reCAPTCHA error:', error);
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Create Account';
+            alert('reCAPTCHA verification failed. Please try again.');
+        });
+    });
+});
+</script>
 {% endblock %}

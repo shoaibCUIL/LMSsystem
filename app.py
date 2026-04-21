@@ -1,1122 +1,173 @@
-"""
-Main Application File for LMS System
-Complete Flask application with all routes and logic
-FIXED: 
- - course.lectures relationship query fixed (.filter_by + .all())
- - Blog.is_published filter uses filter_by instead of filter with ==True
- - Added missing admin course CRUD routes (create/edit/delete)
- - payment_verified_at column gracefully handled
- - bundle.get_courses() and bundle.activate_bundle() safely handled
- - blog.increment_views() safely handled
- - Added missing admin user management route
-"""
-
-from flask import Flask, render_template, request, redirect, url_for, flash, jsonify, abort
-from flask_login import LoginManager, login_user, logout_user, login_required, current_user
-from werkzeug.security import generate_password_hash, check_password_hash
-from datetime import datetime, timedelta
-from functools import wraps
 import os
-import re
-
-from models import db, User, Course, Lecture, Enrollment, Blog, Event, CustomBundle, Tag
-from config import get_config
-
-
-# Initialize Flask app
-app = Flask(__name__)
-app.config.from_object(get_config())
-
-# Ensure instance folder exists
-os.makedirs(os.path.join(app.root_path, 'instance'), exist_ok=True)
-os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
+import logging
+from flask import Flask
+from flask_login import LoginManager
+from flask_migrate import Migrate
+from config import Config
+from database import db
 
 # Initialize extensions
-db.init_app(app)
 login_manager = LoginManager()
-login_manager.init_app(app)
-login_manager.login_view = 'login'
-login_manager.login_message = 'Please log in to access this page.'
-login_manager.login_message_category = 'info'
-
-
-@login_manager.user_loader
-def load_user(user_id):
-    """Load user by ID for Flask-Login"""
-    return User.query.get(int(user_id))
-
-
-def admin_required(f):
-    """Decorator to require admin privileges"""
-    @wraps(f)
-    def decorated_function(*args, **kwargs):
-        if not current_user.is_authenticated or not current_user.is_admin:
-            flash('You need administrator privileges to access this page.', 'danger')
-            return redirect(url_for('home'))
-        return f(*args, **kwargs)
-    return decorated_function
-
-
-def create_slug(text):
-    """Create URL-friendly slug from text"""
-    text = text.lower()
-    text = re.sub(r'[^\w\s-]', '', text)
-    text = re.sub(r'[-\s]+', '-', text)
-    return text.strip('-')
-
-
-# ==================== ERROR HANDLERS ====================
-
-@app.errorhandler(404)
-def not_found_error(error):
-    return render_template('errors/404.html'), 404
-
-
-@app.errorhandler(500)
-def internal_error(error):
-    db.session.rollback()
-    return render_template('errors/500.html'), 500
-
-
-@app.errorhandler(403)
-def forbidden_error(error):
-    return render_template('errors/403.html'), 403
-
-
-# ==================== CONTEXT PROCESSORS ====================
-
-@app.context_processor
-def inject_globals():
-    """Inject global variables into all templates"""
-    return {
-        'app_name': app.config['APP_NAME'],
-        'current_year': datetime.utcnow().year,
-        'categories': app.config['COURSE_CATEGORIES']
-    }
-
-
-# ==================== PUBLIC ROUTES ====================
-
-@app.route('/')
-def home():
-    """Homepage with featured courses"""
-    featured_courses = Course.query.filter_by(
-        is_published=True,
-        featured=True
-    ).limit(6).all()
-
-    recent_courses = Course.query.filter_by(
-        is_published=True
-    ).order_by(Course.created_at.desc()).limit(8).all()
-
-    recent_blogs = Blog.query.filter_by(
-        is_published=True
-    ).order_by(Blog.published_at.desc()).limit(3).all()
-
-    stats = {
-        'total_courses': Course.query.filter_by(is_published=True).count(),
-        'total_students': User.query.filter_by(is_admin=False).count(),
-        'total_enrollments': Enrollment.query.filter_by(is_active=True).count()
-    }
-
-    return render_template('public/home.html',
-                           featured_courses=featured_courses,
-                           recent_courses=recent_courses,
-                           recent_blogs=recent_blogs,
-                           stats=stats)
-
-
-@app.route('/courses')
-def courses():
-    """Course listing page with filters"""
-    category = request.args.get('category', '')
-    level = request.args.get('level', '')
-    search = request.args.get('search', '')
-    sort = request.args.get('sort', 'newest')
-
-    query = Course.query.filter_by(is_published=True)
-
-    if category:
-        query = query.filter_by(category=category)
-
-    if level:
-        query = query.filter_by(level=level)
-
-    if search:
-        search_term = f'%{search}%'
-        query = query.filter(
-            db.or_(
-                Course.title.ilike(search_term),
-                Course.description.ilike(search_term)
-            )
-        )
-
-    if sort == 'newest':
-        query = query.order_by(Course.created_at.desc())
-    elif sort == 'oldest':
-        query = query.order_by(Course.created_at.asc())
-    elif sort == 'price_low':
-        query = query.order_by(Course.price.asc())
-    elif sort == 'price_high':
-        query = query.order_by(Course.price.desc())
-    elif sort == 'popular':
-        query = query.order_by(Course.id.desc())
-
-    page = request.args.get('page', 1, type=int)
-    per_page = app.config['COURSES_PER_PAGE']
-    pagination = query.paginate(page=page, per_page=per_page, error_out=False)
-    courses_list = pagination.items
-
-    return render_template('public/courses.html',
-                           courses=courses_list,
-                           pagination=pagination,
-                           category=category,
-                           level=level,
-                           search=search,
-                           sort=sort,
-                           levels=app.config['COURSE_LEVELS'])
-
-
-@app.route('/course/<int:course_id>')
-def course_detail(course_id):
-    """Individual course detail page"""
-    course = Course.query.get_or_404(course_id)
-
-    if not course.is_published and (not current_user.is_authenticated or not current_user.is_admin):
-        abort(404)
-
-    # FIX: Use .query.filter_by() instead of calling .order_by() directly on the relationship
-    lectures = Lecture.query.filter_by(
-        course_id=course_id
-    ).order_by(Lecture.order_index.asc()).all()
-
-    is_enrolled = False
-    enrollment = None
-
-    if current_user.is_authenticated:
-        enrollment = Enrollment.query.filter_by(
-            user_id=current_user.id,
-            course_id=course_id
-        ).first()
-
-        if enrollment and (enrollment.payment_status in ['verified', 'free']):
-            is_enrolled = True
-
-    return render_template('public/course_detail.html',
-                           course=course,
-                           lectures=lectures,
-                           is_enrolled=is_enrolled,
-                           enrollment=enrollment)
-
-
-@app.route('/blogs')
-def blogs():
-    """Blog listing page"""
-    category = request.args.get('category', '')
-    search = request.args.get('search', '')
-
-    # FIX: Use filter_by for simple boolean checks instead of filter(Model.col == True)
-    query = Blog.query.filter_by(is_published=True)
-
-    if category:
-        query = query.filter_by(category=category)
-
-    if search:
-        search_term = f'%{search}%'
-        query = query.filter(
-            db.or_(
-                Blog.title.ilike(search_term),
-                Blog.content.ilike(search_term),
-                Blog.excerpt.ilike(search_term)
-            )
-        )
-
-    query = query.order_by(Blog.published_at.desc())
-
-    page = request.args.get('page', 1, type=int)
-    per_page = app.config['BLOGS_PER_PAGE']
-    pagination = query.paginate(page=page, per_page=per_page, error_out=False)
-    blogs_list = pagination.items
-
-    return render_template('public/blogs.html',
-                           blogs=blogs_list,
-                           pagination=pagination,
-                           category=category,
-                           search=search,
-                           blog_categories=app.config['BLOG_CATEGORIES'])
-
-
-@app.route('/blog/<slug>')
-def blog_detail(slug):
-    """Individual blog detail page"""
-    blog = Blog.query.filter_by(slug=slug).first_or_404()
-
-    if not blog.is_published and (not current_user.is_authenticated or not current_user.is_admin):
-        abort(404)
-
-    # FIX: Safely call increment_views only if the method exists
-    if hasattr(blog, 'increment_views') and callable(blog.increment_views):
-        blog.increment_views()
-    else:
-        # Fallback: increment manually
-        blog.views_count = (blog.views_count or 0) + 1
-        db.session.commit()
-
-    # FIX: Use filter_by for is_published boolean check
-    related_blogs = Blog.query.filter(
-        Blog.id != blog.id,
-        Blog.category == blog.category
-    ).filter_by(is_published=True).limit(3).all()
-
-    return render_template('public/blog_detail.html',
-                           blog=blog,
-                           related_blogs=related_blogs)
-
-
-# ==================== AUTHENTICATION ROUTES ====================
-
-@app.route('/register', methods=['GET', 'POST'])
-def register():
-    """User registration"""
-    if current_user.is_authenticated:
-        return redirect(url_for('dashboard'))
-
-    if request.method == 'POST':
-        username = request.form.get('username', '').strip()
-        email = request.form.get('email', '').strip()
-        password = request.form.get('password', '')
-        confirm_password = request.form.get('confirm_password', '')
-        first_name = request.form.get('first_name', '').strip()
-        last_name = request.form.get('last_name', '').strip()
-
-        errors = []
-
-        if not username or len(username) < 3:
-            errors.append('Username must be at least 3 characters long.')
-        if not email or '@' not in email:
-            errors.append('Valid email address is required.')
-        if not password or len(password) < 6:
-            errors.append('Password must be at least 6 characters long.')
-        if password != confirm_password:
-            errors.append('Passwords do not match.')
-        if User.query.filter_by(username=username).first():
-            errors.append('Username already exists.')
-        if User.query.filter_by(email=email).first():
-            errors.append('Email already registered.')
-
-        if errors:
-            for error in errors:
-                flash(error, 'danger')
-            return render_template('auth/register.html')
-
-        try:
-            new_user = User(
-                username=username,
-                email=email,
-                first_name=first_name,
-                last_name=last_name
-            )
-            new_user.set_password(password)
-            db.session.add(new_user)
-            db.session.commit()
-
-            flash('Registration successful! Please log in.', 'success')
-            return redirect(url_for('login'))
-
-        except Exception as e:
-            db.session.rollback()
-            flash('An error occurred during registration. Please try again.', 'danger')
-            app.logger.error(f'Registration error: {str(e)}')
-
-    return render_template('auth/register.html')
-
-
-@app.route('/login', methods=['GET', 'POST'])
-def login():
-    """User login"""
-    if current_user.is_authenticated:
-        return redirect(url_for('dashboard'))
-
-    if request.method == 'POST':
-        username = request.form.get('username', '').strip()
-        password = request.form.get('password', '')
-        remember = request.form.get('remember', False)
-
-        if not username or not password:
-            flash('Please provide both username and password.', 'danger')
-            return render_template('auth/login.html')
-
-        user = User.query.filter_by(username=username).first()
-
-        if user and user.check_password(password):
-            if not user.is_active:
-                flash('Your account has been deactivated. Please contact support.', 'danger')
-                return render_template('auth/login.html')
-
-            user.last_login = datetime.utcnow()
-            db.session.commit()
-
-            login_user(user, remember=remember)
-            flash(f'Welcome back, {user.username}!', 'success')
-
-            next_page = request.args.get('next')
-            if next_page:
-                return redirect(next_page)
-            return redirect(url_for('dashboard'))
-
-        flash('Invalid username or password.', 'danger')
-
-    return render_template('auth/login.html')
-
-
-@app.route('/logout')
-@login_required
-def logout():
-    """User logout"""
-    logout_user()
-    flash('You have been logged out successfully.', 'info')
-    return redirect(url_for('home'))
-
-
-# ==================== USER DASHBOARD ====================
-
-@app.route('/dashboard')
-@login_required
-def dashboard():
-    """User dashboard showing enrolled courses"""
-    enrollments = Enrollment.query.filter_by(
-        user_id=current_user.id,
-        is_active=True
-    ).filter(
-        Enrollment.payment_status.in_(['verified', 'free'])
-    ).order_by(Enrollment.enrolled_at.desc()).all()
-
-    bundles = CustomBundle.query.filter_by(
-        user_id=current_user.id,
-        is_active=True
-    ).order_by(CustomBundle.created_at.desc()).all()
-
-    stats = {
-        'total_courses': len(enrollments),
-        'total_bundles': len(bundles),
-        'completed_courses': len([e for e in enrollments if e.completed_at]),
-        'in_progress': len([e for e in enrollments if not e.completed_at])
-    }
-
-    return render_template('dashboard/dashboard.html',
-                           enrollments=enrollments,
-                           bundles=bundles,
-                           stats=stats)
-
-
-@app.route('/payment/<int:course_id>')
-@login_required
-def payment_instructions(course_id):
-    """Payment instructions page"""
-    course = Course.query.get_or_404(course_id)
-
-    existing_enrollment = Enrollment.query.filter_by(
-        user_id=current_user.id,
-        course_id=course_id
-    ).filter(
-        Enrollment.payment_status.in_(['verified', 'free'])
-    ).first()
-
-    if existing_enrollment:
-        flash('You are already enrolled in this course.', 'info')
-        return redirect(url_for('course_detail', course_id=course_id))
-
-    return render_template('public/payment_instructions.html', course=course)
-
-
-@app.route('/enroll/<int:course_id>', methods=['POST'])
-@login_required
-def enroll_course(course_id):
-    """Enroll user in a course"""
-    course = Course.query.get_or_404(course_id)
-
-    existing_enrollment = Enrollment.query.filter_by(
-        user_id=current_user.id,
-        course_id=course_id
-    ).first()
-
-    if existing_enrollment:
-        if existing_enrollment.payment_status in ['verified', 'free']:
-            flash('You are already enrolled in this course.', 'info')
-            return redirect(url_for('course_detail', course_id=course_id))
-        elif existing_enrollment.payment_status == 'pending':
-            flash('Your enrollment is pending payment verification.', 'warning')
-            return redirect(url_for('payment_instructions', course_id=course_id))
-
-    try:
-        if course.is_free:
-            payment_status = 'free'
-            is_active = True
-            flash(f'Successfully enrolled in {course.title}!', 'success')
-            redirect_url = url_for('dashboard')
-        else:
-            payment_status = 'pending'
-            is_active = False
-            flash(f'Registration successful for {course.title}!', 'success')
-            flash('Please complete payment to activate your course access.', 'info')
-            redirect_url = url_for('payment_instructions', course_id=course_id)
-
-        enrollment = Enrollment(
-            user_id=current_user.id,
-            course_id=course_id,
-            enrolled_at=datetime.utcnow(),
-            expires_at=datetime.utcnow() + timedelta(days=course.duration_days),
-            payment_status=payment_status,
-            is_active=is_active
-        )
-        db.session.add(enrollment)
-        db.session.commit()
-
-    except Exception as e:
-        db.session.rollback()
-        flash('An error occurred during enrollment. Please try again.', 'danger')
-        app.logger.error(f'Enrollment error: {str(e)}')
-        return redirect(url_for('course_detail', course_id=course_id))
-
-    return redirect(redirect_url)
-
-
-@app.route('/unenroll/<int:enrollment_id>', methods=['POST'])
-@login_required
-def unenroll_course(enrollment_id):
-    """Unenroll from a course"""
-    enrollment = Enrollment.query.get_or_404(enrollment_id)
-
-    if enrollment.user_id != current_user.id:
-        abort(403)
-
-    enrollment.is_active = False
-    db.session.commit()
-
-    flash('You have been unenrolled from the course.', 'info')
-    return redirect(url_for('dashboard'))
-
-
-# ==================== CUSTOM BUNDLE ROUTES ====================
-
-@app.route('/bundle/creator')
-@login_required
-def bundle_creator():
-    """Custom bundle creation page"""
-    all_courses = Course.query.filter_by(is_published=True).all()
-    return render_template('dashboard/bundle_creator.html', courses=all_courses)
-
-
-@app.route('/bundle/create', methods=['POST'])
-@login_required
-def create_bundle():
-    """Create custom course bundle"""
-    bundle_name = request.form.get('bundle_name', '').strip()
-    description = request.form.get('description', '').strip()
-    duration_days = request.form.get('duration_days', type=int)
-    course_ids = request.form.getlist('course_ids')
-
-    if not bundle_name:
-        flash('Bundle name is required.', 'danger')
-        return redirect(url_for('bundle_creator'))
-
-    if not course_ids or len(course_ids) < 2:
-        flash('Please select at least 2 courses for the bundle.', 'danger')
-        return redirect(url_for('bundle_creator'))
-
-    if len(course_ids) > app.config['MAX_BUNDLE_COURSES']:
-        flash(f'Maximum {app.config["MAX_BUNDLE_COURSES"]} courses allowed per bundle.', 'danger')
-        return redirect(url_for('bundle_creator'))
-
-    if not duration_days or duration_days < 1:
-        duration_days = 30
-
-    try:
-        bundle = CustomBundle(
-            user_id=current_user.id,
-            bundle_name=bundle_name,
-            description=description,
-            course_ids=','.join(course_ids),
-            duration_days=duration_days,
-            discount_percentage=app.config['BUNDLE_DISCOUNT_PERCENTAGE']
-        )
-
-        # FIX: Safely call calculate_pricing only if method exists
-        if hasattr(bundle, 'calculate_pricing') and callable(bundle.calculate_pricing):
-            bundle.calculate_pricing()
-
-        db.session.add(bundle)
-        db.session.commit()
-
-        flash(f'Bundle "{bundle_name}" created successfully!', 'success')
-        return redirect(url_for('dashboard'))
-
-    except Exception as e:
-        db.session.rollback()
-        flash('An error occurred while creating the bundle.', 'danger')
-        app.logger.error(f'Bundle creation error: {str(e)}')
-        return redirect(url_for('bundle_creator'))
-
-
-@app.route('/bundle/<int:bundle_id>/activate', methods=['POST'])
-@login_required
-def activate_bundle(bundle_id):
-    """Activate a custom bundle"""
-    bundle = CustomBundle.query.get_or_404(bundle_id)
-
-    if bundle.user_id != current_user.id:
-        abort(403)
-
-    # FIX: Safely check is_expired property
-    if hasattr(bundle, 'is_expired') and bundle.is_expired:
-        flash('This bundle has expired.', 'warning')
-        return redirect(url_for('dashboard'))
-
-    # FIX: Safely call activate_bundle method
-    if hasattr(bundle, 'activate_bundle') and callable(bundle.activate_bundle):
-        bundle.activate_bundle()
-    else:
-        bundle.is_active = True
-        bundle.activated_at = datetime.utcnow()
-
-    # FIX: Safely call get_courses method
-    if hasattr(bundle, 'get_courses') and callable(bundle.get_courses):
-        courses_list = bundle.get_courses()
-    else:
-        # Fallback: parse course_ids manually
-        course_id_list = [int(cid) for cid in bundle.course_ids.split(',') if cid.strip().isdigit()]
-        courses_list = Course.query.filter(Course.id.in_(course_id_list)).all()
-
-    enrolled_count = 0
-
-    for course in courses_list:
-        existing = Enrollment.query.filter_by(
-            user_id=current_user.id,
-            course_id=course.id
-        ).first()
-
-        if not existing:
-            enrollment = Enrollment(
-                user_id=current_user.id,
-                course_id=course.id,
-                enrolled_at=datetime.utcnow(),
-                expires_at=bundle.expires_at,
-                payment_status='verified',
-                is_active=True
-            )
-            db.session.add(enrollment)
-            enrolled_count += 1
-        elif not existing.is_active:
-            existing.is_active = True
-            existing.enrolled_at = datetime.utcnow()
-            existing.expires_at = bundle.expires_at
-            enrolled_count += 1
-
-    db.session.commit()
-
-    flash(f'Bundle activated! Enrolled in {enrolled_count} courses.', 'success')
-    return redirect(url_for('dashboard'))
-
-
-@app.route('/bundle/<int:bundle_id>/delete', methods=['POST'])
-@login_required
-def delete_bundle(bundle_id):
-    """Delete a custom bundle"""
-    bundle = CustomBundle.query.get_or_404(bundle_id)
-
-    if bundle.user_id != current_user.id:
-        abort(403)
-
-    db.session.delete(bundle)
-    db.session.commit()
-
-    flash('Bundle deleted successfully.', 'info')
-    return redirect(url_for('dashboard'))
-
-
-# ==================== ADMIN ROUTES ====================
-
-@app.route('/admin')
-@login_required
-@admin_required
-def admin_panel():
-    """Admin dashboard"""
-    stats = {
-        'total_users': User.query.count(),
-        'total_courses': Course.query.count(),
-        'total_enrollments': Enrollment.query.filter(
-            Enrollment.payment_status.in_(['verified', 'free'])
-        ).count(),
-        'total_blogs': Blog.query.count(),
-        'total_lectures': Lecture.query.count(),
-        'active_bundles': CustomBundle.query.filter_by(is_active=True).count(),
-        'pending_payments': Enrollment.query.filter_by(
-            payment_status='pending', is_active=False
-        ).count()
-    }
-
-    recent_users = User.query.order_by(User.created_at.desc()).limit(5).all()
-    recent_enrollments = Enrollment.query.order_by(
-        Enrollment.enrolled_at.desc()
-    ).limit(10).all()
-
-    return render_template('admin/admin.html',
-                           stats=stats,
-                           recent_users=recent_users,
-                           recent_enrollments=recent_enrollments)
-
-
-@app.route('/admin/users')
-@login_required
-@admin_required
-def admin_users():
-    """Admin user management"""
-    # FIX: Added missing admin users route
-    users = User.query.order_by(User.created_at.desc()).all()
-    return render_template('admin/admin_users.html', users=users)
-
-
-@app.route('/admin/user/<int:user_id>/toggle', methods=['POST'])
-@login_required
-@admin_required
-def admin_toggle_user(user_id):
-    """Toggle user active status"""
-    user = User.query.get_or_404(user_id)
-
-    if user.is_admin:
-        flash('Cannot deactivate admin accounts.', 'danger')
-        return redirect(url_for('admin_users'))
-
-    user.is_active = not user.is_active
-    db.session.commit()
-
-    status = 'activated' if user.is_active else 'deactivated'
-    flash(f'User {user.username} has been {status}.', 'success')
-    return redirect(url_for('admin_users'))
-
-
-@app.route('/admin/enrollments/pending')
-@login_required
-@admin_required
-def admin_pending_enrollments():
-    """View pending payment enrollments"""
-    pending_enrollments = Enrollment.query.filter_by(
-        payment_status='pending',
-        is_active=False
-    ).order_by(Enrollment.enrolled_at.desc()).all()
-
-    return render_template('admin/admin_pending_payments.html',
-                           enrollments=pending_enrollments)
-
-
-@app.route('/admin/enrollment/<int:enrollment_id>/verify', methods=['POST'])
-@login_required
-@admin_required
-def admin_verify_payment(enrollment_id):
-    """Verify and activate enrollment"""
-    enrollment = Enrollment.query.get_or_404(enrollment_id)
-
-    enrollment.payment_status = 'verified'
-    enrollment.is_active = True
-
-    # FIX: Only set payment_verified_at if the column exists in the model
-    if hasattr(enrollment, 'payment_verified_at'):
-        enrollment.payment_verified_at = datetime.utcnow()
-
-    try:
-        db.session.commit()
-        flash(
-            f'Payment verified for {enrollment.user.username} - {enrollment.course.title}!',
-            'success'
-        )
-    except Exception as e:
-        db.session.rollback()
-        flash('An error occurred while verifying payment.', 'danger')
-        app.logger.error(f'Payment verification error: {str(e)}')
-
-    return redirect(url_for('admin_pending_enrollments'))
-
-
-@app.route('/admin/enrollment/<int:enrollment_id>/reject', methods=['POST'])
-@login_required
-@admin_required
-def admin_reject_payment(enrollment_id):
-    """Reject payment and delete enrollment"""
-    enrollment = Enrollment.query.get_or_404(enrollment_id)
-
-    user_name = enrollment.user.username
-    course_name = enrollment.course.title
-
-    try:
-        db.session.delete(enrollment)
-        db.session.commit()
-        flash(f'Payment rejected for {user_name} - {course_name}', 'warning')
-    except Exception as e:
-        db.session.rollback()
-        flash('An error occurred while rejecting enrollment.', 'danger')
-        app.logger.error(f'Payment rejection error: {str(e)}')
-
-    return redirect(url_for('admin_pending_enrollments'))
-
-
-# ==================== ADMIN COURSE MANAGEMENT ====================
-# FIX: These routes were completely missing from original app.py
-
-@app.route('/admin/courses')
-@login_required
-@admin_required
-def admin_courses():
-    """Admin course listing"""
-    courses_list = Course.query.order_by(Course.created_at.desc()).all()
-    return render_template('admin/admin_courses.html', courses=courses_list)
-
-
-@app.route('/admin/course/create', methods=['GET', 'POST'])
-@login_required
-@admin_required
-def admin_create_course():
-    """Create a new course"""
-    if request.method == 'POST':
-        title = request.form.get('title', '').strip()
-        description = request.form.get('description', '').strip()
-        category = request.form.get('category', '').strip()
-        level = request.form.get('level', '').strip()
-        price = request.form.get('price', 0, type=float)
-        duration_days = request.form.get('duration_days', 30, type=int)
-        thumbnail_url = request.form.get('thumbnail_url', '').strip()
-        is_published = request.form.get('is_published') == 'on'
-        featured = request.form.get('featured') == 'on'
-        is_free = request.form.get('is_free') == 'on'
-
-        if not title or not description:
-            flash('Title and description are required.', 'danger')
-            return render_template('admin/admin_create_course.html')
-
-        try:
-            course = Course(
-                title=title,
-                description=description,
-                category=category,
-                level=level,
-                price=0.0 if is_free else price,
-                duration_days=duration_days or 30,
-                thumbnail_url=thumbnail_url,
-                is_published=is_published,
-                featured=featured,
-                is_free=is_free,
-                created_at=datetime.utcnow()
-            )
-            db.session.add(course)
-            db.session.commit()
-
-            flash(f'Course "{title}" created successfully!', 'success')
-            return redirect(url_for('admin_courses'))
-
-        except Exception as e:
-            db.session.rollback()
-            flash('An error occurred while creating the course.', 'danger')
-            app.logger.error(f'Create course error: {str(e)}')
-
-    return render_template('admin/admin_create_course.html')
-
-
-@app.route('/admin/course/<int:course_id>/edit', methods=['GET', 'POST'])
-@login_required
-@admin_required
-def admin_edit_course(course_id):
-    """Edit an existing course"""
-    course = Course.query.get_or_404(course_id)
-
-    if request.method == 'POST':
-        course.title = request.form.get('title', '').strip()
-        course.description = request.form.get('description', '').strip()
-        course.category = request.form.get('category', '').strip()
-        course.level = request.form.get('level', '').strip()
-        course.duration_days = request.form.get('duration_days', 30, type=int)
-        course.thumbnail_url = request.form.get('thumbnail_url', '').strip()
-        course.is_published = request.form.get('is_published') == 'on'
-        course.featured = request.form.get('featured') == 'on'
-        course.is_free = request.form.get('is_free') == 'on'
-        course.price = 0.0 if course.is_free else request.form.get('price', 0, type=float)
-
-        if not course.title or not course.description:
-            flash('Title and description are required.', 'danger')
-            return render_template('admin/admin_edit_course.html', course=course)
-
-        try:
-            db.session.commit()
-            flash(f'Course "{course.title}" updated successfully!', 'success')
-            return redirect(url_for('admin_courses'))
-
-        except Exception as e:
-            db.session.rollback()
-            flash('An error occurred while updating the course.', 'danger')
-            app.logger.error(f'Edit course error: {str(e)}')
-
-    return render_template('admin/admin_edit_course.html', course=course)
-
-
-@app.route('/admin/course/<int:course_id>/delete', methods=['POST'])
-@login_required
-@admin_required
-def admin_delete_course(course_id):
-    """Delete a course"""
-    course = Course.query.get_or_404(course_id)
-
-    try:
-        # Delete associated lectures and enrollments first
-        Lecture.query.filter_by(course_id=course_id).delete()
-        Enrollment.query.filter_by(course_id=course_id).delete()
-        db.session.delete(course)
-        db.session.commit()
-
-        flash(f'Course deleted successfully.', 'success')
-    except Exception as e:
-        db.session.rollback()
-        flash('An error occurred while deleting the course.', 'danger')
-        app.logger.error(f'Delete course error: {str(e)}')
-
-    return redirect(url_for('admin_courses'))
-
-
-@app.route('/admin/course/<int:course_id>/lecture/add', methods=['GET', 'POST'])
-@login_required
-@admin_required
-def admin_add_lecture(course_id):
-    """Add a lecture to a course"""
-    course = Course.query.get_or_404(course_id)
-
-    if request.method == 'POST':
-        title = request.form.get('title', '').strip()
-        content = request.form.get('content', '').strip()
-        video_url = request.form.get('video_url', '').strip()
-        duration_minutes = request.form.get('duration_minutes', 0, type=int)
-        order_index = request.form.get('order_index', 0, type=int)
-        is_free_preview = request.form.get('is_free_preview') == 'on'
-
-        if not title:
-            flash('Lecture title is required.', 'danger')
-            return render_template('admin/admin_add_lecture.html', course=course)
-
-        # Auto-assign order if not given
-        if not order_index:
-            last = Lecture.query.filter_by(course_id=course_id).order_by(
-                Lecture.order_index.desc()
-            ).first()
-            order_index = (last.order_index + 1) if last else 1
-
-        try:
-            lecture = Lecture(
-                course_id=course_id,
-                title=title,
-                content=content,
-                video_url=video_url,
-                duration_minutes=duration_minutes,
-                order_index=order_index,
-                is_free_preview=is_free_preview
-            )
-            db.session.add(lecture)
-            db.session.commit()
-
-            flash(f'Lecture "{title}" added successfully!', 'success')
-            return redirect(url_for('admin_edit_course', course_id=course_id))
-
-        except Exception as e:
-            db.session.rollback()
-            flash('An error occurred while adding the lecture.', 'danger')
-            app.logger.error(f'Add lecture error: {str(e)}')
-
-    return render_template('admin/admin_add_lecture.html', course=course)
-
-
-@app.route('/admin/lecture/<int:lecture_id>/delete', methods=['POST'])
-@login_required
-@admin_required
-def admin_delete_lecture(lecture_id):
-    """Delete a lecture"""
-    lecture = Lecture.query.get_or_404(lecture_id)
-    course_id = lecture.course_id
-
-    try:
-        db.session.delete(lecture)
-        db.session.commit()
-        flash('Lecture deleted successfully.', 'success')
-    except Exception as e:
-        db.session.rollback()
-        flash('An error occurred while deleting the lecture.', 'danger')
-        app.logger.error(f'Delete lecture error: {str(e)}')
-
-    return redirect(url_for('admin_edit_course', course_id=course_id))
-
-
-# ==================== ADMIN BLOG MANAGEMENT ====================
-
-@app.route('/admin/blogs')
-@login_required
-@admin_required
-def admin_blogs():
-    """Admin blog management page"""
-    filter_type = request.args.get('filter', 'all')
-
-    query = Blog.query
-
-    if filter_type == 'published':
-        query = query.filter_by(is_published=True)
-    elif filter_type == 'drafts':
-        query = query.filter_by(is_published=False)
-
-    blogs = query.order_by(Blog.created_at.desc()).all()
-
-    stats = {
-        'total': Blog.query.count(),
-        'published': Blog.query.filter_by(is_published=True).count(),
-        'drafts': Blog.query.filter_by(is_published=False).count(),
-        'total_views': db.session.query(db.func.sum(Blog.views_count)).scalar() or 0
-    }
-
-    return render_template('admin/admin_blogs.html', blogs=blogs, stats=stats)
-
-
-@app.route('/admin/blog/create', methods=['GET', 'POST'])
-@login_required
-@admin_required
-def admin_create_blog():
-    """Create new blog post"""
-    if request.method == 'POST':
-        title = request.form.get('title', '').strip()
-        slug = request.form.get('slug', '').strip()
-        content = request.form.get('content', '').strip()
-        excerpt = request.form.get('excerpt', '').strip()
-        category = request.form.get('category', '').strip()
-        tags = request.form.get('tags', '').strip()
-        featured_image_url = request.form.get('featured_image_url', '').strip()
-        is_published = request.form.get('is_published') == 'on'
-        save_draft = request.form.get('save_draft')
-
-        if not title or not content:
-            flash('Title and content are required.', 'danger')
-            return render_template('admin/admin_create_blog.html')
-
-        if not slug:
-            slug = create_slug(title)
-
-        # Ensure slug uniqueness
-        base_slug = slug
-        counter = 1
-        while Blog.query.filter_by(slug=slug).first():
-            slug = f'{base_slug}-{counter}'
-            counter += 1
-
-        try:
-            blog = Blog(
-                title=title,
-                slug=slug,
-                content=content,
-                excerpt=excerpt or content[:200],
-                category=category,
-                tags=tags,
-                featured_image_url=featured_image_url,
-                author=current_user.full_name,
-                is_published=is_published if not save_draft else False,
-                published_at=datetime.utcnow() if (is_published and not save_draft) else None
-            )
-
-            db.session.add(blog)
-            db.session.commit()
-
-            if save_draft:
-                flash(f'Blog post "{title}" saved as draft.', 'success')
-            else:
-                flash(f'Blog post "{title}" published successfully!', 'success')
-
-            return redirect(url_for('admin_blogs'))
-
-        except Exception as e:
-            db.session.rollback()
-            flash('An error occurred while saving the blog post.', 'danger')
-            app.logger.error(f'Create blog error: {str(e)}')
-
-    return render_template('admin/admin_create_blog.html')
-
-
-@app.route('/admin/blog/<int:blog_id>/delete', methods=['POST'])
-@login_required
-@admin_required
-def admin_delete_blog(blog_id):
-    """Delete a blog post"""
-    blog = Blog.query.get_or_404(blog_id)
-
-    try:
-        db.session.delete(blog)
-        db.session.commit()
-        flash('Blog post deleted successfully.', 'success')
-    except Exception as e:
-        db.session.rollback()
-        flash('An error occurred while deleting the blog post.', 'danger')
-        app.logger.error(f'Delete blog error: {str(e)}')
-
-    return redirect(url_for('admin_blogs'))
-
-
-# ==================== API ENDPOINTS ====================
-
-@app.route('/api/courses')
-def api_courses():
-    """API endpoint for courses"""
-    courses = Course.query.filter_by(is_published=True).all()
-    return jsonify([{
-        'id': c.id,
-        'title': c.title,
-        'description': c.description,
-        'category': c.category,
-        'price': c.price,
-        'level': c.level
-    } for c in courses])
-
-
-@app.route('/api/course/<int:course_id>')
-def api_course_detail(course_id):
-    """API endpoint for course detail"""
-    course = Course.query.get_or_404(course_id)
-
-    # FIX: Use Lecture.query.filter_by instead of relationship chaining
-    lectures = Lecture.query.filter_by(
-        course_id=course_id
-    ).order_by(Lecture.order_index.asc()).all()
-
-    return jsonify({
-        'id': course.id,
-        'title': course.title,
-        'description': course.description,
-        'category': course.category,
-        'price': course.price,
-        'level': course.level,
-        'lectures': [{
-            'id': l.id,
-            'title': l.title,
-            'duration': l.duration_minutes
-        } for l in lectures]
-    })
-
-
-# ==================== APPLICATION ENTRY POINT ====================
-
-if __name__ == '__main__':
-    with app.app_context():
+migrate = Migrate()
+
+
+def create_app(config_class=Config):
+    """Application factory"""
+    app = Flask(__name__)
+    app.config.from_object(config_class)
+    
+    # Initialize extensions with app
+    db.init_app(app)
+    login_manager.init_app(app)
+    migrate.init_app(app, db)
+    
+    # Configure login manager
+    login_manager.login_view = 'auth.login'
+    login_manager.login_message = 'Please login to access this page.'
+    login_manager.login_message_category = 'info'
+    
+    # Setup logging
+    if not app.debug:
+        if not os.path.exists('logs'):
+            os.mkdir('logs')
+        
+        file_handler = logging.FileHandler('logs/lms.log')
+        file_handler.setFormatter(logging.Formatter(
+            '%(asctime)s %(levelname)s: %(message)s [in %(pathname)s:%(lineno)d]'
+        ))
+        file_handler.setLevel(logging.INFO)
+        app.logger.addHandler(file_handler)
+        app.logger.setLevel(logging.INFO)
+        app.logger.info('LMS startup')
+    
+    # Ensure upload directories exist
+    os.makedirs(app.config['RECEIPTS_FOLDER'], exist_ok=True)
+    os.makedirs(app.config['THUMBNAILS_FOLDER'], exist_ok=True)
+    
+    # Register blueprints
+    from routes import auth_bp, course_bp, dashboard_bp, main_bp
+    from admin_routes import admin_bp
+    
+    app.register_blueprint(main_bp)
+    app.register_blueprint(auth_bp)
+    app.register_blueprint(course_bp)
+    app.register_blueprint(dashboard_bp)
+    app.register_blueprint(admin_bp)
+    
+    # User loader for Flask-Login
+    @login_manager.user_loader
+    def load_user(user_id):
+        from models import User
+        return User.query.get(int(user_id))
+    
+    # Context processors
+    @app.context_processor
+    def inject_config():
+        """Make config available in templates"""
+        return {'config': app.config}
+    
+    # Shell context for flask shell
+    @app.shell_context_processor
+    def make_shell_context():
+        from models import User, Course, Enrollment, Lecture, Blog, Event, CustomBundle, Tag
+        return {
+            'db': db,
+            'User': User,
+            'Course': Course,
+            'Enrollment': Enrollment,
+            'Lecture': Lecture,
+            'Blog': Blog,
+            'Event': Event,
+            'CustomBundle': CustomBundle,
+            'Tag': Tag
+        }
+    
+    # CLI commands
+    @app.cli.command()
+    def init_db():
+        """Initialize the database with default data"""
+        from models import User, Course
+        from utils import slugify
+        
         db.create_all()
-
-        # Create admin if not exists
-        if not User.query.filter_by(username='admin').first():
+        
+        # Create default admin user if not exists
+        admin = User.query.filter_by(email='admin@lms.com').first()
+        if not admin:
             admin = User(
-                username='admin',
-                email='admin@learnhub.com',
+                email='admin@lms.com',
                 first_name='Admin',
                 last_name='User',
+                designation='Administrator',
+                city='Karachi',
+                country='Pakistan',
+                education='Master',
+                university='LMS University',
                 is_admin=True
             )
             admin.set_password('admin123')
             db.session.add(admin)
-            db.session.commit()
-            print('Admin user created: username=admin, password=admin123')
+            print('✓ Admin user created: admin@lms.com / admin123')
+        
+        # Create default courses if not exist
+        for course_data in app.config['DEFAULT_COURSES']:
+            existing = Course.query.filter_by(slug=course_data['slug']).first()
+            if not existing:
+                course = Course(
+                    title=course_data['title'],
+                    slug=course_data['slug'],
+                    description=course_data['description'],
+                    level=course_data['level'],
+                    duration_estimate=course_data['duration_estimate'],
+                    price_per_day=75.0,
+                    min_days=2,
+                    min_price_pkr=1500.0,
+                    is_active=True
+                )
+                db.session.add(course)
+                print(f'✓ Course created: {course.title}')
+        
+        db.session.commit()
+        print('\n✓ Database initialized successfully!')
+    
+    @app.cli.command()
+    def create_admin():
+        """Create a new admin user"""
+        import click
+        from models import User
+        
+        email = click.prompt('Email')
+        password = click.prompt('Password', hide_input=True, confirmation_prompt=True)
+        first_name = click.prompt('First Name')
+        last_name = click.prompt('Last Name')
+        
+        existing = User.query.filter_by(email=email).first()
+        if existing:
+            print(f'User with email {email} already exists!')
+            return
+        
+        user = User(
+            email=email,
+            first_name=first_name,
+            last_name=last_name,
+            designation='Administrator',
+            city='Admin City',
+            country='Pakistan',
+            education='Master',
+            university='Admin University',
+            is_admin=True
+        )
+        user.set_password(password)
+        
+        db.session.add(user)
+        db.session.commit()
+        
+        print(f'✓ Admin user created: {email}')
+    
+    return app
 
+
+# For development
+if __name__ == '__main__':
+    app = create_app()
     app.run(debug=True, host='0.0.0.0', port=5000)

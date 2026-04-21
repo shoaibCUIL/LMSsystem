@@ -22,9 +22,23 @@ wheels/
 
 # Virtual Environment
 venv/
-ENV/
 env/
+ENV/
 .venv
+
+# Flask
+instance/
+.webassets-cache
+*.db
+*.sqlite
+
+# Logs
+logs/
+*.log
+
+# Environment variables
+.env
+.env.local
 
 # IDE
 .vscode/
@@ -32,35 +46,23 @@ env/
 *.swp
 *.swo
 *~
+
+# OS
 .DS_Store
+Thumbs.db
 
-# Environment Variables
-.env
-.env.local
+# Uploads (Keep structure, ignore files)
+uploads/*
+!uploads/.gitkeep
+uploads/receipts/*
+!uploads/receipts/.gitkeep
+uploads/thumbnails/*
+!uploads/thumbnails/.gitkeep
 
-# Database
-*.db
-*.sqlite
-*.sqlite3
-instance/
-
-# Logs
-*.log
-logs/
-
-# Static Files (generated)
-static/uploads/*
-!static/uploads/.gitkeep
-
-# Flask
-instance/
-.webassets-cache
+# Migrations (optional - uncomment if you want to track migrations)
+# migrations/
 
 # Testing
 .pytest_cache/
 .coverage
 htmlcov/
-
-# OS
-Thumbs.db
-.DS_Store

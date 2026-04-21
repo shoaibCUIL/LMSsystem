@@ -1,0 +1,422 @@
+{% extends "base.html" %}
+
+{% block title %}Enroll in {{ course.title }} - LMS{% endblock %}
+
+{% block extra_head %}
+<style>
+    .enrollment-container {
+        max-width: 900px;
+        margin: 2rem auto;
+        padding: 0 1rem;
+    }
+    
+    .course-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 2rem;
+        border-radius: 8px;
+        margin-bottom: 2rem;
+    }
+    
+    .enrollment-card {
+        background: white;
+        padding: 2rem;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        margin-bottom: 2rem;
+    }
+    
+    .price-calculator {
+        background: #f8f9fa;
+        padding: 1.5rem;
+        border-radius: 8px;
+        margin-bottom: 2rem;
+    }
+    
+    .calculated-price {
+        background: #fff;
+        padding: 1.5rem;
+        border: 2px solid #3498db;
+        border-radius: 8px;
+        text-align: center;
+        margin-top: 1rem;
+    }
+    
+    .calculated-price .amount {
+        font-size: 2.5rem;
+        font-weight: bold;
+        color: #3498db;
+    }
+    
+    .calculated-price .duration {
+        color: #7f8c8d;
+        margin-top: 0.5rem;
+    }
+    
+    .payment-instructions {
+        background: #fff3cd;
+        border: 1px solid #ffc107;
+        padding: 1.5rem;
+        border-radius: 8px;
+        margin-bottom: 2rem;
+    }
+    
+    .payment-method-details {
+        background: #fff;
+        padding: 1.5rem;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        margin-top: 1rem;
+        display: none;
+    }
+    
+    .payment-method-details.active {
+        display: block;
+    }
+    
+    .payment-info {
+        font-family: 'Courier New', monospace;
+        background: #f8f9fa;
+        padding: 1rem;
+        border-radius: 4px;
+        margin: 0.5rem 0;
+    }
+    
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+    
+    .form-group label {
+        display: block;
+        margin-bottom: 0.5rem;
+        color: #34495e;
+        font-weight: 500;
+    }
+    
+    .form-control {
+        width: 100%;
+        padding: 0.75rem;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        font-size: 1rem;
+    }
+    
+    .form-control:focus {
+        outline: none;
+        border-color: #3498db;
+        box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+    }
+    
+    .btn-primary {
+        background: #3498db;
+        color: white;
+        padding: 0.75rem 2rem;
+        border: none;
+        border-radius: 4px;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        width: 100%;
+        margin-top: 1rem;
+    }
+    
+    .btn-primary:hover {
+        background: #2980b9;
+    }
+    
+    .alert {
+        padding: 1rem;
+        border-radius: 4px;
+        margin-bottom: 1.5rem;
+    }
+    
+    .alert-info {
+        background: #d1ecf1;
+        border: 1px solid #bee5eb;
+        color: #0c5460;
+    }
+    
+    .alert-warning {
+        background: #fff3cd;
+        border: 1px solid #ffc107;
+        color: #856404;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="enrollment-container">
+    <div class="course-header">
+        <h1>{{ course.title }}</h1>
+        <p style="margin-top: 1rem; opacity: 0.9;">{{ course.description }}</p>
+    </div>
+    
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }}">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+    
+    <div class="alert alert-info">
+        <strong>📋 Enrollment Process:</strong>
+        <ol style="margin: 0.5rem 0 0 1.5rem;">
+            <li>Choose your enrollment duration or enter a custom price</li>
+            <li>Select payment method and view payment details</li>
+            <li>Make payment and upload receipt</li>
+            <li>Wait for admin approval (usually within 24 hours)</li>
+        </ol>
+    </div>
+    
+    <form method="POST" enctype="multipart/form-data" id="enrollmentForm">
+        {{ form.hidden_tag() }}
+        
+        <!-- Pricing Calculator -->
+        <div class="enrollment-card">
+            <h3 style="margin-bottom: 1.5rem;">Step 1: Choose Duration or Price</h3>
+            
+            <div class="price-calculator">
+                <div class="form-group">
+                    {{ form.enrollment_type.label }}
+                    {{ form.enrollment_type(class="form-control", id="enrollmentType") }}
+                </div>
+                
+                <div class="form-group" id="durationGroup" style="display: none;">
+                    {{ form.duration_value.label }}
+                    {{ form.duration_value(class="form-control", id="durationValue", min="1") }}
+                    <small style="color: #7f8c8d; display: block; margin-top: 0.25rem;">
+                        Minimum: {{ course.min_days }} days (Rs. {{ "%.0f"|format(course.min_price_pkr) }})
+                    </small>
+                </div>
+                
+                <div class="form-group" id="customPriceGroup" style="display: none;">
+                    {{ form.custom_price.label }}
+                    {{ form.custom_price(class="form-control", id="customPrice", min="1500", step="100") }}
+                    <small style="color: #7f8c8d; display: block; margin-top: 0.25rem;">
+                        Minimum: Rs. {{ "%.0f"|format(course.min_price_pkr) }}
+                    </small>
+                </div>
+                
+                <div class="calculated-price" id="priceDisplay" style="display: none;">
+                    <div class="amount" id="displayAmount">Rs. 0</div>
+                    <div class="duration" id="displayDuration">0 days access</div>
+                    {% if user.country != 'Pakistan' %}
+                        <div style="margin-top: 1rem; font-size: 0.9rem; color: #7f8c8d;">
+                            International rate applied
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Payment Method Selection -->
+        <div class="enrollment-card">
+            <h3 style="margin-bottom: 1.5rem;">Step 2: Select Payment Method</h3>
+            
+            <div class="form-group">
+                {{ form.payment_method.label }}
+                {{ form.payment_method(class="form-control", id="paymentMethod") }}
+            </div>
+            
+            <!-- JazzCash Details -->
+            <div class="payment-method-details" id="jazzcashDetails">
+                <h4 style="color: #e74c3c;">💳 JazzCash Payment Details</h4>
+                <div class="payment-info">
+                    <strong>Account Number:</strong> {{ config.PAYMENT_INFO.jazzcash.number }}<br>
+                    <strong>Account Name:</strong> {{ config.PAYMENT_INFO.jazzcash.account_name }}
+                </div>
+                <p style="margin-top: 1rem; color: #7f8c8d;">
+                    Send the calculated amount above to this JazzCash account and upload the payment screenshot.
+                </p>
+            </div>
+            
+            <!-- Easypaisa Details -->
+            <div class="payment-method-details" id="easypaisaDetails">
+                <h4 style="color: #27ae60;">💳 Easypaisa Payment Details</h4>
+                <div class="payment-info">
+                    <strong>Account Number:</strong> {{ config.PAYMENT_INFO.easypaisa.number }}<br>
+                    <strong>Account Name:</strong> {{ config.PAYMENT_INFO.easypaisa.account_name }}
+                </div>
+                <p style="margin-top: 1rem; color: #7f8c8d;">
+                    Send the calculated amount above to this Easypaisa account and upload the payment screenshot.
+                </p>
+            </div>
+            
+            <!-- Bank Details -->
+            <div class="payment-method-details" id="bankDetails">
+                <h4 style="color: #3498db;">🏦 Bank Transfer Details</h4>
+                <div class="payment-info">
+                    <strong>Bank Name:</strong> {{ config.PAYMENT_INFO.bank.bank_name }}<br>
+                    <strong>Account Title:</strong> {{ config.PAYMENT_INFO.bank.account_title }}<br>
+                    <strong>Account Number:</strong> {{ config.PAYMENT_INFO.bank.account_number }}<br>
+                    <strong>IBAN:</strong> {{ config.PAYMENT_INFO.bank.iban }}
+                </div>
+                <p style="margin-top: 1rem; color: #7f8c8d;">
+                    Transfer the calculated amount above to this bank account and upload the bank receipt or screenshot.
+                </p>
+            </div>
+        </div>
+        
+        <!-- Payment Receipt Upload -->
+        <div class="enrollment-card">
+            <h3 style="margin-bottom: 1.5rem;">Step 3: Upload Payment Receipt</h3>
+            
+            <div class="payment-instructions">
+                <strong>⚠️ Important Instructions:</strong>
+                <ul style="margin: 0.5rem 0 0 1.5rem;">
+                    <li>Make sure the payment receipt clearly shows the transaction details</li>
+                    <li>Accepted formats: JPG, PNG, PDF (max 16MB)</li>
+                    <li>Your enrollment will be activated after admin verification</li>
+                </ul>
+            </div>
+            
+            <div class="form-group">
+                {{ form.payment_receipt.label }}
+                {{ form.payment_receipt(class="form-control") }}
+                {% if form.payment_receipt.errors %}
+                    <span style="color: #e74c3c; display: block; margin-top: 0.5rem;">
+                        {{ form.payment_receipt.errors[0] }}
+                    </span>
+                {% endif %}
+            </div>
+            
+            <div class="form-group">
+                {{ form.notes.label }}
+                {{ form.notes(class="form-control", rows="3", placeholder="Any additional information for the admin (optional)") }}
+            </div>
+        </div>
+        
+        <div class="enrollment-card">
+            <div class="alert alert-warning">
+                <strong>Need Help?</strong><br>
+                If you face any issues with payment, please contact us at:
+                <strong>{{ config.PAYMENT_INFO.contact_email }}</strong>
+            </div>
+            
+            <button type="submit" class="btn-primary" id="submitBtn" disabled>
+                Submit Enrollment Request
+            </button>
+        </div>
+    </form>
+</div>
+
+<script>
+const course = {
+    pricePerDay: {{ course.price_per_day }},
+    minDays: {{ course.min_days }},
+    minPrice: {{ course.min_price_pkr }},
+    isInternational: {{ 'true' if user.country != 'Pakistan' else 'false' }},
+    internationalMultiplier: {{ config.INTERNATIONAL_MULTIPLIER }}
+};
+
+const enrollmentType = document.getElementById('enrollmentType');
+const durationGroup = document.getElementById('durationGroup');
+const customPriceGroup = document.getElementById('customPriceGroup');
+const durationValue = document.getElementById('durationValue');
+const customPrice = document.getElementById('customPrice');
+const priceDisplay = document.getElementById('priceDisplay');
+const displayAmount = document.getElementById('displayAmount');
+const displayDuration = document.getElementById('displayDuration');
+const paymentMethod = document.getElementById('paymentMethod');
+const submitBtn = document.getElementById('submitBtn');
+
+// Show/hide duration or price input
+enrollmentType.addEventListener('change', function() {
+    const type = this.value;
+    
+    durationGroup.style.display = 'none';
+    customPriceGroup.style.display = 'none';
+    priceDisplay.style.display = 'none';
+    durationValue.value = '';
+    customPrice.value = '';
+    
+    if (type === 'days' || type === 'weeks' || type === 'months') {
+        durationGroup.style.display = 'block';
+        durationValue.required = true;
+        customPrice.required = false;
+    } else if (type === 'custom_price') {
+        customPriceGroup.style.display = 'block';
+        customPrice.required = true;
+        durationValue.required = false;
+    }
+    
+    validateForm();
+});
+
+// Calculate price from duration
+durationValue.addEventListener('input', function() {
+    const type = enrollmentType.value;
+    const value = parseInt(this.value) || 0;
+    
+    if (value > 0) {
+        let days = value;
+        if (type === 'weeks') days = value * 7;
+        else if (type === 'months') days = value * 30;
+        
+        days = Math.max(days, course.minDays);
+        let price = days * course.pricePerDay;
+        
+        if (course.isInternational) {
+            price *= course.internationalMultiplier;
+        }
+        
+        price = Math.max(price, course.minPrice);
+        
+        displayAmount.textContent = 'Rs. ' + Math.round(price).toLocaleString();
+        displayDuration.textContent = days + ' days access';
+        priceDisplay.style.display = 'block';
+    } else {
+        priceDisplay.style.display = 'none';
+    }
+    
+    validateForm();
+});
+
+// Calculate days from custom price
+customPrice.addEventListener('input', function() {
+    let price = parseFloat(this.value) || 0;
+    
+    if (price >= course.minPrice) {
+        const days = Math.max(Math.floor(price / course.pricePerDay), course.minDays);
+        
+        displayAmount.textContent = 'Rs. ' + Math.round(price).toLocaleString();
+        displayDuration.textContent = days + ' days access';
+        priceDisplay.style.display = 'block';
+    } else {
+        priceDisplay.style.display = 'none';
+    }
+    
+    validateForm();
+});
+
+// Show payment details based on method
+paymentMethod.addEventListener('change', function() {
+    document.querySelectorAll('.payment-method-details').forEach(el => {
+        el.classList.remove('active');
+    });
+    
+    if (this.value === 'jazzcash') {
+        document.getElementById('jazzcashDetails').classList.add('active');
+    } else if (this.value === 'easypaisa') {
+        document.getElementById('easypaisaDetails').classList.add('active');
+    } else if (this.value === 'bank') {
+        document.getElementById('bankDetails').classList.add('active');
+    }
+    
+    validateForm();
+});
+
+// Validate form
+function validateForm() {
+    const hasEnrollmentType = enrollmentType.value !== '';
+    const hasDuration = durationValue.value || customPrice.value;
+    const hasPaymentMethod = paymentMethod.value !== '';
+    
+    submitBtn.disabled = !(hasEnrollmentType && hasDuration && hasPaymentMethod);
+}
+
+// Initial validation
+validateForm();
+</script>
+{% endblock %}
