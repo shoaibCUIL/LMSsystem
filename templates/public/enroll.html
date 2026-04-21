@@ -179,7 +179,11 @@
             <div class="price-calculator">
                 <div class="form-group">
                     {{ form.enrollment_type.label }}
-                    {{ form.enrollment_type(class="form-control", id="enrollmentType") }}
+                    <select name="enrollment_type" id="enrollmentType" class="form-control" required>
+                        <option value="">Select Duration Type</option>
+                        <option value="months">Months</option>
+                        <option value="custom_price">Custom Price</option>
+                    </select>
                 </div>
                 
                 <div class="form-group" id="durationGroup" style="display: none;">
@@ -307,8 +311,13 @@ const course = {
     minDays: {{ course.min_days }},
     minPrice: {{ course.min_price_pkr }},
     isInternational: {{ 'true' if user.country != 'Pakistan' else 'false' }},
-    internationalMultiplier: {{ config.INTERNATIONAL_MULTIPLIER }}
+    internationalMultiplier: {{ config.INTERNATIONAL_MULTIPLIER }},
+    monthlyPrice: {{ course.min_price_pkr }}  // This is the monthly price
 };
+
+// Check if user has existing enrollments for multi-course discount
+const hasExistingEnrollments = {{ 'true' if (current_user.enrollments.filter_by(status='approved').count() + current_user.enrollments.filter_by(status='pending').count()) > 0 else 'false' }};
+const discountRate = hasExistingEnrollments ? 0.10 : 0;
 
 const enrollmentType = document.getElementById('enrollmentType');
 const durationGroup = document.getElementById('durationGroup');
@@ -321,6 +330,15 @@ const displayDuration = document.getElementById('displayDuration');
 const paymentMethod = document.getElementById('paymentMethod');
 const submitBtn = document.getElementById('submitBtn');
 
+// Show multi-course discount message
+if (hasExistingEnrollments) {
+    const discountBanner = document.createElement('div');
+    discountBanner.className = 'alert alert-success';
+    discountBanner.style.marginBottom = '2rem';
+    discountBanner.innerHTML = '<strong>🎉 Multi-Course Discount Active!</strong><br>You get 10% off on this enrollment for being an existing student!';
+    document.querySelector('.enrollment-card').insertBefore(discountBanner, document.querySelector('.price-calculator'));
+}
+
 // Show/hide duration or price input
 enrollmentType.addEventListener('change', function() {
     const type = this.value;
@@ -331,10 +349,12 @@ enrollmentType.addEventListener('change', function() {
     durationValue.value = '';
     customPrice.value = '';
     
-    if (type === 'days' || type === 'weeks' || type === 'months') {
+    if (type === 'months') {
         durationGroup.style.display = 'block';
         durationValue.required = true;
         customPrice.required = false;
+        durationValue.min = 1;
+        durationValue.placeholder = 'Enter number of months';
     } else if (type === 'custom_price') {
         customPriceGroup.style.display = 'block';
         customPrice.required = true;
@@ -344,27 +364,36 @@ enrollmentType.addEventListener('change', function() {
     validateForm();
 });
 
-// Calculate price from duration
+// Calculate price from duration (months only now)
 durationValue.addEventListener('input', function() {
     const type = enrollmentType.value;
     const value = parseInt(this.value) || 0;
     
-    if (value > 0) {
-        let days = value;
-        if (type === 'weeks') days = value * 7;
-        else if (type === 'months') days = value * 30;
+    if (value > 0 && type === 'months') {
+        // Price is monthly price × number of months
+        let basePrice = course.monthlyPrice * value;
+        const days = value * 30;
         
-        days = Math.max(days, course.minDays);
-        let price = days * course.pricePerDay;
-        
+        // Apply international multiplier if needed
         if (course.isInternational) {
-            price *= course.internationalMultiplier;
+            basePrice *= course.internationalMultiplier;
         }
         
-        price = Math.max(price, course.minPrice);
+        // Apply multi-course discount
+        let finalPrice = basePrice;
+        let discount = 0;
+        if (hasExistingEnrollments) {
+            discount = basePrice * discountRate;
+            finalPrice = basePrice - discount;
+        }
         
-        displayAmount.textContent = 'Rs. ' + Math.round(price).toLocaleString();
-        displayDuration.textContent = days + ' days access';
+        let displayHTML = 'Rs. ' + Math.round(finalPrice).toLocaleString();
+        if (discount > 0) {
+            displayHTML += ' <span style="color: #27ae60; font-size: 1rem;">(Save Rs. ' + Math.round(discount).toLocaleString() + ')</span>';
+        }
+        
+        displayAmount.innerHTML = displayHTML;
+        displayDuration.textContent = days + ' days access (' + value + ' month' + (value > 1 ? 's' : '') + ')';
         priceDisplay.style.display = 'block';
     } else {
         priceDisplay.style.display = 'none';
@@ -380,7 +409,20 @@ customPrice.addEventListener('input', function() {
     if (price >= course.minPrice) {
         const days = Math.max(Math.floor(price / course.pricePerDay), course.minDays);
         
-        displayAmount.textContent = 'Rs. ' + Math.round(price).toLocaleString();
+        // Apply multi-course discount
+        let finalPrice = price;
+        let discount = 0;
+        if (hasExistingEnrollments) {
+            discount = price * discountRate;
+            finalPrice = price - discount;
+        }
+        
+        let displayHTML = 'Rs. ' + Math.round(finalPrice).toLocaleString();
+        if (discount > 0) {
+            displayHTML += ' <span style="color: #27ae60; font-size: 1rem;">(Save Rs. ' + Math.round(discount).toLocaleString() + ')</span>';
+        }
+        
+        displayAmount.innerHTML = displayHTML;
         displayDuration.textContent = days + ' days access';
         priceDisplay.style.display = 'block';
     } else {

@@ -5,7 +5,7 @@ from datetime import datetime, timedelta
 from database import db
 from models import User, Course, Enrollment, Lecture, Blog, Event
 from forms import RegistrationForm, LoginForm, EnrollmentForm, CourseForm, LectureForm
-from utils import verify_recaptcha, save_receipt, get_currency_from_country, calculate_enrollment_dates, format_currency
+from utils import verify_recaptcha, save_receipt, get_currency_from_country, calculate_enrollment_dates, format_currency, calculate_multi_course_discount
 import os
 
 # Blueprints
@@ -234,6 +234,12 @@ def enroll(slug):
             # Ensure minimum price
             price_pkr = max(price_pkr, course.min_price_pkr)
             
+            # Apply multi-course discount (10% off for 2+ courses)
+            final_price, discount, has_discount = calculate_multi_course_discount(
+                current_user.id, 
+                price_pkr
+            )
+            
             # Save payment receipt
             receipt_file = form.payment_receipt.data
             receipt_filename = save_receipt(receipt_file)
@@ -249,7 +255,7 @@ def enroll(slug):
                 enrollment_type=enrollment_type,
                 duration_value=form.duration_value.data or 0,
                 total_days=total_days,
-                price_paid_pkr=price_pkr,
+                price_paid_pkr=final_price,  # Use discounted price
                 currency=get_currency_from_country(current_user.country),
                 payment_method=form.payment_method.data,
                 payment_receipt=receipt_filename,
@@ -259,9 +265,13 @@ def enroll(slug):
             db.session.add(enrollment)
             db.session.commit()
             
-            current_app.logger.info(f'Enrollment request created: User={current_user.id}, Course={course.id}, Price={price_pkr}')
+            current_app.logger.info(f'Enrollment request created: User={current_user.id}, Course={course.id}, Price={final_price}, Discount={discount if has_discount else 0}')
             
-            flash('Enrollment request submitted successfully! You will receive confirmation once admin approves your payment.', 'success')
+            flash_msg = 'Enrollment request submitted successfully! '
+            if has_discount:
+                flash_msg += f'You saved Rs. {discount:.0f} with our multi-course discount (10% off)! '
+            flash_msg += 'You will receive confirmation once admin approves your payment.'
+            flash(flash_msg, 'success')
             return redirect(url_for('dashboard.my_enrollments'))
         
         except Exception as e:

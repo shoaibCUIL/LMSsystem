@@ -118,6 +118,35 @@ def calculate_enrollment_dates(days):
     expires_at = now + timedelta(days=days)
     return now, expires_at
 
+def calculate_multi_course_discount(user_id, new_course_price):
+    """
+    Calculate discount for users enrolling in multiple courses
+    10% discount if user has 1+ active enrollments
+    """
+    from models import Enrollment
+    
+    # Count active enrollments for this user
+    active_count = Enrollment.query.filter_by(
+        user_id=user_id,
+        status='approved'
+    ).count()
+    
+    # Also count pending enrollments (they're committing to multiple courses)
+    pending_count = Enrollment.query.filter_by(
+        user_id=user_id,
+        status='pending'
+    ).count()
+    
+    total_courses = active_count + pending_count
+    
+    # If they already have 1+ course, give 10% discount on new enrollment
+    if total_courses >= 1:
+        discount = new_course_price * 0.10
+        final_price = new_course_price - discount
+        return final_price, discount, True
+    
+    return new_course_price, 0, False
+
 def format_currency(amount, currency='PKR'):
     """Format currency with symbol"""
     symbols = {
