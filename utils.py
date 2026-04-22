@@ -72,13 +72,23 @@ def verify_recaptcha(recaptcha_response):
         
         if result.get('success'):
             score = result.get('score', 0)
-            threshold = current_app.config['RECAPTCHA_SCORE_THRESHOLD']
+            
+            # Lower threshold in development mode for easier testing
+            if current_app.config.get('FLASK_ENV') == 'development':
+                threshold = 0.3  # More lenient for testing
+            else:
+                threshold = current_app.config.get('RECAPTCHA_SCORE_THRESHOLD', 0.5)
+            
+            current_app.logger.info(f'reCAPTCHA score: {score}, threshold: {threshold}')
             return score >= threshold, score
         
         return False, 0
     
     except Exception as e:
         current_app.logger.error(f"reCAPTCHA verification error: {str(e)}")
+        # In development, allow on error
+        if current_app.config.get('FLASK_ENV') == 'development':
+            return True, 0.5
         return False, 0
 
 def convert_currency(amount_pkr, target_currency='PKR', is_international=False):

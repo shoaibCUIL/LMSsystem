@@ -101,8 +101,10 @@ class RegistrationForm(FlaskForm):
         Length(min=2, max=200)
     ])
     
-    # reCAPTCHA token (will be submitted via JavaScript)
-    recaptcha_token = StringField('Recaptcha Token')
+    # Custom CAPTCHA (replaces reCAPTCHA)
+    captcha_answer = StringField('Security Question', validators=[
+        DataRequired(message='Please answer the security question')
+    ])
     
     def validate_email(self, email):
         """Check if email already exists"""

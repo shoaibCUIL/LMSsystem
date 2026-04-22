@@ -6,6 +6,10 @@ from flask_migrate import Migrate
 from config import Config
 from database import db
 
+# Load environment variables from .env file
+from dotenv import load_dotenv
+load_dotenv()
+
 # Initialize extensions
 login_manager = LoginManager()
 migrate = Migrate()

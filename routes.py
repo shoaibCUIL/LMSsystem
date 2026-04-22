@@ -5,7 +5,8 @@ from datetime import datetime, timedelta
 from database import db
 from models import User, Course, Enrollment, Lecture, Blog, Event
 from forms import RegistrationForm, LoginForm, EnrollmentForm, CourseForm, LectureForm
-from utils import verify_recaptcha, save_receipt, get_currency_from_country, calculate_enrollment_dates, format_currency, calculate_multi_course_discount
+from utils import save_receipt, get_currency_from_country, calculate_enrollment_dates, format_currency, calculate_multi_course_discount
+from captcha_utils import generate_math_captcha, verify_math_captcha
 import os
 
 # Blueprints
@@ -21,26 +22,23 @@ main_bp = Blueprint('main', __name__)
 
 @auth_bp.route('/register', methods=['GET', 'POST'])
 def register():
-    """Enhanced registration with CAPTCHA"""
+    """Enhanced registration with custom CAPTCHA"""
     if current_user.is_authenticated:
         return redirect(url_for('main.index'))
     
     form = RegistrationForm()
     
+    # Generate CAPTCHA question for GET request
+    if request.method == 'GET':
+        captcha_question = generate_math_captcha()
+    
     if form.validate_on_submit():
-        # Verify reCAPTCHA
-        recaptcha_token = form.recaptcha_token.data
-        
-        if not recaptcha_token:
-            flash('reCAPTCHA verification failed. Please try again.', 'danger')
-            return render_template('auth/register.html', form=form)
-        
-        is_valid, score = verify_recaptcha(recaptcha_token)
-        
-        if not is_valid:
-            current_app.logger.warning(f'Failed reCAPTCHA: score={score}, IP={request.remote_addr}')
-            flash('reCAPTCHA verification failed. Your score was too low. Please try again.', 'danger')
-            return render_template('auth/register.html', form=form)
+        # Verify custom CAPTCHA
+        if not verify_math_captcha(form.captcha_answer.data):
+            flash('Incorrect answer to security question. Please try again.', 'danger')
+            # Generate new CAPTCHA for retry
+            captcha_question = generate_math_captcha()
+            return render_template('auth/register.html', form=form, captcha_question=captcha_question)
         
         # Create user
         user = User(
@@ -68,7 +66,11 @@ def register():
             current_app.logger.error(f'Registration error: {str(e)}')
             flash('An error occurred during registration. Please try again.', 'danger')
     
-    return render_template('auth/register.html', form=form)
+    # Generate CAPTCHA for display (GET or failed POST)
+    if request.method == 'GET' or not form.validate_on_submit():
+        captcha_question = generate_math_captcha()
+    
+    return render_template('auth/register.html', form=form, captcha_question=captcha_question)
 
 
 @auth_bp.route('/login', methods=['GET', 'POST'])

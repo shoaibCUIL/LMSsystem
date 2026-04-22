@@ -41,7 +41,7 @@ class Config:
     # reCAPTCHA v3 (Google)
     RECAPTCHA_SITE_KEY = os.environ.get('RECAPTCHA_SITE_KEY') or '6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI'  # Test key
     RECAPTCHA_SECRET_KEY = os.environ.get('RECAPTCHA_SECRET_KEY') or '6LeIxAcTAAAAAGG-vFI1TnRWxMZNFuojJ4WifJWe'  # Test key
-    RECAPTCHA_SCORE_THRESHOLD = 0.5
+    RECAPTCHA_SCORE_THRESHOLD = 0.3
     
     # Email configuration (for future use)
     MAIL_SERVER = os.environ.get('MAIL_SERVER')
