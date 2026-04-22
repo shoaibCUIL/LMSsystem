@@ -1,11 +1,24 @@
 {% extends "base.html" %}
 
-{% block title %}Register - LMS{% endblock %}
+{% block title %}Enroll in {{ course.title }} - LMS{% endblock %}
 
 {% block extra_head %}
-<!-- No external scripts needed for custom CAPTCHA! -->
 <style>
-    .form-section {
+    .enrollment-container {
+        max-width: 900px;
+        margin: 2rem auto;
+        padding: 0 1rem;
+    }
+    
+    .course-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 2rem;
+        border-radius: 8px;
+        margin-bottom: 2rem;
+    }
+    
+    .enrollment-card {
         background: white;
         padding: 2rem;
         border-radius: 8px;
@@ -13,11 +26,60 @@
         margin-bottom: 2rem;
     }
     
-    .form-section h3 {
-        color: #2c3e50;
-        margin-bottom: 1.5rem;
-        padding-bottom: 0.5rem;
-        border-bottom: 2px solid #3498db;
+    .price-calculator {
+        background: #f8f9fa;
+        padding: 1.5rem;
+        border-radius: 8px;
+        margin-bottom: 2rem;
+    }
+    
+    .calculated-price {
+        background: #fff;
+        padding: 1.5rem;
+        border: 2px solid #3498db;
+        border-radius: 8px;
+        text-align: center;
+        margin-top: 1rem;
+    }
+    
+    .calculated-price .amount {
+        font-size: 2.5rem;
+        font-weight: bold;
+        color: #3498db;
+    }
+    
+    .calculated-price .duration {
+        color: #7f8c8d;
+        margin-top: 0.5rem;
+    }
+    
+    .payment-instructions {
+        background: #fff3cd;
+        border: 1px solid #ffc107;
+        padding: 1.5rem;
+        border-radius: 8px;
+        margin-bottom: 2rem;
+    }
+    
+    .payment-method-details {
+        background: #fff;
+        padding: 1.5rem;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        margin-top: 1rem;
+        display: none;
+    }
+    
+    .payment-method-details.active {
+        display: block;
+    }
+    
+    .payment-info {
+        font-family: 'Courier New', monospace;
+        background: #f8f9fa;
+        padding: 1rem;
+        border-radius: 4px;
+        margin: 0.5rem 0;
     }
     
     .form-group {
@@ -31,34 +93,18 @@
         font-weight: 500;
     }
     
-    .form-group label .required {
-        color: #e74c3c;
-    }
-    
     .form-control {
         width: 100%;
         padding: 0.75rem;
         border: 1px solid #ddd;
         border-radius: 4px;
         font-size: 1rem;
-        transition: border-color 0.3s;
     }
     
     .form-control:focus {
         outline: none;
         border-color: #3498db;
         box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
-    }
-    
-    .form-control.is-invalid {
-        border-color: #e74c3c;
-    }
-    
-    .invalid-feedback {
-        color: #e74c3c;
-        font-size: 0.875rem;
-        margin-top: 0.25rem;
-        display: block;
     }
     
     .btn-primary {
@@ -70,16 +116,12 @@
         font-size: 1rem;
         font-weight: 600;
         cursor: pointer;
-        transition: background 0.3s;
+        width: 100%;
+        margin-top: 1rem;
     }
     
     .btn-primary:hover {
         background: #2980b9;
-    }
-    
-    .btn-primary:disabled {
-        background: #95a5a6;
-        cursor: not-allowed;
     }
     
     .alert {
@@ -88,39 +130,26 @@
         margin-bottom: 1.5rem;
     }
     
-    .alert-danger {
-        background: #fee;
-        border: 1px solid #fcc;
-        color: #c33;
+    .alert-info {
+        background: #d1ecf1;
+        border: 1px solid #bee5eb;
+        color: #0c5460;
     }
     
-    .login-link {
-        text-align: center;
-        margin-top: 1.5rem;
-        color: #7f8c8d;
-    }
-    
-    .login-link a {
-        color: #3498db;
-        text-decoration: none;
-        font-weight: 500;
-    }
-    
-    .login-link a:hover {
-        text-decoration: underline;
-    }
-    
-    .recaptcha-badge {
-        font-size: 0.75rem;
-        color: #95a5a6;
-        margin-top: 1rem;
+    .alert-warning {
+        background: #fff3cd;
+        border: 1px solid #ffc107;
+        color: #856404;
     }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="container" style="max-width: 800px; margin: 3rem auto; padding: 0 1rem;">
-    <h2 style="text-align: center; color: #2c3e50; margin-bottom: 2rem;">Create Your Account</h2>
+<div class="enrollment-container">
+    <div class="course-header">
+        <h1>{{ course.title }}</h1>
+        <p style="margin-top: 1rem; opacity: 0.9;">{{ course.description }}</p>
+    </div>
     
     {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
@@ -130,141 +159,306 @@
         {% endif %}
     {% endwith %}
     
-    <form method="POST" action="{{ url_for('auth.register') }}" id="registrationForm" novalidate>
+    <div class="alert alert-info">
+        <strong>📋 Enrollment Process:</strong>
+        <ol style="margin: 0.5rem 0 0 1.5rem;">
+            <li>Choose your enrollment duration or enter a custom price</li>
+            <li>Select payment method and view payment details</li>
+            <li>Make payment and upload receipt</li>
+            <li>Wait for admin approval (usually within 24 hours)</li>
+        </ol>
+    </div>
+    
+    <form method="POST" enctype="multipart/form-data" id="enrollmentForm">
         {{ form.hidden_tag() }}
         
-        <!-- Account Credentials Section -->
-        <div class="form-section">
-            <h3>Account Credentials</h3>
+        <!-- Pricing Calculator -->
+        <div class="enrollment-card">
+            <h3 style="margin-bottom: 1.5rem;">Step 1: Choose Duration or Price</h3>
             
-            <div class="form-group">
-                {{ form.email.label(class="form-label") }} <span class="required">*</span>
-                {{ form.email(class="form-control" + (" is-invalid" if form.email.errors else ""), placeholder="your.email@example.com") }}
-                {% if form.email.errors %}
-                    <span class="invalid-feedback">{{ form.email.errors[0] }}</span>
-                {% endif %}
-            </div>
-            
-            <div class="form-group">
-                {{ form.password.label(class="form-label") }} <span class="required">*</span>
-                {{ form.password(class="form-control" + (" is-invalid" if form.password.errors else ""), placeholder="Min. 8 characters") }}
-                {% if form.password.errors %}
-                    <span class="invalid-feedback">{{ form.password.errors[0] }}</span>
-                {% endif %}
-            </div>
-            
-            <div class="form-group">
-                {{ form.confirm_password.label(class="form-label") }} <span class="required">*</span>
-                {{ form.confirm_password(class="form-control" + (" is-invalid" if form.confirm_password.errors else "")) }}
-                {% if form.confirm_password.errors %}
-                    <span class="invalid-feedback">{{ form.confirm_password.errors[0] }}</span>
-                {% endif %}
-            </div>
-        </div>
-        
-        <!-- Personal Information Section -->
-        <div class="form-section">
-            <h3>Personal Information</h3>
-            
-            <div class="form-group">
-                {{ form.first_name.label(class="form-label") }} <span class="required">*</span>
-                {{ form.first_name(class="form-control" + (" is-invalid" if form.first_name.errors else "")) }}
-                {% if form.first_name.errors %}
-                    <span class="invalid-feedback">{{ form.first_name.errors[0] }}</span>
-                {% endif %}
-            </div>
-            
-            <div class="form-group">
-                {{ form.last_name.label(class="form-label") }} <span class="required">*</span>
-                {{ form.last_name(class="form-control" + (" is-invalid" if form.last_name.errors else "")) }}
-                {% if form.last_name.errors %}
-                    <span class="invalid-feedback">{{ form.last_name.errors[0] }}</span>
-                {% endif %}
-            </div>
-            
-            <div class="form-group">
-                {{ form.designation.label(class="form-label") }} <span class="required">*</span>
-                {{ form.designation(class="form-control" + (" is-invalid" if form.designation.errors else "")) }}
-                {% if form.designation.errors %}
-                    <span class="invalid-feedback">{{ form.designation.errors[0] }}</span>
-                {% endif %}
+            <div class="price-calculator">
+                <div class="form-group">
+                    {{ form.enrollment_type.label }}
+                    <select name="enrollment_type" id="enrollmentType" class="form-control" required>
+                        <option value="">Select Duration Type</option>
+                        <option value="months">Months</option>
+                        <option value="custom_price">Custom Price</option>
+                    </select>
+                </div>
+                
+                <div class="form-group" id="durationGroup" style="display: none;">
+                    {{ form.duration_value.label }}
+                    {{ form.duration_value(class="form-control", id="durationValue", min="1") }}
+                    <small style="color: #7f8c8d; display: block; margin-top: 0.25rem;">
+                        Minimum: {{ course.min_days }} days (Rs. {{ "%.0f"|format(course.min_price_pkr) }})
+                    </small>
+                </div>
+                
+                <div class="form-group" id="customPriceGroup" style="display: none;">
+                    {{ form.custom_price.label }}
+                    {{ form.custom_price(class="form-control", id="customPrice", min="1500", step="100") }}
+                    <small style="color: #7f8c8d; display: block; margin-top: 0.25rem;">
+                        Minimum: Rs. {{ "%.0f"|format(course.min_price_pkr) }}
+                    </small>
+                </div>
+                
+                <div class="calculated-price" id="priceDisplay" style="display: none;">
+                    <div class="amount" id="displayAmount">Rs. 0</div>
+                    <div class="duration" id="displayDuration">0 days access</div>
+                    {% if user.country != 'Pakistan' %}
+                        <div style="margin-top: 1rem; font-size: 0.9rem; color: #7f8c8d;">
+                            International rate applied
+                        </div>
+                    {% endif %}
+                </div>
             </div>
         </div>
         
-        <!-- Location Section -->
-        <div class="form-section">
-            <h3>Location</h3>
+        <!-- Payment Method Selection -->
+        <div class="enrollment-card">
+            <h3 style="margin-bottom: 1.5rem;">Step 2: Select Payment Method</h3>
             
             <div class="form-group">
-                {{ form.city.label(class="form-label") }} <span class="required">*</span>
-                {{ form.city(class="form-control" + (" is-invalid" if form.city.errors else "")) }}
-                {% if form.city.errors %}
-                    <span class="invalid-feedback">{{ form.city.errors[0] }}</span>
-                {% endif %}
+                {{ form.payment_method.label }}
+                {{ form.payment_method(class="form-control", id="paymentMethod") }}
             </div>
             
-            <div class="form-group">
-                {{ form.country.label(class="form-label") }} <span class="required">*</span>
-                {{ form.country(class="form-control" + (" is-invalid" if form.country.errors else "")) }}
-                {% if form.country.errors %}
-                    <span class="invalid-feedback">{{ form.country.errors[0] }}</span>
-                {% endif %}
-            </div>
-        </div>
-        
-        <!-- Educational Background Section -->
-        <div class="form-section">
-            <h3>Educational Background</h3>
-            
-            <div class="form-group">
-                {{ form.education.label(class="form-label") }} <span class="required">*</span>
-                {{ form.education(class="form-control" + (" is-invalid" if form.education.errors else "")) }}
-                {% if form.education.errors %}
-                    <span class="invalid-feedback">{{ form.education.errors[0] }}</span>
-                {% endif %}
+            <!-- JazzCash Details -->
+            <div class="payment-method-details" id="jazzcashDetails">
+                <h4 style="color: #e74c3c;">💳 JazzCash Payment Details</h4>
+                <div class="payment-info">
+                    <strong>Account Number:</strong> {{ config.PAYMENT_INFO.jazzcash.number }}<br>
+                    <strong>Account Name:</strong> {{ config.PAYMENT_INFO.jazzcash.account_name }}
+                </div>
+                <p style="margin-top: 1rem; color: #7f8c8d;">
+                    Send the calculated amount above to this JazzCash account and upload the payment screenshot.
+                </p>
             </div>
             
-            <div class="form-group">
-                {{ form.university.label(class="form-label") }} <span class="required">*</span>
-                {{ form.university(class="form-control" + (" is-invalid" if form.university.errors else ""), placeholder="Name of your university or institution") }}
-                {% if form.university.errors %}
-                    <span class="invalid-feedback">{{ form.university.errors[0] }}</span>
-                {% endif %}
+            <!-- Easypaisa Details -->
+            <div class="payment-method-details" id="easypaisaDetails">
+                <h4 style="color: #27ae60;">💳 Easypaisa Payment Details</h4>
+                <div class="payment-info">
+                    <strong>Account Number:</strong> {{ config.PAYMENT_INFO.easypaisa.number }}<br>
+                    <strong>Account Name:</strong> {{ config.PAYMENT_INFO.easypaisa.account_name }}
+                </div>
+                <p style="margin-top: 1rem; color: #7f8c8d;">
+                    Send the calculated amount above to this Easypaisa account and upload the payment screenshot.
+                </p>
             </div>
-        </div>
-        
-        <!-- Custom CAPTCHA Section -->
-        <div class="form-section">
-            <h3>Security Verification</h3>
             
-            <div class="form-group">
-                <label class="form-label">
-                    <strong>{{ captcha_question }}</strong>
-                    <span class="required">*</span>
-                </label>
-                {{ form.captcha_answer(class="form-control" + (" is-invalid" if form.captcha_answer.errors else ""), placeholder="Enter your answer", type="number") }}
-                {% if form.captcha_answer.errors %}
-                    <span class="invalid-feedback">{{ form.captcha_answer.errors[0] }}</span>
-                {% endif %}
-                <small style="color: #7f8c8d; display: block; margin-top: 0.5rem;">
-                    This helps us prevent automated registrations
-                </small>
+            <!-- Bank Details -->
+            <div class="payment-method-details" id="bankDetails">
+                <h4 style="color: #3498db;">🏦 Bank Transfer Details</h4>
+                <div class="payment-info">
+                    <strong>Bank Name:</strong> {{ config.PAYMENT_INFO.bank.bank_name }}<br>
+                    <strong>Account Title:</strong> {{ config.PAYMENT_INFO.bank.account_title }}<br>
+                    <strong>Account Number:</strong> {{ config.PAYMENT_INFO.bank.account_number }}<br>
+                    <strong>IBAN:</strong> {{ config.PAYMENT_INFO.bank.iban }}
+                </div>
+                <p style="margin-top: 1rem; color: #7f8c8d;">
+                    Transfer the calculated amount above to this bank account and upload the bank receipt or screenshot.
+                </p>
             </div>
         </div>
         
-        <!-- Hidden reCAPTCHA token field removed -->
+        <!-- Payment Receipt Upload -->
+        <div class="enrollment-card">
+            <h3 style="margin-bottom: 1.5rem;">Step 3: Upload Payment Receipt</h3>
+            
+            <div class="payment-instructions">
+                <strong>⚠️ Important Instructions:</strong>
+                <ul style="margin: 0.5rem 0 0 1.5rem;">
+                    <li>Make sure the payment receipt clearly shows the transaction details</li>
+                    <li>Accepted formats: JPG, PNG, PDF (max 16MB)</li>
+                    <li>Your enrollment will be activated after admin verification</li>
+                </ul>
+            </div>
+            
+            <div class="form-group">
+                {{ form.payment_receipt.label }}
+                {{ form.payment_receipt(class="form-control") }}
+                {% if form.payment_receipt.errors %}
+                    <span style="color: #e74c3c; display: block; margin-top: 0.5rem;">
+                        {{ form.payment_receipt.errors[0] }}
+                    </span>
+                {% endif %}
+            </div>
+            
+            <div class="form-group">
+                {{ form.notes.label }}
+                {{ form.notes(class="form-control", rows="3", placeholder="Any additional information for the admin (optional)") }}
+            </div>
+        </div>
         
-        <button type="submit" class="btn-primary" style="width: 100%;">
-            Create Account
-        </button>
-        
-        <p class="recaptcha-badge">
-            Simple math question to prevent spam - no tracking, no external services!
-        </p>
+        <div class="enrollment-card">
+            <div class="alert alert-warning">
+                <strong>Need Help?</strong><br>
+                If you face any issues with payment, please contact us at:
+                <strong>{{ config.PAYMENT_INFO.contact_email }}</strong>
+            </div>
+            
+            <button type="submit" class="btn-primary" id="submitBtn" disabled>
+                Submit Enrollment Request
+            </button>
+        </div>
     </form>
-    
-    <div class="login-link">
-        Already have an account? <a href="{{ url_for('auth.login') }}">Login here</a>
-    </div>
 </div>
+
+<script>
+const course = {
+    pricePerDay: {{ course.price_per_day }},
+    minDays: {{ course.min_days }},
+    minPrice: {{ course.min_price_pkr }},
+    isInternational: {{ 'true' if user.country != 'Pakistan' else 'false' }},
+    internationalMultiplier: {{ config.INTERNATIONAL_MULTIPLIER }},
+    monthlyPrice: {{ course.min_price_pkr }}  // This is the monthly price
+};
+
+// Check if user has existing enrollments for multi-course discount
+const hasExistingEnrollments = {{ 'true' if (current_user.enrollments.filter_by(status='approved').count() + current_user.enrollments.filter_by(status='pending').count()) > 0 else 'false' }};
+const discountRate = hasExistingEnrollments ? 0.10 : 0;
+
+const enrollmentType = document.getElementById('enrollmentType');
+const durationGroup = document.getElementById('durationGroup');
+const customPriceGroup = document.getElementById('customPriceGroup');
+const durationValue = document.getElementById('durationValue');
+const customPrice = document.getElementById('customPrice');
+const priceDisplay = document.getElementById('priceDisplay');
+const displayAmount = document.getElementById('displayAmount');
+const displayDuration = document.getElementById('displayDuration');
+const paymentMethod = document.getElementById('paymentMethod');
+const submitBtn = document.getElementById('submitBtn');
+
+// Show multi-course discount message
+if (hasExistingEnrollments) {
+    const discountBanner = document.createElement('div');
+    discountBanner.className = 'alert alert-success';
+    discountBanner.style.marginBottom = '2rem';
+    discountBanner.innerHTML = '<strong>🎉 Multi-Course Discount Active!</strong><br>You get 10% off on this enrollment for being an existing student!';
+    document.querySelector('.enrollment-card').insertBefore(discountBanner, document.querySelector('.price-calculator'));
+}
+
+// Show/hide duration or price input
+enrollmentType.addEventListener('change', function() {
+    const type = this.value;
+    
+    durationGroup.style.display = 'none';
+    customPriceGroup.style.display = 'none';
+    priceDisplay.style.display = 'none';
+    durationValue.value = '';
+    customPrice.value = '';
+    
+    if (type === 'months') {
+        durationGroup.style.display = 'block';
+        durationValue.required = true;
+        customPrice.required = false;
+        durationValue.min = 1;
+        durationValue.placeholder = 'Enter number of months';
+    } else if (type === 'custom_price') {
+        customPriceGroup.style.display = 'block';
+        customPrice.required = true;
+        durationValue.required = false;
+    }
+    
+    validateForm();
+});
+
+// Calculate price from duration (months only now)
+durationValue.addEventListener('input', function() {
+    const type = enrollmentType.value;
+    const value = parseInt(this.value) || 0;
+    
+    if (value > 0 && type === 'months') {
+        // Price is monthly price × number of months
+        let basePrice = course.monthlyPrice * value;
+        const days = value * 30;
+        
+        // Apply international multiplier if needed
+        if (course.isInternational) {
+            basePrice *= course.internationalMultiplier;
+        }
+        
+        // Apply multi-course discount
+        let finalPrice = basePrice;
+        let discount = 0;
+        if (hasExistingEnrollments) {
+            discount = basePrice * discountRate;
+            finalPrice = basePrice - discount;
+        }
+        
+        let displayHTML = 'Rs. ' + Math.round(finalPrice).toLocaleString();
+        if (discount > 0) {
+            displayHTML += ' <span style="color: #27ae60; font-size: 1rem;">(Save Rs. ' + Math.round(discount).toLocaleString() + ')</span>';
+        }
+        
+        displayAmount.innerHTML = displayHTML;
+        displayDuration.textContent = days + ' days access (' + value + ' month' + (value > 1 ? 's' : '') + ')';
+        priceDisplay.style.display = 'block';
+    } else {
+        priceDisplay.style.display = 'none';
+    }
+    
+    validateForm();
+});
+
+// Calculate days from custom price
+customPrice.addEventListener('input', function() {
+    let price = parseFloat(this.value) || 0;
+    
+    if (price >= course.minPrice) {
+        const days = Math.max(Math.floor(price / course.pricePerDay), course.minDays);
+        
+        // Apply multi-course discount
+        let finalPrice = price;
+        let discount = 0;
+        if (hasExistingEnrollments) {
+            discount = price * discountRate;
+            finalPrice = price - discount;
+        }
+        
+        let displayHTML = 'Rs. ' + Math.round(finalPrice).toLocaleString();
+        if (discount > 0) {
+            displayHTML += ' <span style="color: #27ae60; font-size: 1rem;">(Save Rs. ' + Math.round(discount).toLocaleString() + ')</span>';
+        }
+        
+        displayAmount.innerHTML = displayHTML;
+        displayDuration.textContent = days + ' days access';
+        priceDisplay.style.display = 'block';
+    } else {
+        priceDisplay.style.display = 'none';
+    }
+    
+    validateForm();
+});
+
+// Show payment details based on method
+paymentMethod.addEventListener('change', function() {
+    document.querySelectorAll('.payment-method-details').forEach(el => {
+        el.classList.remove('active');
+    });
+    
+    if (this.value === 'jazzcash') {
+        document.getElementById('jazzcashDetails').classList.add('active');
+    } else if (this.value === 'easypaisa') {
+        document.getElementById('easypaisaDetails').classList.add('active');
+    } else if (this.value === 'bank') {
+        document.getElementById('bankDetails').classList.add('active');
+    }
+    
+    validateForm();
+});
+
+// Validate form
+function validateForm() {
+    const hasEnrollmentType = enrollmentType.value !== '';
+    const hasDuration = durationValue.value || customPrice.value;
+    const hasPaymentMethod = paymentMethod.value !== '';
+    
+    submitBtn.disabled = !(hasEnrollmentType && hasDuration && hasPaymentMethod);
+}
+
+// Initial validation
+validateForm();
+</script>
 {% endblock %}
