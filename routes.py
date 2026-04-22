@@ -248,7 +248,7 @@ def enroll(slug):
             
             if not receipt_filename:
                 flash('Failed to upload payment receipt. Please try again.', 'danger')
-                return render_template('courses/enroll.html', form=form, course=course)
+                return render_template('courses/enroll.html', form=form, course=course, user=current_user)
             
             # Create enrollment
             enrollment = Enrollment(
@@ -281,7 +281,7 @@ def enroll(slug):
             current_app.logger.error(f'Enrollment error: {str(e)}')
             flash('An error occurred while processing your enrollment. Please try again.', 'danger')
     
-    return render_template('courses/enroll.html', form=form, course=course)
+    return render_template('courses/enroll.html', form=form, course=course, user=current_user)
 
 
 @course_bp.route('/<slug>/lecture/<int:lecture_id>')

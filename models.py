@@ -47,15 +47,14 @@ class Course(db.Model):
     description = db.Column(db.Text)
     detailed_description = db.Column(db.Text)
     
-    # Pricing structure (PKR base)
-    price_per_day = db.Column(db.Float, default=75.0)  # Base: 1500 PKR / 20 days = 75 PKR/day
-    min_days = db.Column(db.Integer, default=2)
-    min_price_pkr = db.Column(db.Float, default=1500.0)
+    # New hourly-based pricing structure
+    level = db.Column(db.String(50), default='beginner')  # 'beginner', 'intermediate', 'advanced'
+    hourly_rate_pkr = db.Column(db.Integer, default=800)  # PKR per hour
+    hourly_rate_usd = db.Column(db.Integer, default=6)    # USD per hour
     
     # Course metadata
     thumbnail = db.Column(db.String(500))
     is_active = db.Column(db.Boolean, default=True)
-    level = db.Column(db.String(50))  # Beginner/Intermediate/Advanced
     duration_estimate = db.Column(db.String(100))  # "6 weeks", "3 months", etc
     
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
@@ -65,30 +64,29 @@ class Course(db.Model):
     lectures = db.relationship('Lecture', backref='course', lazy='dynamic', cascade='all, delete-orphan')
     enrollments = db.relationship('Enrollment', backref='course', lazy='dynamic', cascade='all, delete-orphan')
     
-    def calculate_price(self, days=None, months=None, weeks=None):
-        """Calculate price based on duration"""
-        if months:
-            total_days = months * 30
-        elif weeks:
-            total_days = weeks * 7
-        elif days:
-            total_days = days
-        else:
-            total_days = self.min_days
+    def get_package_price(self, package_type, currency='pkr'):
+        """Get price for daily/weekly/monthly package"""
+        from flask import current_app
+        pricing = current_app.config['PACKAGE_PRICING']
         
-        # Ensure minimum days
-        total_days = max(total_days, self.min_days)
+        if package_type not in pricing:
+            return 0
         
-        # Calculate price
-        calculated_price = total_days * self.price_per_day
+        package = pricing[package_type]
+        level_pricing = package.get(self.level, {})
         
-        # Ensure minimum price
-        return max(calculated_price, self.min_price_pkr)
+        return level_pricing.get(currency, 0)
     
-    def calculate_days(self, price_pkr):
-        """Calculate days based on price"""
-        days = int(price_pkr / self.price_per_day)
-        return max(days, self.min_days)
+    def calculate_custom_price(self, hours, currency='pkr'):
+        """Calculate price for custom number of hours"""
+        if currency == 'pkr':
+            return self.hourly_rate_pkr * hours
+        else:
+            return self.hourly_rate_usd * hours
+    
+    def get_currency(self, country):
+        """Determine currency based on country"""
+        return 'pkr' if country == 'Pakistan' else 'usd'
     
     def __repr__(self):
         return f'<Course {self.title}>'

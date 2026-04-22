@@ -5,9 +5,6 @@ from wtforms.validators import DataRequired, Email, EqualTo, Length, ValidationE
 from models import User
 
 class RegistrationForm(FlaskForm):
-    """Enhanced registration form with all required fields"""
-    
-    # Basic credentials
     email = StringField('Email Address', validators=[
         DataRequired(message='Email is required'),
         Email(message='Invalid email address'),
@@ -24,7 +21,6 @@ class RegistrationForm(FlaskForm):
         EqualTo('password', message='Passwords must match')
     ])
     
-    # Personal information
     first_name = StringField('First Name', validators=[
         DataRequired(message='First name is required'),
         Length(min=2, max=100, message='First name must be 2-100 characters')
@@ -35,7 +31,6 @@ class RegistrationForm(FlaskForm):
         Length(min=2, max=100, message='Last name must be 2-100 characters')
     ])
     
-    # Professional/Academic information
     designation = SelectField('Designation', validators=[
         DataRequired(message='Please select your designation')
     ], choices=[
@@ -56,7 +51,6 @@ class RegistrationForm(FlaskForm):
         ('Other', 'Other')
     ])
     
-    # Location
     city = StringField('City', validators=[
         DataRequired(message='City is required'),
         Length(min=2, max=100)
@@ -82,7 +76,6 @@ class RegistrationForm(FlaskForm):
         ('Other', 'Other')
     ])
     
-    # Educational background
     education = SelectField('Highest Education', validators=[
         DataRequired(message='Please select your education level')
     ], choices=[
@@ -101,20 +94,17 @@ class RegistrationForm(FlaskForm):
         Length(min=2, max=200)
     ])
     
-    # Custom CAPTCHA (replaces reCAPTCHA)
     captcha_answer = StringField('Security Question', validators=[
         DataRequired(message='Please answer the security question')
     ])
     
     def validate_email(self, email):
-        """Check if email already exists"""
         user = User.query.filter_by(email=email.data.lower()).first()
         if user:
             raise ValidationError('This email is already registered. Please login or use a different email.')
 
 
 class LoginForm(FlaskForm):
-    """Login form"""
     email = StringField('Email Address', validators=[
         DataRequired(message='Email is required'),
         Email(message='Invalid email address')
@@ -128,30 +118,21 @@ class LoginForm(FlaskForm):
 
 
 class EnrollmentForm(FlaskForm):
-    """Course enrollment form"""
-    
-    # Duration selection
-    enrollment_type = SelectField('Enrollment Type', validators=[
-        DataRequired(message='Please select enrollment type')
+    enrollment_type = SelectField('Select Package', validators=[
+        DataRequired(message='Please select a package')
     ], choices=[
-        ('', 'Select Duration Type'),
-        ('days', 'Days'),
-        ('weeks', 'Weeks'),
-        ('months', 'Months'),
-        ('custom_price', 'Custom Price')
+        ('', 'Select Package'),
+        ('daily', 'Daily (5 hours)'),
+        ('weekly', 'Weekly (25 hours)'),
+        ('monthly', 'Monthly (100 hours)'),
+        ('custom_hours', 'Custom Hours')
     ])
     
-    duration_value = IntegerField('Duration', validators=[
+    custom_hours = IntegerField('Number of Hours', validators=[
         Optional(),
-        NumberRange(min=1, message='Duration must be at least 1')
+        NumberRange(min=1, message='Minimum 1 hour')
     ])
     
-    custom_price = FloatField('Custom Price (PKR)', validators=[
-        Optional(),
-        NumberRange(min=1500, message='Minimum price is Rs. 1,500')
-    ])
-    
-    # Payment details
     payment_method = SelectField('Payment Method', validators=[
         DataRequired(message='Please select payment method')
     ], choices=[
@@ -166,17 +147,10 @@ class EnrollmentForm(FlaskForm):
         FileAllowed(['jpg', 'jpeg', 'png', 'pdf'], 'Only JPG, PNG, and PDF files are allowed')
     ])
     
-    # Additional notes
     notes = TextAreaField('Additional Notes (Optional)', validators=[
         Optional(),
         Length(max=500)
     ])
-    
-    def validate_duration_value(self, duration_value):
-        """Validate duration based on enrollment type"""
-        if self.enrollment_type.data in ['days', 'weeks', 'months']:
-            if not duration_value.data:
-                raise ValidationError('Please specify the duration')
 
 
 class CourseForm(FlaskForm):
@@ -194,9 +168,9 @@ class CourseForm(FlaskForm):
     detailed_description = TextAreaField('Detailed Description')
     
     level = SelectField('Level', choices=[
-        ('Beginner', 'Beginner'),
-        ('Intermediate', 'Intermediate'),
-        ('Advanced', 'Advanced')
+        ('beginner', 'Beginner'),      # ✅ lowercase to match model default
+        ('intermediate', 'Intermediate'),
+        ('advanced', 'Advanced')
     ])
     
     duration_estimate = StringField('Duration Estimate', validators=[
@@ -204,20 +178,16 @@ class CourseForm(FlaskForm):
         Length(max=100)
     ])
     
-    price_per_day = FloatField('Price per Day (PKR)', validators=[
+    # ✅ Fixed: matches model fields hourly_rate_pkr and hourly_rate_usd
+    hourly_rate_pkr = IntegerField('Hourly Rate (PKR)', validators=[
         DataRequired(),
-        NumberRange(min=50, message='Price per day must be at least Rs. 50')
-    ])
+        NumberRange(min=100, message='Minimum rate is Rs. 100/hour')
+    ], default=800)
     
-    min_days = IntegerField('Minimum Days', validators=[
+    hourly_rate_usd = IntegerField('Hourly Rate (USD)', validators=[
         DataRequired(),
-        NumberRange(min=1, message='Minimum days must be at least 1')
-    ])
-    
-    min_price_pkr = FloatField('Minimum Price (PKR)', validators=[
-        DataRequired(),
-        NumberRange(min=100, message='Minimum price must be at least Rs. 100')
-    ])
+        NumberRange(min=1, message='Minimum rate is $1/hour')
+    ], default=6)
     
     thumbnail = FileField('Course Thumbnail', validators=[
         FileAllowed(['jpg', 'jpeg', 'png', 'gif', 'webp'], 'Images only!')

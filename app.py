@@ -113,59 +113,22 @@ def create_app(config_class=Config):
             db.session.add(admin)
             print('✓ Admin user created: admin@lms.com / admin123')
         
-        # Create courses with custom pricing
-        courses_config = [
-            {
-                'title': 'General Linguistics',
-                'slug': 'general-linguistics',
-                'description': 'Comprehensive introduction to the study of language',
-                'level': 'Beginner',
-                'duration_estimate': '1 month',
-                'price_per_month': 5500.0,  # Monthly price
-                'min_days': 30,  # 1 month minimum
-                'min_price_pkr': 5500.0
-            },
-            {
-                'title': 'Corpus Linguistics',
-                'slug': 'corpus-linguistics',
-                'description': 'Learn to analyze language using corpus-based methods',
-                'level': 'Intermediate',
-                'duration_estimate': '1 month',
-                'price_per_month': 8500.0,  # Monthly price
-                'min_days': 30,  # 1 month minimum
-                'min_price_pkr': 8500.0
-            },
-            {
-                'title': 'Computational Linguistics',
-                'slug': 'computational-linguistics',
-                'description': 'Explore the intersection of linguistics and computer science',
-                'level': 'Advanced',
-                'duration_estimate': '1 month',
-                'price_per_month': 12500.0,  # Monthly price
-                'min_days': 30,  # 1 month minimum
-                'min_price_pkr': 12500.0
-            }
-        ]
-        
-        for course_data in courses_config:
+        # Create default courses from config
+        for course_data in app.config['DEFAULT_COURSES']:
             existing = Course.query.filter_by(slug=course_data['slug']).first()
             if not existing:
-                # Calculate price per day from monthly price
-                price_per_day = course_data['price_per_month'] / 30.0
-                
                 course = Course(
                     title=course_data['title'],
                     slug=course_data['slug'],
                     description=course_data['description'],
                     level=course_data['level'],
                     duration_estimate=course_data['duration_estimate'],
-                    price_per_day=price_per_day,
-                    min_days=course_data['min_days'],
-                    min_price_pkr=course_data['min_price_pkr'],
+                    hourly_rate_pkr=course_data['hourly_rate_pkr'],
+                    hourly_rate_usd=course_data['hourly_rate_usd'],
                     is_active=True
                 )
                 db.session.add(course)
-                print(f'✓ Course created: {course.title} - Rs. {course_data["price_per_month"]}/month')
+                print(f'✓ Course created: {course.title} ({course.level.capitalize()} - Rs. {course.hourly_rate_pkr}/hr or ${course.hourly_rate_usd}/hr)')
         
         db.session.commit()
         print('\n✓ Database initialized successfully!')
