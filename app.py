@@ -1,5 +1,6 @@
 import os
 import logging
+from datetime import datetime
 from flask import Flask
 from flask_login import LoginManager
 from flask_migrate import Migrate
@@ -59,11 +60,12 @@ def create_app(config_class=Config):
         return User.query.get(int(user_id))
     
     @app.context_processor
-    def inject_config():
-        """Make config and app_name available in all templates"""
+    def inject_globals():
+        """Make common variables available in all templates"""
         return {
             'config': app.config,
-            'app_name': 'LMS'  # FIX: was missing, caused UndefinedError in admin.html
+            'app_name': 'EduLearn',
+            'now': datetime.utcnow(),  # FIX: used in base.html footer as {{ now.year }}
         }
     
     @app.shell_context_processor
@@ -101,13 +103,12 @@ def create_app(config_class=Config):
                 education='Master',
                 university='LMS University',
                 is_admin=True,
-                is_active=True  # FIX: was missing — admin was blocked at login
+                is_active=True
             )
             admin.set_password('admin123')
             db.session.add(admin)
             print('✓ Admin user created: admin@lms.com / admin123')
         else:
-            # FIX: if admin already exists but is inactive, activate them
             if not admin.is_active:
                 admin.is_active = True
                 print('✓ Existing admin account activated')
@@ -129,7 +130,7 @@ def create_app(config_class=Config):
                     is_active=True
                 )
                 db.session.add(course)
-                print(f'✓ Course created: {course.title} ({course.level.capitalize()} - Rs. {course.hourly_rate_pkr}/hr or ${course.hourly_rate_usd}/hr)')
+                print(f'✓ Course created: {course.title}')
         
         db.session.commit()
         print('\n✓ Database initialized successfully!')
@@ -160,18 +161,16 @@ def create_app(config_class=Config):
             education='Master',
             university='Admin University',
             is_admin=True,
-            is_active=True  # FIX: ensure new admins are active
+            is_active=True
         )
         user.set_password(password)
-        
         db.session.add(user)
         db.session.commit()
-        
         print(f'✓ Admin user created: {email}')
 
     @app.cli.command()
     def fix_admin():
-        """Fix existing admin account if it is inactive or missing admin flag"""
+        """Fix existing admin account if inactive or missing admin flag"""
         from models import User
         
         admin = User.query.filter_by(email='admin@lms.com').first()
@@ -200,4 +199,6 @@ def create_app(config_class=Config):
 
 if __name__ == '__main__':
     app = create_app()
-    app.run(debug=True, host='0.0.0.0', port=5000)
+    # FIX: use Railway's dynamic $PORT env variable, fallback to 5000 locally
+    port = int(os.environ.get('PORT', 5000))
+    app.run(debug=False, host='0.0.0.0', port=port)
