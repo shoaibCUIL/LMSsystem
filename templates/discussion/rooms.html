@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+{% block title %}Discussion Rooms - LMS{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width:1100px; margin:2rem auto; padding:0 1rem;">
+
+    <div style="text-align:center; margin-bottom:2.5rem;">
+        <h1 style="font-size:2rem; font-weight:700; color:#1a1a2e;">💬 Discussion Rooms</h1>
+        <p style="color:#666; margin-top:0.5rem;">
+            Join live expert-led discussion sessions on linguistics topics
+        </p>
+    </div>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div style="margin-bottom:1rem; padding:0.75rem 1rem; border-radius:6px;
+                     background:{% if category=='success' %}#d4edda{% elif category=='danger' %}#f8d7da{% else %}#d1ecf1{% endif %};">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    {% if rooms %}
+        <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(320px,1fr)); gap:1.5rem;">
+            {% for room in rooms %}
+            <div style="background:white; border-radius:12px; box-shadow:0 2px 12px rgba(0,0,0,0.08); overflow:hidden;">
+
+                <!-- Room Header -->
+                <div style="background:linear-gradient(135deg,#667eea,#764ba2); padding:1.5rem; color:white;">
+                    <h3 style="margin:0; font-size:1.2rem;">{{ room.title }}</h3>
+                    {% if room.course %}
+                        <span style="font-size:0.85rem; opacity:0.85; margin-top:0.3rem; display:block;">
+                            📚 {{ room.course.title }}
+                        </span>
+                    {% endif %}
+                </div>
+
+                <!-- Room Body -->
+                <div style="padding:1.25rem;">
+                    {% if room.description %}
+                        <p style="color:#555; font-size:0.95rem; margin:0 0 1rem;">
+                            {{ room.description }}
+                        </p>
+                    {% endif %}
+
+                    <div style="display:flex; gap:0.5rem; flex-wrap:wrap; margin-bottom:1rem;">
+                        <span style="background:#f0f0f0; padding:0.3rem 0.75rem;
+                                     border-radius:20px; font-size:0.8rem; color:#555;">
+                            🕒 Flexible scheduling
+                        </span>
+                        <span style="background:#e8f5e9; padding:0.3rem 0.75rem;
+                                     border-radius:20px; font-size:0.8rem; color:#2e7d32;">
+                            ✓ Expert-led
+                        </span>
+                    </div>
+
+                    {% if current_user.is_authenticated %}
+                        <a href="{{ url_for('discussion.room', room_id=room.id) }}"
+                           style="display:block; text-align:center;
+                                  background:linear-gradient(135deg,#667eea,#764ba2);
+                                  color:white; padding:0.65rem; border-radius:8px;
+                                  text-decoration:none; font-weight:600; font-size:0.95rem;">
+                            Enter Room →
+                        </a>
+                    {% else %}
+                        <a href="{{ url_for('auth.login') }}"
+                           style="display:block; text-align:center; background:#6c757d;
+                                  color:white; padding:0.65rem; border-radius:8px;
+                                  text-decoration:none; font-weight:600; font-size:0.95rem;">
+                            Login to Join
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+    {% else %}
+        <div style="text-align:center; padding:4rem 2rem; background:white;
+                    border-radius:12px; box-shadow:0 2px 12px rgba(0,0,0,0.06);">
+            <div style="font-size:3rem; margin-bottom:1rem;">💬</div>
+            <h3 style="color:#333; margin-bottom:0.5rem;">No discussion rooms yet</h3>
+            <p style="color:#888;">The admin will create discussion rooms soon. Check back later!</p>
+            {% if current_user.is_authenticated and current_user.is_admin %}
+                <a href="{{ url_for('admin.dashboard') }}"
+                   style="display:inline-block; margin-top:1rem;
+                          background:linear-gradient(135deg,#667eea,#764ba2);
+                          color:white; padding:0.65rem 1.5rem; border-radius:8px;
+                          text-decoration:none; font-weight:600;">
+                    Go to Admin Panel to Create Rooms
+                </a>
+            {% endif %}
+        </div>
+    {% endif %}
+
+</div>
+{% endblock %}

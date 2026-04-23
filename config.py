@@ -39,11 +39,11 @@ class Config:
     REMEMBER_COOKIE_HTTPONLY = True
     
     # reCAPTCHA v3 (Google)
-    RECAPTCHA_SITE_KEY = os.environ.get('RECAPTCHA_SITE_KEY') or '6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI'  # Test key
-    RECAPTCHA_SECRET_KEY = os.environ.get('RECAPTCHA_SECRET_KEY') or '6LeIxAcTAAAAAGG-vFI1TnRWxMZNFuojJ4WifJWe'  # Test key
+    RECAPTCHA_SITE_KEY = os.environ.get('RECAPTCHA_SITE_KEY') or '6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI'
+    RECAPTCHA_SECRET_KEY = os.environ.get('RECAPTCHA_SECRET_KEY') or '6LeIxAcTAAAAAGG-vFI1TnRWxMZNFuojJ4WifJWe'
     RECAPTCHA_SCORE_THRESHOLD = 0.5
     
-    # Email configuration (for future use)
+    # Email configuration
     MAIL_SERVER = os.environ.get('MAIL_SERVER')
     MAIL_PORT = int(os.environ.get('MAIL_PORT') or 587)
     MAIL_USE_TLS = os.environ.get('MAIL_USE_TLS', 'true').lower() in ['true', 'on', '1']
@@ -69,58 +69,71 @@ class Config:
         },
         'contact_email': 'shoaibtahir411@gmail.com'
     }
-    
+
+    # FIX: was missing entirely — utils.py convert_currency() crashed with KeyError
+    CURRENCY_RATES = {
+        'PKR': 1.0,
+        'USD': 0.0036,
+        'GBP': 0.0028,
+        'EUR': 0.0033,
+        'AED': 0.013,
+        'SAR': 0.013,
+    }
+
+    # FIX: was missing entirely — utils.py convert_currency() crashed with KeyError
+    INTERNATIONAL_MULTIPLIER = 2.0
+
     # Hourly-Based Pricing Structure (Dual Currency)
     HOURLY_RATES = {
         'beginner': {
-            'pkr': 800,    # Rs. 800/hour for local users
-            'usd': 6       # $6/hour for international users (~2x)
+            'pkr': 800,
+            'usd': 6
         },
         'intermediate': {
-            'pkr': 1200,   # Rs. 1,200/hour
-            'usd': 10      # $10/hour
+            'pkr': 1200,
+            'usd': 10
         },
         'advanced': {
-            'pkr': 2000,   # Rs. 2,000/hour
-            'usd': 16      # $16/hour
+            'pkr': 2000,
+            'usd': 16
         }
     }
     
-    # Package Pricing (Pre-calculated with discounts)
-    # Daily: 5 hours with 10% discount
-    # Weekly: 25 hours with 20% discount
+    # Package Pricing
+    # Daily:   5 hours  with 10% discount
+    # Weekly:  25 hours with 20% discount
     # Monthly: 100 hours with 30% discount
     PACKAGE_PRICING = {
         'daily': {
             'hours': 5,
             'discount': 0.10,
-            'beginner': {'pkr': 3600, 'usd': 27},
-            'intermediate': {'pkr': 5400, 'usd': 45},
-            'advanced': {'pkr': 9000, 'usd': 72}
+            'beginner':     {'pkr': 3600,   'usd': 27},
+            'intermediate': {'pkr': 5400,   'usd': 45},
+            'advanced':     {'pkr': 9000,   'usd': 72}
         },
         'weekly': {
             'hours': 25,
             'discount': 0.20,
-            'beginner': {'pkr': 16000, 'usd': 120},
-            'intermediate': {'pkr': 24000, 'usd': 200},
-            'advanced': {'pkr': 40000, 'usd': 320}
+            'beginner':     {'pkr': 16000,  'usd': 120},
+            'intermediate': {'pkr': 24000,  'usd': 200},
+            'advanced':     {'pkr': 40000,  'usd': 320}
         },
         'monthly': {
             'hours': 100,
             'discount': 0.30,
-            'beginner': {'pkr': 56000, 'usd': 420},
-            'intermediate': {'pkr': 84000, 'usd': 700},
-            'advanced': {'pkr': 140000, 'usd': 1120}
+            'beginner':     {'pkr': 56000,  'usd': 420},
+            'intermediate': {'pkr': 84000,  'usd': 700},
+            'advanced':     {'pkr': 140000, 'usd': 1120}
         }
     }
     
     # Add-on Services
     ADD_ON_PRICING = {
-        'guided_support': {'pkr': 5000, 'usd': 40},
-        'one_on_one_mentorship_min': {'pkr': 12000, 'usd': 100},
-        'one_on_one_mentorship_max': {'pkr': 20000, 'usd': 160},
-        'custom_plan_min': {'pkr': 2000, 'usd': 20},
-        'custom_plan_max': {'pkr': 5000, 'usd': 40}
+        'guided_support':               {'pkr': 5000,  'usd': 40},
+        'one_on_one_mentorship_min':     {'pkr': 12000, 'usd': 100},
+        'one_on_one_mentorship_max':     {'pkr': 20000, 'usd': 160},
+        'custom_plan_min':               {'pkr': 2000,  'usd': 20},
+        'custom_plan_max':               {'pkr': 5000,  'usd': 40}
     }
     
     # Multi-course discount (10% off when enrolling in 2+ courses)
@@ -132,7 +145,7 @@ class Config:
             'title': 'General Linguistics',
             'slug': 'general-linguistics',
             'description': 'Comprehensive introduction to the study of language. Perfect for beginners starting their linguistics journey.',
-            'level': 'beginner',  # Lowercase for consistency
+            'level': 'beginner',
             'duration_estimate': '8 weeks',
             'hourly_rate_pkr': 800,
             'hourly_rate_usd': 6
@@ -156,6 +169,7 @@ class Config:
             'hourly_rate_usd': 16
         }
     ]
+
 
 def get_config():
     """Factory function to get config"""

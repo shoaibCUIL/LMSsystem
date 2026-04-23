@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% block title %}Create Discussion Room - Admin{% endblock %}
+
+{% block content %}
+<div class="container my-5" style="max-width:700px;">
+    <div class="mb-4">
+        <a href="{{ url_for('admin.discussion_rooms') }}" class="btn btn-outline-secondary btn-sm mb-3">
+            ← Back to Rooms
+        </a>
+        <h2>💬 Create Discussion Room</h2>
+        <p class="text-muted">Set up a new discussion room for students</p>
+    </div>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }}">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <div class="card" style="border:none; box-shadow:0 2px 12px rgba(0,0,0,0.1);">
+        <div class="card-body p-4">
+            <form method="POST">
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Room Title <span class="text-danger">*</span></label>
+                    <input type="text" name="title" class="form-control" 
+                           placeholder="e.g. Corpus Linguistics Discussion Room" required>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Description</label>
+                    <textarea name="description" class="form-control" rows="3"
+                              placeholder="What will be discussed in this room?"></textarea>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label fw-bold">Link to Course (Optional)</label>
+                    <select name="course_id" class="form-control">
+                        <option value="">— No specific course —</option>
+                        {% for course in courses %}
+                            <option value="{{ course.id }}">{{ course.title }}</option>
+                        {% endfor %}
+                    </select>
+                    <small class="text-muted">Linking a course helps students find the right room.</small>
+                </div>
+
+                <div class="d-grid">
+                    <button type="submit" class="btn btn-lg"
+                            style="background:linear-gradient(135deg,#667eea,#764ba2); color:white; font-weight:600;">
+                        Create Room
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

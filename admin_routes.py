@@ -394,3 +394,145 @@ def toggle_active(user_id):
         flash('An error occurred.', 'danger')
 
     return redirect(url_for('admin.users'))
+
+# ================================
+# DISCUSSION MANAGEMENT
+# ================================
+
+@admin_bp.route('/discussion/rooms')
+@login_required
+@admin_required
+def discussion_rooms():
+    from models import DiscussionRoom
+    rooms = DiscussionRoom.query.order_by(DiscussionRoom.created_at.desc()).all()
+    return render_template('admin/discussion_rooms.html', rooms=rooms)
+
+
+@admin_bp.route('/discussion/rooms/create', methods=['GET', 'POST'])
+@login_required
+@admin_required
+def create_discussion_room():
+    from models import DiscussionRoom
+    if request.method == 'POST':
+        title = request.form.get('title', '').strip()
+        description = request.form.get('description', '').strip()
+        course_id = request.form.get('course_id') or None
+        if not title:
+            flash('Title is required.', 'danger')
+        else:
+            room = DiscussionRoom(title=title, description=description, course_id=course_id)
+            db.session.add(room)
+            db.session.commit()
+            flash('Discussion room created!', 'success')
+            return redirect(url_for('admin.discussion_rooms'))
+    courses = Course.query.filter_by(is_active=True).all()
+    return render_template('admin/create_discussion_room.html', courses=courses)
+
+
+@admin_bp.route('/discussion/sessions')
+@login_required
+@admin_required
+def discussion_sessions():
+    from models import DiscussionSession, DiscussionRoom
+    sessions = DiscussionSession.query.order_by(
+        DiscussionSession.scheduled_at.desc()).all()
+    rooms = DiscussionRoom.query.filter_by(is_active=True).all()
+    return render_template('admin/discussion_sessions.html',
+                           sessions=sessions, rooms=rooms)
+
+
+@admin_bp.route('/discussion/sessions/create', methods=['POST'])
+@login_required
+@admin_required
+def create_discussion_session():
+    from models import DiscussionSession
+    try:
+        scheduled_str = request.form.get('scheduled_at', '')
+        scheduled_at = datetime.strptime(scheduled_str, '%Y-%m-%dT%H:%M')
+
+        session = DiscussionSession(
+            room_id=int(request.form.get('room_id')),
+            title=request.form.get('title', '').strip(),
+            description=request.form.get('description', '').strip(),
+            topic=request.form.get('topic', '').strip(),
+            scheduled_at=scheduled_at,
+            duration_minutes=int(request.form.get('duration_minutes', 60)),
+            meeting_link=request.form.get('meeting_link', '').strip(),
+            meeting_password=request.form.get('meeting_password', '').strip(),
+            meeting_platform=request.form.get('meeting_platform', 'Zoom')
+        )
+        db.session.add(session)
+        db.session.commit()
+        flash('Session scheduled successfully!', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error: {str(e)}', 'danger')
+    return redirect(url_for('admin.discussion_sessions'))
+
+
+@admin_bp.route('/discussion/sessions/<int:session_id>/delete', methods=['POST'])
+@login_required
+@admin_required
+def delete_discussion_session(session_id):
+    from models import DiscussionSession
+    s = DiscussionSession.query.get_or_404(session_id)
+    db.session.delete(s)
+    db.session.commit()
+    flash('Session deleted.', 'info')
+    return redirect(url_for('admin.discussion_sessions'))
+
+
+@admin_bp.route('/discussion/subscriptions')
+@login_required
+@admin_required
+def discussion_subscriptions():
+    from models import DiscussionSubscription
+    status_filter = request.args.get('status', 'all')
+    query = DiscussionSubscription.query
+    if status_filter != 'all':
+        query = query.filter_by(status=status_filter)
+    subs = query.order_by(DiscussionSubscription.subscribed_at.desc()).all()
+    return render_template('admin/discussion_subscriptions.html',
+                           subscriptions=subs, status_filter=status_filter)
+
+
+@admin_bp.route('/discussion/subscriptions/<int:sub_id>/approve', methods=['POST'])
+@login_required
+@admin_required
+def approve_discussion_sub(sub_id):
+    from models import DiscussionSubscription
+    sub = DiscussionSubscription.query.get_or_404(sub_id)
+    if sub.status != 'pending':
+        flash('Not pending.', 'warning')
+        return redirect(url_for('admin.discussion_subscriptions'))
+    sub.status = 'approved'
+    sub.approved_at = datetime.utcnow()
+    sub.expires_at = datetime.utcnow() + timedelta(days=sub.duration_days)
+    db.session.commit()
+    flash(f'Subscription approved for {sub.user.first_name}!', 'success')
+    return redirect(url_for('admin.discussion_subscriptions'))
+
+
+@admin_bp.route('/discussion/subscriptions/<int:sub_id>/reject', methods=['POST'])
+@login_required
+@admin_required
+def reject_discussion_sub(sub_id):
+    from models import DiscussionSubscription
+    sub = DiscussionSubscription.query.get_or_404(sub_id)
+    sub.status = 'rejected'
+    sub.admin_notes = request.form.get('admin_notes', '')
+    db.session.commit()
+    flash('Subscription rejected.', 'info')
+    return redirect(url_for('admin.discussion_subscriptions'))
+
+@admin_bp.route('/discussion/rooms/<int:room_id>/toggle', methods=['POST'])
+@login_required
+@admin_required
+def toggle_discussion_room(room_id):
+    from models import DiscussionRoom
+    room = DiscussionRoom.query.get_or_404(room_id)
+    room.is_active = not room.is_active
+    db.session.commit()
+    status = 'activated' if room.is_active else 'deactivated'
+    flash(f'Room "{room.title}" {status}.', 'success')
+    return redirect(url_for('admin.discussion_rooms'))

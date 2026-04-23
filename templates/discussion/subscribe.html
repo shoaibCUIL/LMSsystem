@@ -1,0 +1,183 @@
+{% extends "base.html" %}
+{% block title %}Subscribe to Discussion - {{ app_name }}{% endblock %}
+{% block content %}
+<div class="container my-5" style="max-width:700px">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1><i class="fas fa-lock-open text-primary"></i> Subscribe to Discussion</h1>
+        <a href="{{ url_for('discussion.room', room_id=room.id) }}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left"></i> Back
+        </a>
+    </div>
+
+    <div class="alert alert-info">
+        <i class="fas fa-info-circle"></i>
+        <strong>Flexible Pricing:</strong> Price is calculated based on your topic, hours per day, and total days.
+        Advanced topics cost more per hour than beginner topics.
+    </div>
+
+    <!-- Pricing Preview Card -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-dark text-white">
+            <h5 class="mb-0"><i class="fas fa-calculator"></i> Price Calculator</h5>
+        </div>
+        <div class="card-body">
+            <div class="row text-center">
+                <div class="col-4">
+                    <div class="p-3 bg-light rounded">
+                        <div class="text-muted small">Beginner topics</div>
+                        <div class="fw-bold text-success">Rs. 250/hr</div>
+                    </div>
+                </div>
+                <div class="col-4">
+                    <div class="p-3 bg-light rounded">
+                        <div class="text-muted small">Intermediate topics</div>
+                        <div class="fw-bold text-warning">Rs. 350/hr</div>
+                    </div>
+                </div>
+                <div class="col-4">
+                    <div class="p-3 bg-light rounded">
+                        <div class="text-muted small">Advanced topics</div>
+                        <div class="fw-bold text-danger">Rs. 500/hr</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Live price preview -->
+            <div class="mt-4 p-3 border rounded text-center" id="price-preview">
+                <h4>Estimated Price: <span id="preview-price" class="text-primary">Rs. 0</span></h4>
+                <small class="text-muted">
+                    <span id="preview-hours">0</span> total hours ×
+                    <span id="preview-rate">Rs. 250</span>/hr
+                </small>
+            </div>
+        </div>
+    </div>
+
+    <!-- Subscription Form -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-dark text-white">
+            <h5 class="mb-0"><i class="fas fa-edit"></i> Subscription Details</h5>
+        </div>
+        <div class="card-body">
+            <form method="POST" enctype="multipart/form-data" id="subscribe-form">
+
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Discussion Topic <span class="text-danger">*</span></label>
+                    <input type="text" name="topic" id="topic-input" class="form-control"
+                           placeholder="e.g. Syntax analysis, NLP fundamentals, Corpus methods..."
+                           required maxlength="300">
+                    <div class="form-text">Be specific — this determines your price rate.</div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-6">
+                        <label class="form-label fw-bold">Duration (Days) <span class="text-danger">*</span></label>
+                        <select name="duration_days" id="duration-days" class="form-select" required>
+                            <option value="7">7 days (1 week)</option>
+                            <option value="14">14 days (2 weeks)</option>
+                            <option value="30" selected>30 days (1 month)</option>
+                            <option value="60">60 days (2 months)</option>
+                            <option value="90">90 days (3 months)</option>
+                        </select>
+                    </div>
+                    <div class="col-6">
+                        <label class="form-label fw-bold">Hours per Day <span class="text-danger">*</span></label>
+                        <select name="hours_per_day" id="hours-per-day" class="form-select" required>
+                            <option value="1">1 hour/day</option>
+                            <option value="2">2 hours/day</option>
+                            <option value="3">3 hours/day</option>
+                            <option value="4">4 hours/day</option>
+                            <option value="5">5 hours/day</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Payment Method <span class="text-danger">*</span></label>
+                    <select name="payment_method" id="payment-method" class="form-select" required>
+                        <option value="">Select Payment Method</option>
+                        <option value="jazzcash">JazzCash — {{ payment_info.jazzcash.number }}</option>
+                        <option value="easypaisa">Easypaisa — {{ payment_info.easypaisa.number }}</option>
+                        <option value="bank">Bank Transfer — {{ payment_info.bank.bank_name }}</option>
+                    </select>
+                </div>
+
+                <!-- Payment details panel -->
+                <div id="payment-details" class="alert alert-warning d-none mb-3">
+                    <div id="jazzcash-info" class="d-none">
+                        <strong><i class="fas fa-mobile-alt"></i> JazzCash:</strong>
+                        {{ payment_info.jazzcash.number }} — {{ payment_info.jazzcash.account_name }}
+                    </div>
+                    <div id="easypaisa-info" class="d-none">
+                        <strong><i class="fas fa-mobile-alt"></i> Easypaisa:</strong>
+                        {{ payment_info.easypaisa.number }} — {{ payment_info.easypaisa.account_name }}
+                    </div>
+                    <div id="bank-info" class="d-none">
+                        <strong><i class="fas fa-university"></i> {{ payment_info.bank.bank_name }}:</strong><br>
+                        Account: {{ payment_info.bank.account_number }}<br>
+                        IBAN: {{ payment_info.bank.iban }}<br>
+                        Title: {{ payment_info.bank.account_title }}
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Upload Payment Receipt <span class="text-danger">*</span></label>
+                    <input type="file" name="payment_receipt" class="form-control"
+                           accept=".jpg,.jpeg,.png,.pdf" required>
+                    <div class="form-text">JPG, PNG or PDF. Max 16MB.</div>
+                </div>
+
+                <button type="submit" class="btn btn-primary w-100 btn-lg"
+                        onclick="return confirm('Submit subscription for Rs. ' + document.getElementById('preview-price').textContent + '?')">
+                    <i class="fas fa-paper-plane"></i> Submit Subscription
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% block extra_js %}
+<script>
+const rates = { beginner: 250, intermediate: 350, advanced: 500 };
+
+function getRate(topic) {
+    const t = topic.toLowerCase();
+    if (['advanced','computational','nlp','machine','research'].some(w => t.includes(w))) return 500;
+    if (['corpus','intermediate','analysis','syntax'].some(w => t.includes(w))) return 350;
+    return 250;
+}
+
+function updatePrice() {
+    const topic = document.getElementById('topic-input').value;
+    const days = parseInt(document.getElementById('duration-days').value) || 30;
+    const hrs = parseInt(document.getElementById('hours-per-day').value) || 1;
+    const rate = getRate(topic);
+    const totalHours = days * hrs;
+    const total = rate * totalHours;
+    {% if user.country != 'Pakistan' %}
+    const finalTotal = total * 2;
+    {% else %}
+    const finalTotal = total;
+    {% endif %}
+    document.getElementById('preview-price').textContent = 'Rs. ' + finalTotal.toLocaleString();
+    document.getElementById('preview-hours').textContent = totalHours;
+    document.getElementById('preview-rate').textContent = 'Rs. ' + rate;
+}
+
+document.getElementById('topic-input').addEventListener('input', updatePrice);
+document.getElementById('duration-days').addEventListener('change', updatePrice);
+document.getElementById('hours-per-day').addEventListener('change', updatePrice);
+
+document.getElementById('payment-method').addEventListener('change', function() {
+    const v = this.value;
+    document.getElementById('payment-details').classList.toggle('d-none', !v);
+    ['jazzcash-info','easypaisa-info','bank-info'].forEach(id => {
+        document.getElementById(id).classList.add('d-none');
+    });
+    if (v) document.getElementById(v + '-info').classList.remove('d-none');
+});
+
+updatePrice();
+</script>
+{% endblock %}
+{% endblock %}

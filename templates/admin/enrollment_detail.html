@@ -1,0 +1,271 @@
+{% extends "base.html" %}
+{% block title %}Enrollment #{{ enrollment.id }} - {{ app_name }}{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>
+            <i class="fas fa-file-invoice text-primary"></i> Enrollment #{{ enrollment.id }}
+        </h1>
+        <a href="{{ url_for('admin.enrollments') }}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left"></i> Back to Enrollments
+        </a>
+    </div>
+
+    <!-- Status Banner -->
+    <div class="alert 
+        {% if enrollment.status == 'approved' %}alert-success
+        {% elif enrollment.status == 'rejected' %}alert-danger
+        {% else %}alert-warning{% endif %} mb-4">
+        <div class="d-flex align-items-center gap-2">
+            <i class="fas 
+                {% if enrollment.status == 'approved' %}fa-check-circle
+                {% elif enrollment.status == 'rejected' %}fa-times-circle
+                {% else %}fa-hourglass-half{% endif %} fa-lg"></i>
+            <strong>Status: {{ enrollment.status | capitalize }}</strong>
+            {% if enrollment.status == 'approved' %}
+                &mdash; Approved on {{ enrollment.approved_at.strftime('%B %d, %Y') if enrollment.approved_at else 'N/A' }}
+            {% elif enrollment.status == 'rejected' %}
+                &mdash; This enrollment was rejected
+            {% else %}
+                &mdash; Awaiting your review
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="row">
+
+        <!-- LEFT COLUMN: Student + Course info -->
+        <div class="col-md-6 mb-4">
+
+            <!-- Student Info -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-dark text-white">
+                    <h5 class="mb-0"><i class="fas fa-user"></i> Student Information</h5>
+                </div>
+                <div class="card-body">
+                    <table class="table table-sm table-borderless mb-0">
+                        <tr>
+                            <td class="text-muted" style="width:40%">Full Name</td>
+                            <td><strong>{{ enrollment.student.first_name }} {{ enrollment.student.last_name }}</strong></td>
+                        </tr>
+                        <tr>
+                            <td class="text-muted">Email</td>
+                            <td>{{ enrollment.student.email }}</td>
+                        </tr>
+                        <tr>
+                            <td class="text-muted">Designation</td>
+                            <td>{{ enrollment.student.designation }}</td>
+                        </tr>
+                        <tr>
+                            <td class="text-muted">Education</td>
+                            <td>{{ enrollment.student.education }}</td>
+                        </tr>
+                        <tr>
+                            <td class="text-muted">University</td>
+                            <td>{{ enrollment.student.university }}</td>
+                        </tr>
+                        <tr>
+                            <td class="text-muted">Location</td>
+                            <td>{{ enrollment.student.city }}, {{ enrollment.student.country }}</td>
+                        </tr>
+                        <tr>
+                            <td class="text-muted">Account Status</td>
+                            <td>
+                                {% if enrollment.student.is_active %}
+                                    <span class="badge bg-success">Active</span>
+                                {% else %}
+                                    <span class="badge bg-warning text-dark">Inactive</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Course Info -->
+            <div class="card shadow-sm">
+                <div class="card-header bg-dark text-white">
+                    <h5 class="mb-0"><i class="fas fa-book"></i> Course Information</h5>
+                </div>
+                <div class="card-body">
+                    <table class="table table-sm table-borderless mb-0">
+                        <tr>
+                            <td class="text-muted" style="width:40%">Course</td>
+                            <td><strong>{{ enrollment.course.title }}</strong></td>
+                        </tr>
+                        <tr>
+                            <td class="text-muted">Level</td>
+                            <td>
+                                <span class="badge 
+                                    {% if enrollment.course.level == 'beginner' %}bg-success
+                                    {% elif enrollment.course.level == 'intermediate' %}bg-warning text-dark
+                                    {% else %}bg-danger{% endif %}">
+                                    {{ enrollment.course.level | capitalize }}
+                                </span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="text-muted">Duration Estimate</td>
+                            <td>{{ enrollment.course.duration_estimate or 'N/A' }}</td>
+                        </tr>
+                        <tr>
+                            <td class="text-muted">Hourly Rate (PKR)</td>
+                            <td>Rs. {{ enrollment.course.hourly_rate_pkr }}/hr</td>
+                        </tr>
+                        <tr>
+                            <td class="text-muted">Hourly Rate (USD)</td>
+                            <td>${{ enrollment.course.hourly_rate_usd }}/hr</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- RIGHT COLUMN: Payment + Enrollment details -->
+        <div class="col-md-6 mb-4">
+
+            <!-- Enrollment Details -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-dark text-white">
+                    <h5 class="mb-0"><i class="fas fa-graduation-cap"></i> Enrollment Details</h5>
+                </div>
+                <div class="card-body">
+                    <table class="table table-sm table-borderless mb-0">
+                        <tr>
+                            <td class="text-muted" style="width:40%">Enrollment ID</td>
+                            <td>#{{ enrollment.id }}</td>
+                        </tr>
+                        <tr>
+                            <td class="text-muted">Package Type</td>
+                            <td>{{ enrollment.enrollment_type | capitalize if enrollment.enrollment_type else 'Custom' }}</td>
+                        </tr>
+                        <tr>
+                            <td class="text-muted">Total Days</td>
+                            <td>{{ enrollment.total_days }} days</td>
+                        </tr>
+                        <tr>
+                            <td class="text-muted">Amount Paid</td>
+                            <td><strong class="text-success">Rs. {{ "{:,.0f}".format(enrollment.price_paid_pkr) }}</strong></td>
+                        </tr>
+                        <tr>
+                            <td class="text-muted">Currency</td>
+                            <td>{{ enrollment.currency }}</td>
+                        </tr>
+                        <tr>
+                            <td class="text-muted">Enrolled On</td>
+                            <td>{{ enrollment.enrolled_at.strftime('%B %d, %Y at %I:%M %p') }}</td>
+                        </tr>
+                        {% if enrollment.status == 'approved' %}
+                        <tr>
+                            <td class="text-muted">Approved On</td>
+                            <td>{{ enrollment.approved_at.strftime('%B %d, %Y') if enrollment.approved_at else '-' }}</td>
+                        </tr>
+                        <tr>
+                            <td class="text-muted">Expires On</td>
+                            <td>
+                                {% if enrollment.expires_at %}
+                                    {% if enrollment.is_active() %}
+                                        <span class="text-success">
+                                            <i class="fas fa-check-circle"></i>
+                                            {{ enrollment.expires_at.strftime('%B %d, %Y') }}
+                                        </span>
+                                    {% else %}
+                                        <span class="text-danger">
+                                            <i class="fas fa-times-circle"></i>
+                                            Expired ({{ enrollment.expires_at.strftime('%B %d, %Y') }})
+                                        </span>
+                                    {% endif %}
+                                {% else %}
+                                    -
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endif %}
+                        {% if enrollment.admin_notes %}
+                        <tr>
+                            <td class="text-muted">Admin Notes</td>
+                            <td class="text-danger">{{ enrollment.admin_notes }}</td>
+                        </tr>
+                        {% endif %}
+                    </table>
+                </div>
+            </div>
+
+            <!-- Payment Info -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-dark text-white">
+                    <h5 class="mb-0"><i class="fas fa-credit-card"></i> Payment Information</h5>
+                </div>
+                <div class="card-body">
+                    <table class="table table-sm table-borderless mb-0">
+                        <tr>
+                            <td class="text-muted" style="width:40%">Payment Method</td>
+                            <td>
+                                <span class="badge bg-info">{{ enrollment.payment_method | upper }}</span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="text-muted">Receipt File</td>
+                            <td>
+                                {% if enrollment.payment_receipt %}
+                                    <a href="{{ url_for('main.uploaded_file', folder='receipts', filename=enrollment.payment_receipt) }}"
+                                       target="_blank" class="btn btn-sm btn-outline-primary">
+                                        <i class="fas fa-eye"></i> View Receipt
+                                    </a>
+                                {% else %}
+                                    <span class="text-muted">No receipt uploaded</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Admin Actions (only shown for pending) -->
+            {% if enrollment.status == 'pending' %}
+            <div class="card shadow-sm border-warning">
+                <div class="card-header bg-warning text-dark">
+                    <h5 class="mb-0"><i class="fas fa-gavel"></i> Admin Actions</h5>
+                </div>
+                <div class="card-body">
+
+                    <!-- Approve -->
+                    <form method="POST"
+                          action="{{ url_for('admin.approve_enrollment', enrollment_id=enrollment.id) }}"
+                          onsubmit="return confirm('Approve this enrollment? This will activate the student\'s access.')">
+                        <button type="submit" class="btn btn-success w-100 mb-3">
+                            <i class="fas fa-check-circle"></i> Approve Enrollment
+                        </button>
+                    </form>
+
+                    <hr>
+
+                    <!-- Reject -->
+                    <form method="POST"
+                          action="{{ url_for('admin.reject_enrollment', enrollment_id=enrollment.id) }}"
+                          onsubmit="return confirm('Reject this enrollment?')">
+                        <div class="mb-3">
+                            <label class="form-label text-muted small">
+                                Rejection reason (shown to student)
+                            </label>
+                            <textarea name="admin_notes"
+                                      class="form-control"
+                                      rows="3"
+                                      placeholder="e.g. Payment receipt unclear, please resubmit..."></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-danger w-100">
+                            <i class="fas fa-times-circle"></i> Reject Enrollment
+                        </button>
+                    </form>
+
+                </div>
+            </div>
+            {% endif %}
+
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -16,37 +16,55 @@
         {% for course in courses %}
         <div class="course-card">
             {% if course.thumbnail %}
-                <img src="{{ url_for('main.uploaded_file', folder='thumbnails', filename=course.thumbnail) }}" 
-                     alt="{{ course.title }}" 
+                <img src="{{ url_for('main.uploaded_file', folder='thumbnails', filename=course.thumbnail) }}"
+                     alt="{{ course.title }}"
                      class="course-thumbnail">
             {% else %}
-                <div class="course-thumbnail"></div>
+                <div class="course-thumbnail" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); height: 160px; display: flex; align-items: center; justify-content: center;">
+                    <i class="fas fa-book fa-3x" style="color: white; opacity: 0.7;"></i>
+                </div>
             {% endif %}
-            
+
             <div class="course-content">
                 <div style="margin-bottom: 1rem;">
-                    <span class="badge badge-primary">{{ course.level or 'All Levels' }}</span>
+                    <span class="badge badge-primary">{{ course.level | capitalize or 'All Levels' }}</span>
                     {% if course.duration_estimate %}
                         <span class="badge" style="background: #34495e; color: white; margin-left: 0.5rem;">
                             {{ course.duration_estimate }}
                         </span>
                     {% endif %}
                 </div>
-                
+
                 <h3 class="course-title">{{ course.title }}</h3>
                 <p class="course-description">{{ course.description }}</p>
-                
+
                 <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #ecf0f1;">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-                        <div>
-                            <div style="font-size: 0.85rem; color: #7f8c8d;">Starting from</div>
-                            <div style="font-size: 1.5rem; font-weight: 700; color: #3498db;">
-                                Rs. {{ "%.0f"|format(course.min_price_pkr) }}
-                            </div>
-                            <div style="font-size: 0.85rem; color: #7f8c8d;">{{ course.min_days }} days minimum</div>
+                    <!-- PKR Pricing -->
+                    <div style="margin-bottom: 0.5rem;">
+                        <div style="font-size: 0.85rem; color: #7f8c8d;">Rate (Pakistan)</div>
+                        <div style="font-size: 1.4rem; font-weight: 700; color: #3498db;">
+                            Rs. {{ course.hourly_rate_pkr * 5 | int }}<span style="font-size: 0.9rem; font-weight: normal;">/day</span>
                         </div>
                     </div>
-                    
+
+                    <!-- International Pricing -->
+                    <div style="margin-bottom: 1rem;">
+                        <div style="font-size: 0.85rem; color: #7f8c8d;">Rate (International)</div>
+                        <div style="font-size: 1.1rem; font-weight: 600; color: #e67e22;">
+                            Rs. {{ course.hourly_rate_pkr * 5 * 2 | int }}<span style="font-size: 0.85rem; font-weight: normal;">/day</span>
+                            <span style="font-size: 0.75rem; color: #27ae60; margin-left: 0.5rem;">
+                                (${{ course.hourly_rate_usd * 5 }}/day)
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Discount Badge -->
+                    <div style="margin-bottom: 1rem;">
+                        <span style="background: #27ae60; color: white; padding: 0.2rem 0.6rem; border-radius: 20px; font-size: 0.8rem;">
+                            🎉 Discount available on 2+ days
+                        </span>
+                    </div>
+
                     <a href="{{ url_for('courses.detail', slug=course.slug) }}" class="btn btn-primary btn-block">
                         View Details & Enroll
                     </a>

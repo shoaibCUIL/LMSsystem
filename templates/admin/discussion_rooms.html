@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+{% block title %}Discussion Rooms - Admin{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2>💬 Discussion Rooms</h2>
+            <p class="text-muted">Create and manage discussion rooms</p>
+        </div>
+        <a href="{{ url_for('admin.create_discussion_room') }}" 
+           class="btn" style="background:linear-gradient(135deg,#667eea,#764ba2); color:white; font-weight:600;">
+            + Create New Room
+        </a>
+    </div>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }}">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    {% if rooms %}
+    <div class="table-responsive">
+        <table class="table table-hover">
+            <thead class="table-dark">
+                <tr>
+                    <th>#</th>
+                    <th>Room Title</th>
+                    <th>Course</th>
+                    <th>Description</th>
+                    <th>Status</th>
+                    <th>Created</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for room in rooms %}
+                <tr>
+                    <td>{{ room.id }}</td>
+                    <td><strong>{{ room.title }}</strong></td>
+                    <td>{{ room.course.title if room.course else '—' }}</td>
+                    <td>{{ room.description[:60] + '...' if room.description and room.description|length > 60 else room.description or '—' }}</td>
+                    <td>
+                        {% if room.is_active %}
+                            <span class="badge bg-success">Active</span>
+                        {% else %}
+                            <span class="badge bg-secondary">Inactive</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ room.created_at.strftime('%b %d, %Y') }}</td>
+                    <td>
+                        <a href="{{ url_for('discussion.room', room_id=room.id) }}" 
+                           class="btn btn-sm btn-outline-primary" target="_blank">View</a>
+                        <form method="POST" 
+                              action="{{ url_for('admin.toggle_discussion_room', room_id=room.id) }}"
+                              style="display:inline;">
+                            <button type="submit" class="btn btn-sm {{ 'btn-warning' if room.is_active else 'btn-success' }}">
+                                {{ 'Deactivate' if room.is_active else 'Activate' }}
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="text-center py-5">
+        <div style="font-size:3rem;">💬</div>
+        <h4 class="mt-3">No discussion rooms yet</h4>
+        <p class="text-muted">Create your first discussion room to get started.</p>
+        <a href="{{ url_for('admin.create_discussion_room') }}" 
+           class="btn" style="background:linear-gradient(135deg,#667eea,#764ba2); color:white;">
+            + Create First Room
+        </a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

@@ -3,57 +3,830 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}LMS - Learning Management System{% endblock %}</title>
-    
+    <title>{% block title %}EduLearn — Modern Learning Platform{% endblock %}</title>
+
+    <!-- Google Fonts: Sora (headings) + DM Sans (body) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&display=swap" rel="stylesheet">
+
     <!-- Main Stylesheet -->
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-    
+
+    <style>
+        /* ===========================
+           CSS DESIGN TOKENS
+        =========================== */
+        :root {
+            --brand-blue:       #0056D2;
+            --brand-blue-dark:  #003E99;
+            --brand-blue-light: #EBF2FF;
+            --accent-teal:      #00A693;
+            --accent-amber:     #F5A623;
+            --accent-rose:      #E84393;
+
+            --surface-0:  #FFFFFF;
+            --surface-1:  #F7F9FC;
+            --surface-2:  #EEF2F9;
+            --surface-3:  #DDE4F0;
+
+            --text-primary:   #0D1B3E;
+            --text-secondary: #4A5578;
+            --text-muted:     #8895B3;
+            --text-inverse:   #FFFFFF;
+
+            --border-light: rgba(13,27,62,.08);
+            --border-mid:   rgba(13,27,62,.14);
+
+            --radius-sm: 6px;
+            --radius-md: 12px;
+            --radius-lg: 20px;
+            --radius-xl: 32px;
+            --radius-pill: 999px;
+
+            --shadow-xs: 0 1px 3px rgba(13,27,62,.06), 0 1px 2px rgba(13,27,62,.04);
+            --shadow-sm: 0 4px 12px rgba(13,27,62,.08), 0 1px 3px rgba(13,27,62,.05);
+            --shadow-md: 0 8px 24px rgba(13,27,62,.10), 0 2px 6px rgba(13,27,62,.06);
+            --shadow-lg: 0 16px 40px rgba(13,27,62,.12), 0 4px 12px rgba(13,27,62,.08);
+
+            --nav-height: 68px;
+            --transition: 200ms cubic-bezier(.4,0,.2,1);
+        }
+
+        /* ===========================
+           RESET & BASE
+        =========================== */
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        html { scroll-behavior: smooth; font-size: 16px; -webkit-font-smoothing: antialiased; }
+
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background: var(--surface-1);
+            color: var(--text-primary);
+            line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        a { text-decoration: none; color: inherit; }
+        ul { list-style: none; }
+        img { display: block; max-width: 100%; }
+
+        /* ===========================
+           NAVBAR
+        =========================== */
+        .navbar {
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            height: var(--nav-height);
+            background: var(--surface-0);
+            border-bottom: 1px solid var(--border-light);
+            box-shadow: var(--shadow-xs);
+            backdrop-filter: blur(12px);
+        }
+
+        .navbar-container {
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 0 1.5rem;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            gap: 2rem;
+        }
+
+        /* Brand */
+        .navbar-brand {
+            display: flex;
+            align-items: center;
+            gap: .5rem;
+            font-family: 'Sora', sans-serif;
+            font-weight: 800;
+            font-size: 1.35rem;
+            color: var(--brand-blue);
+            letter-spacing: -.02em;
+            flex-shrink: 0;
+        }
+
+        .navbar-brand .brand-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--accent-teal);
+            display: inline-block;
+            margin-left: 1px;
+        }
+
+        /* Nav links */
+        .navbar-links {
+            display: flex;
+            align-items: center;
+            gap: .25rem;
+            flex: 1;
+        }
+
+        .navbar-links a {
+            font-size: .9rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+            padding: .45rem .75rem;
+            border-radius: var(--radius-sm);
+            transition: color var(--transition), background var(--transition);
+            white-space: nowrap;
+        }
+
+        .navbar-links a:hover,
+        .navbar-links a.active {
+            color: var(--brand-blue);
+            background: var(--brand-blue-light);
+        }
+
+        /* Explore dropdown trigger */
+        .nav-explore {
+            position: relative;
+        }
+
+        .nav-explore > a::after {
+            content: '▾';
+            font-size: .7rem;
+            margin-left: .3rem;
+            vertical-align: middle;
+        }
+
+        /* Right section */
+        .navbar-right {
+            display: flex;
+            align-items: center;
+            gap: .75rem;
+            margin-left: auto;
+            flex-shrink: 0;
+        }
+
+        /* Search bar */
+        .navbar-search {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .navbar-search input {
+            height: 38px;
+            width: 220px;
+            padding: 0 1rem 0 2.5rem;
+            border: 1.5px solid var(--border-mid);
+            border-radius: var(--radius-pill);
+            font-family: 'DM Sans', sans-serif;
+            font-size: .875rem;
+            color: var(--text-primary);
+            background: var(--surface-1);
+            outline: none;
+            transition: border-color var(--transition), box-shadow var(--transition), width var(--transition);
+        }
+
+        .navbar-search input:focus {
+            border-color: var(--brand-blue);
+            box-shadow: 0 0 0 3px rgba(0,86,210,.12);
+            width: 280px;
+            background: var(--surface-0);
+        }
+
+        .navbar-search input::placeholder { color: var(--text-muted); }
+
+        .navbar-search svg {
+            position: absolute;
+            left: .75rem;
+            pointer-events: none;
+            color: var(--text-muted);
+        }
+
+        /* Buttons */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: .4rem;
+            height: 38px;
+            padding: 0 1.1rem;
+            border-radius: var(--radius-pill);
+            font-family: 'DM Sans', sans-serif;
+            font-size: .875rem;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            transition: all var(--transition);
+            white-space: nowrap;
+        }
+
+        .btn-ghost {
+            background: transparent;
+            color: var(--text-secondary);
+        }
+
+        .btn-ghost:hover {
+            background: var(--surface-2);
+            color: var(--text-primary);
+        }
+
+        .btn-outline {
+            background: transparent;
+            color: var(--brand-blue);
+            border: 1.5px solid var(--brand-blue);
+        }
+
+        .btn-outline:hover {
+            background: var(--brand-blue-light);
+        }
+
+        .btn-primary {
+            background: var(--brand-blue);
+            color: var(--text-inverse);
+            box-shadow: 0 2px 8px rgba(0,86,210,.28);
+        }
+
+        .btn-primary:hover {
+            background: var(--brand-blue-dark);
+            box-shadow: 0 4px 14px rgba(0,86,210,.38);
+            transform: translateY(-1px);
+        }
+
+        /* User avatar pill */
+        .user-pill {
+            display: flex;
+            align-items: center;
+            gap: .5rem;
+            padding: .3rem .75rem .3rem .3rem;
+            border-radius: var(--radius-pill);
+            border: 1.5px solid var(--border-mid);
+            cursor: pointer;
+            transition: all var(--transition);
+            background: var(--surface-0);
+        }
+
+        .user-pill:hover {
+            border-color: var(--brand-blue);
+            background: var(--brand-blue-light);
+        }
+
+        .user-avatar {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--brand-blue), var(--accent-teal));
+            color: white;
+            font-size: .75rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .user-name {
+            font-size: .85rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        /* Admin badge */
+        .badge-admin {
+            font-size: .7rem;
+            font-weight: 700;
+            padding: .15rem .5rem;
+            border-radius: var(--radius-pill);
+            background: linear-gradient(135deg, var(--accent-amber), #e8931a);
+            color: white;
+            text-transform: uppercase;
+            letter-spacing: .04em;
+        }
+
+        /* Notification dot */
+        .notif-btn {
+            position: relative;
+            width: 38px;
+            height: 38px;
+            border-radius: var(--radius-md);
+            background: var(--surface-1);
+            border: 1.5px solid var(--border-light);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all var(--transition);
+            color: var(--text-secondary);
+        }
+
+        .notif-btn:hover {
+            background: var(--brand-blue-light);
+            border-color: var(--brand-blue);
+            color: var(--brand-blue);
+        }
+
+        /* Mobile hamburger */
+        .hamburger {
+            display: none;
+            flex-direction: column;
+            gap: 5px;
+            cursor: pointer;
+            padding: .5rem;
+        }
+
+        .hamburger span {
+            width: 22px;
+            height: 2px;
+            background: var(--text-primary);
+            border-radius: 2px;
+            transition: all var(--transition);
+        }
+
+        /* ===========================
+           FLASH MESSAGES
+        =========================== */
+        .flash-container {
+            max-width: 1280px;
+            margin: 1rem auto 0;
+            padding: 0 1.5rem;
+        }
+
+        .flash {
+            display: flex;
+            align-items: center;
+            gap: .75rem;
+            padding: .85rem 1.2rem;
+            border-radius: var(--radius-md);
+            font-size: .9rem;
+            font-weight: 500;
+            margin-bottom: .5rem;
+            animation: slideDown .3s ease;
+        }
+
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-8px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        .flash-success {
+            background: #ECFDF5;
+            color: #065F46;
+            border: 1px solid #A7F3D0;
+        }
+
+        .flash-error, .flash-danger {
+            background: #FEF2F2;
+            color: #991B1B;
+            border: 1px solid #FECACA;
+        }
+
+        .flash-warning {
+            background: #FFFBEB;
+            color: #92400E;
+            border: 1px solid #FDE68A;
+        }
+
+        .flash-info {
+            background: var(--brand-blue-light);
+            color: var(--brand-blue-dark);
+            border: 1px solid #BFDBFE;
+        }
+
+        .flash-close {
+            margin-left: auto;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 1.1rem;
+            opacity: .6;
+            line-height: 1;
+            color: inherit;
+        }
+
+        .flash-close:hover { opacity: 1; }
+
+        /* ===========================
+           MAIN CONTENT
+        =========================== */
+        main {
+            flex: 1;
+        }
+
+        /* Utility container */
+        .container {
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 0 1.5rem;
+        }
+
+        /* ===========================
+           FOOTER
+        =========================== */
+        .footer {
+            background: var(--text-primary);
+            color: rgba(255,255,255,.85);
+            margin-top: auto;
+        }
+
+        .footer-top {
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 3rem 1.5rem 2rem;
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1fr;
+            gap: 2.5rem;
+        }
+
+        .footer-brand {
+            display: flex;
+            flex-direction: column;
+            gap: .75rem;
+        }
+
+        .footer-brand-name {
+            font-family: 'Sora', sans-serif;
+            font-weight: 800;
+            font-size: 1.3rem;
+            color: white;
+            letter-spacing: -.02em;
+        }
+
+        .footer-brand-name .brand-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--accent-teal);
+            display: inline-block;
+            margin-left: 2px;
+        }
+
+        .footer-tagline {
+            font-size: .875rem;
+            line-height: 1.6;
+            color: rgba(255,255,255,.6);
+            max-width: 280px;
+        }
+
+        .footer-contact a {
+            color: var(--accent-teal);
+            font-size: .875rem;
+            transition: opacity var(--transition);
+        }
+
+        .footer-contact a:hover { opacity: .8; }
+
+        .footer-col h4 {
+            font-family: 'Sora', sans-serif;
+            font-weight: 700;
+            font-size: .875rem;
+            text-transform: uppercase;
+            letter-spacing: .06em;
+            color: rgba(255,255,255,.4);
+            margin-bottom: 1rem;
+        }
+
+        .footer-col ul {
+            display: flex;
+            flex-direction: column;
+            gap: .55rem;
+        }
+
+        .footer-col a {
+            font-size: .875rem;
+            color: rgba(255,255,255,.7);
+            transition: color var(--transition);
+        }
+
+        .footer-col a:hover { color: white; }
+
+        .footer-bottom {
+            border-top: 1px solid rgba(255,255,255,.08);
+            padding: 1.25rem 1.5rem;
+        }
+
+        .footer-bottom-inner {
+            max-width: 1280px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .footer-copy {
+            font-size: .8rem;
+            color: rgba(255,255,255,.45);
+        }
+
+        .footer-specialisms {
+            display: flex;
+            gap: .5rem;
+            flex-wrap: wrap;
+        }
+
+        .specialism-tag {
+            font-size: .75rem;
+            padding: .2rem .65rem;
+            border-radius: var(--radius-pill);
+            background: rgba(255,255,255,.07);
+            color: rgba(255,255,255,.6);
+            border: 1px solid rgba(255,255,255,.1);
+        }
+
+        /* ===========================
+           RESPONSIVE
+        =========================== */
+        @media (max-width: 1024px) {
+            .navbar-search input { width: 170px; }
+            .navbar-search input:focus { width: 200px; }
+            .footer-top { grid-template-columns: 1fr 1fr; }
+        }
+
+        @media (max-width: 768px) {
+            .navbar-links { display: none; }
+            .hamburger { display: flex; }
+            .navbar-search { display: none; }
+            .footer-top { grid-template-columns: 1fr; gap: 1.5rem; }
+        }
+
+        /* Mobile nav overlay */
+        .mobile-nav {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 999;
+        }
+
+        .mobile-nav.open { display: block; }
+
+        .mobile-nav-backdrop {
+            position: absolute;
+            inset: 0;
+            background: rgba(13,27,62,.5);
+            backdrop-filter: blur(4px);
+        }
+
+        .mobile-nav-panel {
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: min(320px, 85vw);
+            height: 100%;
+            background: var(--surface-0);
+            padding: 1.5rem;
+            overflow-y: auto;
+            animation: slideInRight .25s ease;
+            display: flex;
+            flex-direction: column;
+            gap: .5rem;
+        }
+
+        @keyframes slideInRight {
+            from { transform: translateX(100%); }
+            to   { transform: translateX(0); }
+        }
+
+        .mobile-nav-close {
+            align-self: flex-end;
+            width: 36px;
+            height: 36px;
+            border-radius: var(--radius-md);
+            background: var(--surface-1);
+            border: none;
+            font-size: 1.2rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: .5rem;
+        }
+
+        .mobile-nav-panel a {
+            display: block;
+            padding: .75rem 1rem;
+            border-radius: var(--radius-md);
+            font-size: .95rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+            transition: all var(--transition);
+        }
+
+        .mobile-nav-panel a:hover {
+            background: var(--brand-blue-light);
+            color: var(--brand-blue);
+        }
+
+        .mobile-nav-divider {
+            height: 1px;
+            background: var(--border-light);
+            margin: .5rem 0;
+        }
+    </style>
+
     {% block extra_head %}{% endblock %}
 </head>
 <body>
-    <!-- Navigation -->
+
+    <!-- ===================== NAVBAR ===================== -->
     <nav class="navbar">
         <div class="navbar-container">
-            <a href="{{ url_for('main.index') }}" class="navbar-brand">LMS Platform</a>
-            <ul class="navbar-menu">
+
+            <!-- Brand -->
+            <a href="{{ url_for('main.index') }}" class="navbar-brand">
+                EduLearn<span class="brand-dot"></span>
+            </a>
+
+            <!-- Center Links -->
+            <ul class="navbar-links">
                 <li><a href="{{ url_for('main.index') }}">Home</a></li>
-                <li><a href="{{ url_for('main.courses') }}">Courses</a></li>
-                
+                <li><a href="{{ url_for('main.courses') }}">Explore Courses</a></li>
                 {% if current_user.is_authenticated %}
                     <li><a href="{{ url_for('dashboard.index') }}">Dashboard</a></li>
-                    <li><a href="{{ url_for('dashboard.my_enrollments') }}">My Enrollments</a></li>
-                    
-                    {% if current_user.is_admin %}
-                        <li><a href="{{ url_for('admin.dashboard') }}">Admin</a></li>
-                    {% endif %}
-                    
-                    <li><a href="{{ url_for('auth.logout') }}">Logout ({{ current_user.first_name }})</a></li>
-                {% else %}
-                    <li><a href="{{ url_for('auth.login') }}">Login</a></li>
-                    <li><a href="{{ url_for('auth.register') }}" class="btn btn-success" style="padding: 0.5rem 1rem;">Register</a></li>
+                    <li><a href="{{ url_for('dashboard.my_enrollments') }}">My Learning</a></li>
+                    <li><a href="{{ url_for('discussion.rooms') }}">Discussions</a></li>
                 {% endif %}
             </ul>
+
+            <!-- Search -->
+            <div class="navbar-search">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                    <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+                </svg>
+                <input type="search" placeholder="Search courses, topics…">
+            </div>
+
+            <!-- Right Actions -->
+            <div class="navbar-right">
+                {% if current_user.is_authenticated %}
+                    <!-- Notification bell -->
+                    <button class="notif-btn" title="Notifications" aria-label="Notifications">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+                        </svg>
+                    </button>
+
+                    {% if current_user.is_admin %}
+                        <a href="{{ url_for('admin.dashboard') }}" class="badge-admin">Admin</a>
+                    {% endif %}
+
+                    <!-- User pill -->
+                    <div class="user-pill" title="Account">
+                        <div class="user-avatar">
+                            {{ current_user.first_name[0] | upper }}{{ current_user.last_name[0] | upper if current_user.last_name else '' }}
+                        </div>
+                        <span class="user-name">{{ current_user.first_name }}</span>
+                    </div>
+
+                    <a href="{{ url_for('auth.logout') }}" class="btn btn-ghost" style="font-size:.85rem;">Sign out</a>
+
+                {% else %}
+                    <a href="{{ url_for('auth.login') }}" class="btn btn-ghost">Log in</a>
+                    <a href="{{ url_for('auth.register') }}" class="btn btn-primary">Get started</a>
+                {% endif %}
+            </div>
+
+            <!-- Hamburger (mobile) -->
+            <button class="hamburger" id="hamburger" aria-label="Open menu">
+                <span></span><span></span><span></span>
+            </button>
+
         </div>
     </nav>
-    
-    <!-- Main Content -->
+
+    <!-- ===================== MOBILE NAV ===================== -->
+    <div class="mobile-nav" id="mobileNav">
+        <div class="mobile-nav-backdrop" id="mobileNavBackdrop"></div>
+        <div class="mobile-nav-panel">
+            <button class="mobile-nav-close" id="mobileNavClose">✕</button>
+            <a href="{{ url_for('main.index') }}">🏠 Home</a>
+            <a href="{{ url_for('main.courses') }}">📚 Explore Courses</a>
+            {% if current_user.is_authenticated %}
+                <a href="{{ url_for('dashboard.index') }}">📊 Dashboard</a>
+                <a href="{{ url_for('dashboard.my_enrollments') }}">🎓 My Learning</a>
+                <a href="{{ url_for('discussion.rooms') }}">💬 Discussions</a>
+                {% if current_user.is_admin %}
+                    <div class="mobile-nav-divider"></div>
+                    <a href="{{ url_for('admin.dashboard') }}">⚙️ Admin Panel</a>
+                {% endif %}
+                <div class="mobile-nav-divider"></div>
+                <a href="{{ url_for('auth.logout') }}">👋 Sign out ({{ current_user.first_name }})</a>
+            {% else %}
+                <div class="mobile-nav-divider"></div>
+                <a href="{{ url_for('auth.login') }}">🔑 Log in</a>
+                <a href="{{ url_for('auth.register') }}" style="color:var(--brand-blue);font-weight:700;">✨ Get started — it's free</a>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- ===================== FLASH MESSAGES ===================== -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="flash-container">
+                {% for category, message in messages %}
+                    <div class="flash flash-{{ category }}">
+                        <span>{{ message }}</span>
+                        <button class="flash-close" onclick="this.parentElement.remove()">×</button>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+
+    <!-- ===================== MAIN CONTENT ===================== -->
     <main>
         {% block content %}{% endblock %}
     </main>
-    
-    <!-- Footer -->
+
+    <!-- ===================== FOOTER ===================== -->
     <footer class="footer">
-        <div class="container">
-            <p>&copy; {{ now.year if now else '2025' }} LMS Platform - Muhammad Shoaib Tahir</p>
-            <p style="margin-top: 0.5rem; opacity: 0.8;">
-                General Linguistics | Corpus Linguistics | Computational Linguistics
-            </p>
-            <p style="margin-top: 0.5rem; font-size: 0.9rem;">
-                Contact: <a href="mailto:shoaibtahir411@gmail.com" style="color: white;">shoaibtahir411@gmail.com</a>
-            </p>
+        <div class="footer-top">
+            <div class="footer-brand">
+                <div class="footer-brand-name">EduLearn<span class="brand-dot"></span></div>
+                <p class="footer-tagline">
+                    A modern learning platform for linguistics, corpus studies, and computational language research.
+                </p>
+                <div class="footer-contact">
+                    <a href="mailto:shoaibtahir411@gmail.com">shoaibtahir411@gmail.com</a>
+                </div>
+            </div>
+
+            <div class="footer-col">
+                <h4>Platform</h4>
+                <ul>
+                    <li><a href="{{ url_for('main.courses') }}">Browse Courses</a></li>
+                    <li><a href="{{ url_for('auth.register') }}">Join Free</a></li>
+                    {% if current_user.is_authenticated %}
+                        <li><a href="{{ url_for('dashboard.index') }}">My Dashboard</a></li>
+                        <li><a href="{{ url_for('discussion.rooms') }}">Discussion Rooms</a></li>
+                    {% endif %}
+                </ul>
+            </div>
+
+            <div class="footer-col">
+                <h4>Learn</h4>
+                <ul>
+                    <li><a href="#">General Linguistics</a></li>
+                    <li><a href="#">Corpus Linguistics</a></li>
+                    <li><a href="#">Computational Linguistics</a></li>
+                    <li><a href="#">Language Research</a></li>
+                </ul>
+            </div>
+
+            <div class="footer-col">
+                <h4>Support</h4>
+                <ul>
+                    <li><a href="#">Help Center</a></li>
+                    <li><a href="#">Community Forum</a></li>
+                    <li><a href="#">Privacy Policy</a></li>
+                    <li><a href="#">Terms of Service</a></li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="footer-bottom">
+            <div class="footer-bottom-inner">
+                <p class="footer-copy">
+                    © {{ now.year if now else '2025' }} EduLearn — Built by Muhammad Shoaib Tahir
+                </p>
+                <div class="footer-specialisms">
+                    <span class="specialism-tag">General Linguistics</span>
+                    <span class="specialism-tag">Corpus Linguistics</span>
+                    <span class="specialism-tag">Computational Linguistics</span>
+                </div>
+            </div>
         </div>
     </footer>
-    
+
+    <!-- ===================== JS ===================== -->
+    <script>
+        // Mobile nav toggle
+        const hamburger = document.getElementById('hamburger');
+        const mobileNav = document.getElementById('mobileNav');
+        const mobileNavClose = document.getElementById('mobileNavClose');
+        const mobileNavBackdrop = document.getElementById('mobileNavBackdrop');
+
+        hamburger?.addEventListener('click', () => mobileNav.classList.add('open'));
+        mobileNavClose?.addEventListener('click', () => mobileNav.classList.remove('open'));
+        mobileNavBackdrop?.addEventListener('click', () => mobileNav.classList.remove('open'));
+
+        // Auto-dismiss flash messages after 5s
+        setTimeout(() => {
+            document.querySelectorAll('.flash').forEach(el => {
+                el.style.transition = 'opacity .4s ease';
+                el.style.opacity = '0';
+                setTimeout(() => el.remove(), 400);
+            });
+        }, 5000);
+
+        // Highlight active nav link
+        const currentPath = window.location.pathname;
+        document.querySelectorAll('.navbar-links a').forEach(link => {
+            if (link.getAttribute('href') === currentPath) {
+                link.classList.add('active');
+            }
+        });
+    </script>
+
     {% block extra_js %}{% endblock %}
 </body>
 </html>

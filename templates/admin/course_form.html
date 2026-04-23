@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+{% block title %}{{ title }}{% endblock %}
+{% block content %}
+<div class="container my-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1><i class="fas fa-book text-success"></i> {{ title }}</h1>
+        <a href="{{ url_for('admin.courses') }}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left"></i> Back to Courses
+        </a>
+    </div>
+    <div class="card">
+        <div class="card-body p-4">
+            <form method="POST" enctype="multipart/form-data">
+                {{ form.hidden_tag() }}
+                
+                <div class="mb-3">
+                    {{ form.title.label(class="form-label fw-bold") }}
+                    {{ form.title(class="form-control") }}
+                    {% for error in form.title.errors %}
+                        <div class="text-danger small">{{ error }}</div>
+                    {% endfor %}
+                </div>
+
+                <div class="mb-3">
+                    {{ form.description.label(class="form-label fw-bold") }}
+                    {{ form.description(class="form-control", rows=3) }}
+                    {% for error in form.description.errors %}
+                        <div class="text-danger small">{{ error }}</div>
+                    {% endfor %}
+                </div>
+
+                <div class="mb-3">
+                    {{ form.detailed_description.label(class="form-label fw-bold") }}
+                    {{ form.detailed_description(class="form-control", rows=6) }}
+                </div>
+
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        {{ form.level.label(class="form-label fw-bold") }}
+                        {{ form.level(class="form-select") }}
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        {{ form.hourly_rate_pkr.label(class="form-label fw-bold") }}
+                        {{ form.hourly_rate_pkr(class="form-control") }}
+                        {% for error in form.hourly_rate_pkr.errors %}
+                            <div class="text-danger small">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        {{ form.hourly_rate_usd.label(class="form-label fw-bold") }}
+                        {{ form.hourly_rate_usd(class="form-control") }}
+                        {% for error in form.hourly_rate_usd.errors %}
+                            <div class="text-danger small">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    {{ form.duration_estimate.label(class="form-label fw-bold") }}
+                    {{ form.duration_estimate(class="form-control", placeholder="e.g. 6 weeks, 3 months") }}
+                </div>
+
+                <div class="mb-3">
+                    {{ form.thumbnail.label(class="form-label fw-bold") }}
+                    {{ form.thumbnail(class="form-control") }}
+                    {% if course and course.thumbnail %}
+                        <small class="text-muted">Current: {{ course.thumbnail }}</small>
+                    {% endif %}
+                </div>
+
+                <div class="mb-4">
+                    <div class="form-check">
+                        {{ form.is_active(class="form-check-input") }}
+                        {{ form.is_active.label(class="form-check-label fw-bold") }}
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-success btn-lg">
+                    <i class="fas fa-save"></i> {{ title }}
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

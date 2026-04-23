@@ -1,0 +1,112 @@
+{% extends "base.html" %}
+{% block title %}Discussion Subscriptions - {{ app_name }}{% endblock %}
+{% block content %}
+<div class="container my-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1><i class="fas fa-users text-primary"></i> Discussion Subscriptions</h1>
+        <a href="{{ url_for('admin.dashboard') }}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left"></i> Dashboard
+        </a>
+    </div>
+
+    <!-- Filter Tabs -->
+    <div class="mb-4">
+        {% for s in ['all', 'pending', 'approved', 'rejected'] %}
+        <a href="?status={{ s }}"
+           class="btn btn-sm {% if status_filter == s %}btn-dark{% else %}btn-outline-secondary{% endif %} me-1">
+            {{ s | capitalize }}
+        </a>
+        {% endfor %}
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-body">
+            {% if subscriptions %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>#</th>
+                            <th>Student</th>
+                            <th>Room</th>
+                            <th>Topic</th>
+                            <th>Hours</th>
+                            <th>Amount</th>
+                            <th>Payment</th>
+                            <th>Receipt</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for sub in subscriptions %}
+                        <tr>
+                            <td>{{ sub.id }}</td>
+                            <td>
+                                {{ sub.user.first_name }} {{ sub.user.last_name }}<br>
+                                <small class="text-muted">{{ sub.user.email }}</small>
+                            </td>
+                            <td>{{ sub.room.title }}</td>
+                            <td>{{ sub.topic }}</td>
+                            <td>
+                                {{ sub.total_hours }} hrs<br>
+                                <small class="text-muted">
+                                    {{ sub.hours_per_day }}hr/day × {{ sub.duration_days }}d
+                                </small>
+                            </td>
+                            <td>
+                                <strong>Rs. {{ "{:,.0f}".format(sub.total_price) }}</strong><br>
+                                <small class="text-muted">Rs.{{ sub.price_per_hour }}/hr</small>
+                            </td>
+                            <td>
+                                <span class="badge bg-info">{{ sub.payment_method | upper }}</span>
+                            </td>
+                            <td>
+                                <a href="{{ url_for('main.uploaded_file', folder='receipts', filename=sub.payment_receipt) }}"
+                                   target="_blank" class="btn btn-sm btn-outline-primary">
+                                    <i class="fas fa-eye"></i> View
+                                </a>
+                            </td>
+                            <td>
+                                {% if sub.status == 'approved' %}
+                                <span class="badge bg-success">Approved</span>
+                                {% elif sub.status == 'rejected' %}
+                                <span class="badge bg-danger">Rejected</span>
+                                {% else %}
+                                <span class="badge bg-warning text-dark">Pending</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if sub.status == 'pending' %}
+                                <form method="POST"
+                                      action="{{ url_for('admin.approve_discussion_sub', sub_id=sub.id) }}"
+                                      class="d-inline"
+                                      onsubmit="return confirm('Approve this subscription?')">
+                                    <button class="btn btn-sm btn-success mb-1">
+                                        <i class="fas fa-check"></i> Approve
+                                    </button>
+                                </form>
+                                <form method="POST"
+                                      action="{{ url_for('admin.reject_discussion_sub', sub_id=sub.id) }}"
+                                      class="d-inline">
+                                    <input type="hidden" name="admin_notes"
+                                           value="Payment issue">
+                                    <button class="btn btn-sm btn-danger"
+                                            onclick="return confirm('Reject?')">
+                                        <i class="fas fa-times"></i> Reject
+                                    </button>
+                                </form>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <p class="text-center text-muted py-4">No subscriptions found.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

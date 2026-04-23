@@ -58,15 +58,13 @@
                             <td>
                                 {% if enrollment.expires_at %}
                                     {% if enrollment.is_active() %}
-                                        <span class="text-success">
-                                            {{ enrollment.expires_at.strftime('%b %d, %Y') }}
-                                        </span>
+                                        <span class="text-success">{{ enrollment.expires_at.strftime('%b %d, %Y') }}</span>
                                     {% else %}
-                                        <span class="text-danger">
-                                            Expired ({{ enrollment.expires_at.strftime('%b %d, %Y') }})
-                                        </span>
+                                        <span class="text-danger">Expired ({{ enrollment.expires_at.strftime('%b %d, %Y') }})</span>
                                     {% endif %}
-                                {% else %}-{% endif %}
+                                {% else %}
+                                    -
+                                {% endif %}
                             </td>
                         </tr>
                         {% endif %}
@@ -80,7 +78,7 @@
                 </div>
                 <div class="card-footer">
                     {% if enrollment.status == 'approved' and enrollment.is_active() %}
-                        <a href="{{ url_for('courses.detail', slug=enrollment.course.slug) }}"
+                        <a href="{{ url_for('courses.detail', slug=enrollment.course.slug) }}" 
                            class="btn btn-success btn-sm">
                             <i class="fas fa-play"></i> Go to Course
                         </a>
@@ -89,7 +87,7 @@
                             <i class="fas fa-clock"></i> Awaiting admin approval
                         </span>
                     {% elif enrollment.status == 'rejected' %}
-                        <a href="{{ url_for('courses.detail', slug=enrollment.course.slug) }}"
+                        <a href="{{ url_for('courses.detail', slug=enrollment.course.slug) }}" 
                            class="btn btn-outline-primary btn-sm">
                             <i class="fas fa-redo"></i> Re-enroll
                         </a>
@@ -103,7 +101,6 @@
         </div>
         {% endfor %}
     </div>
-
     {% else %}
     <div class="card shadow-sm">
         <div class="card-body text-center py-5">

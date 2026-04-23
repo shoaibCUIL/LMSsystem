@@ -6,11 +6,9 @@ from flask_migrate import Migrate
 from config import Config
 from database import db
 
-# Load environment variables from .env file
 from dotenv import load_dotenv
 load_dotenv()
 
-# Initialize extensions
 login_manager = LoginManager()
 migrate = Migrate()
 
@@ -20,17 +18,14 @@ def create_app(config_class=Config):
     app = Flask(__name__)
     app.config.from_object(config_class)
     
-    # Initialize extensions with app
     db.init_app(app)
     login_manager.init_app(app)
     migrate.init_app(app, db)
     
-    # Configure login manager
     login_manager.login_view = 'auth.login'
     login_manager.login_message = 'Please login to access this page.'
     login_manager.login_message_category = 'info'
     
-    # Setup logging
     if not app.debug:
         if not os.path.exists('logs'):
             os.mkdir('logs')
@@ -44,13 +39,13 @@ def create_app(config_class=Config):
         app.logger.setLevel(logging.INFO)
         app.logger.info('LMS startup')
     
-    # Ensure upload directories exist
     os.makedirs(app.config['RECEIPTS_FOLDER'], exist_ok=True)
     os.makedirs(app.config['THUMBNAILS_FOLDER'], exist_ok=True)
     
-    # Register blueprints
     from routes import auth_bp, course_bp, dashboard_bp, main_bp
     from admin_routes import admin_bp
+    from discussion_routes import discussion_bp
+    app.register_blueprint(discussion_bp)
     
     app.register_blueprint(main_bp)
     app.register_blueprint(auth_bp)
@@ -58,19 +53,19 @@ def create_app(config_class=Config):
     app.register_blueprint(dashboard_bp)
     app.register_blueprint(admin_bp)
     
-    # User loader for Flask-Login
     @login_manager.user_loader
     def load_user(user_id):
         from models import User
         return User.query.get(int(user_id))
     
-    # Context processors
     @app.context_processor
     def inject_config():
-        """Make config available in templates"""
-        return {'config': app.config}
+        """Make config and app_name available in all templates"""
+        return {
+            'config': app.config,
+            'app_name': 'LMS'  # FIX: was missing, caused UndefinedError in admin.html
+        }
     
-    # Shell context for flask shell
     @app.shell_context_processor
     def make_shell_context():
         from models import User, Course, Enrollment, Lecture, Blog, Event, CustomBundle, Tag
@@ -86,7 +81,6 @@ def create_app(config_class=Config):
             'Tag': Tag
         }
     
-    # CLI commands
     @app.cli.command()
     def init_db():
         """Initialize the database with default data"""
@@ -95,7 +89,6 @@ def create_app(config_class=Config):
         
         db.create_all()
         
-        # Create default admin user if not exists
         admin = User.query.filter_by(email='admin@lms.com').first()
         if not admin:
             admin = User(
@@ -107,13 +100,21 @@ def create_app(config_class=Config):
                 country='Pakistan',
                 education='Master',
                 university='LMS University',
-                is_admin=True
+                is_admin=True,
+                is_active=True  # FIX: was missing — admin was blocked at login
             )
             admin.set_password('admin123')
             db.session.add(admin)
             print('✓ Admin user created: admin@lms.com / admin123')
+        else:
+            # FIX: if admin already exists but is inactive, activate them
+            if not admin.is_active:
+                admin.is_active = True
+                print('✓ Existing admin account activated')
+            if not admin.is_admin:
+                admin.is_admin = True
+                print('✓ Existing admin privileges restored')
         
-        # Create default courses from config
         for course_data in app.config['DEFAULT_COURSES']:
             existing = Course.query.filter_by(slug=course_data['slug']).first()
             if not existing:
@@ -158,7 +159,8 @@ def create_app(config_class=Config):
             country='Pakistan',
             education='Master',
             university='Admin University',
-            is_admin=True
+            is_admin=True,
+            is_active=True  # FIX: ensure new admins are active
         )
         user.set_password(password)
         
@@ -166,11 +168,36 @@ def create_app(config_class=Config):
         db.session.commit()
         
         print(f'✓ Admin user created: {email}')
+
+    @app.cli.command()
+    def fix_admin():
+        """Fix existing admin account if it is inactive or missing admin flag"""
+        from models import User
+        
+        admin = User.query.filter_by(email='admin@lms.com').first()
+        if not admin:
+            print('No admin@lms.com account found. Run flask init_db first.')
+            return
+        
+        changed = False
+        if not admin.is_active:
+            admin.is_active = True
+            changed = True
+            print('✓ Admin account activated')
+        if not admin.is_admin:
+            admin.is_admin = True
+            changed = True
+            print('✓ Admin flag set')
+        
+        if changed:
+            db.session.commit()
+            print('✓ Admin account fixed successfully')
+        else:
+            print('Admin account is already active and has admin privileges')
     
     return app
 
 
-# For development
 if __name__ == '__main__':
     app = create_app()
     app.run(debug=True, host='0.0.0.0', port=5000)

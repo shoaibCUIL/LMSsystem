@@ -77,6 +77,41 @@ class Course(db.Model):
         
         return level_pricing.get(currency, 0)
     
+    def get_level_price(self, level, days, country='Pakistan'):
+        """Calculate price based on level, days, and country"""
+        base_rates = {
+            'beginner': 250,
+            'intermediate': 350,
+            'advanced': 500
+        }
+        
+        rate = base_rates.get(level.lower(), 250)
+        base_price = rate * days
+        
+        # Apply tiered discount
+        if days >= 10:
+            discount = 0.15
+        elif days >= 5:
+            discount = 0.10
+        elif days >= 3:
+            discount = 0.05
+        else:
+            discount = 0
+        
+        final_price = base_price * (1 - discount)
+        
+        # Double for international
+        if country != 'Pakistan':
+            final_price *= 2
+        
+        return {
+            'base_price': base_price,
+            'discount_percent': int(discount * 100),
+            'discount_amount': base_price * discount,
+            'final_price': round(final_price),
+            'rate_per_day': rate
+        }
+
     def calculate_custom_price(self, hours, currency='pkr'):
         """Calculate price for custom number of hours"""
         if currency == 'pkr':
@@ -215,3 +250,128 @@ class Tag(db.Model):
     
     def __repr__(self):
         return f'<Tag {self.name}>'
+    
+
+# ================================
+# DISCUSSION MODELS
+# ================================
+
+class DiscussionRoom(db.Model):
+    __tablename__ = 'discussion_rooms'
+
+    id = db.Column(db.Integer, primary_key=True)
+    course_id = db.Column(db.Integer, db.ForeignKey('courses.id'), nullable=True)
+    title = db.Column(db.String(200), nullable=False)
+    description = db.Column(db.Text)
+    is_active = db.Column(db.Boolean, default=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    # Relationships
+    course = db.relationship('Course', backref='discussion_room', uselist=False)
+    sessions = db.relationship('DiscussionSession', backref='room',
+                               lazy='dynamic', cascade='all, delete-orphan')
+    messages = db.relationship('DiscussionMessage', backref='room',
+                               lazy='dynamic', cascade='all, delete-orphan')
+    subscriptions = db.relationship('DiscussionSubscription', backref='room',
+                                    lazy='dynamic', cascade='all, delete-orphan')
+
+    def __repr__(self):
+        return f'<DiscussionRoom {self.title}>'
+
+
+class DiscussionSession(db.Model):
+    __tablename__ = 'discussion_sessions'
+
+    id = db.Column(db.Integer, primary_key=True)
+    room_id = db.Column(db.Integer, db.ForeignKey('discussion_rooms.id'), nullable=False)
+
+    title = db.Column(db.String(200), nullable=False)
+    description = db.Column(db.Text)
+    topic = db.Column(db.String(300))
+
+    # Scheduling
+    scheduled_at = db.Column(db.DateTime, nullable=False)
+    duration_minutes = db.Column(db.Integer, default=60)
+
+    # Meeting link (Zoom/Meet/Teams)
+    meeting_link = db.Column(db.String(500))
+    meeting_password = db.Column(db.String(100))
+    meeting_platform = db.Column(db.String(50), default='Zoom')  # Zoom/Meet/Teams
+
+    is_active = db.Column(db.Boolean, default=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    def is_upcoming(self):
+        return self.scheduled_at > datetime.utcnow()
+
+    def is_live(self):
+        from datetime import timedelta
+        end_time = self.scheduled_at + timedelta(minutes=self.duration_minutes)
+        return self.scheduled_at <= datetime.utcnow() <= end_time
+
+    def __repr__(self):
+        return f'<DiscussionSession {self.title}>'
+
+
+class DiscussionSubscription(db.Model):
+    __tablename__ = 'discussion_subscriptions'
+
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    room_id = db.Column(db.Integer, db.ForeignKey('discussion_rooms.id'), nullable=False)
+
+    # Flexible pricing: user picks topic/hours/days
+    topic = db.Column(db.String(300), nullable=False)
+    duration_days = db.Column(db.Integer, nullable=False)   # total days
+    hours_per_day = db.Column(db.Integer, nullable=False)   # hours per day
+    total_hours = db.Column(db.Integer, nullable=False)     # duration_days * hours_per_day
+
+    # Pricing (calculated based on topic complexity + hours)
+    price_per_hour = db.Column(db.Integer, nullable=False)  # PKR per hour
+    total_price = db.Column(db.Float, nullable=False)
+
+    # Payment
+    payment_method = db.Column(db.String(50), nullable=False)
+    payment_receipt = db.Column(db.String(500), nullable=False)
+
+    # Status
+    status = db.Column(db.String(20), default='pending')  # pending/approved/rejected/expired
+    admin_notes = db.Column(db.Text)
+
+    # Dates
+    subscribed_at = db.Column(db.DateTime, default=datetime.utcnow)
+    approved_at = db.Column(db.DateTime)
+    expires_at = db.Column(db.DateTime)
+
+    # Relationships
+    user = db.relationship('User', backref='discussion_subscriptions')
+
+    def is_active(self):
+        if self.status != 'approved':
+            return False
+        if self.expires_at and datetime.utcnow() > self.expires_at:
+            return False
+        return True
+
+    def __repr__(self):
+        return f'<DiscussionSubscription User:{self.user_id} Room:{self.room_id}>'
+
+
+class DiscussionMessage(db.Model):
+    __tablename__ = 'discussion_messages'
+
+    id = db.Column(db.Integer, primary_key=True)
+    room_id = db.Column(db.Integer, db.ForeignKey('discussion_rooms.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    session_id = db.Column(db.Integer, db.ForeignKey('discussion_sessions.id'), nullable=True)
+
+    content = db.Column(db.Text, nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    is_deleted = db.Column(db.Boolean, default=False)
+
+    # Relationships
+    user = db.relationship('User', backref='discussion_messages')
+    session = db.relationship('DiscussionSession', backref='messages')
+
+    def __repr__(self):
+        return f'<DiscussionMessage User:{self.user_id} Room:{self.room_id}>'

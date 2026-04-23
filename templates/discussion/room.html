@@ -1,0 +1,287 @@
+{% extends "base.html" %}
+{% block title %}{{ room.title }} - Discussion{% endblock %}
+{% block content %}
+<div class="container my-4">
+
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <h2><i class="fas fa-comments text-primary"></i> {{ room.title }}</h2>
+            {% if room.course %}
+            <span class="badge bg-info">{{ room.course.level | capitalize }}</span>
+            <span class="text-muted small ms-2">{{ room.course.title }}</span>
+            {% endif %}
+        </div>
+        <a href="{{ url_for('discussion.rooms') }}" class="btn btn-outline-secondary btn-sm">
+            <i class="fas fa-arrow-left"></i> All Rooms
+        </a>
+    </div>
+
+    {% if not has_access %}
+    <!-- No Access Banner -->
+    <div class="card border-warning shadow-sm mb-4">
+        <div class="card-body text-center py-5">
+            <i class="fas fa-lock fa-4x text-warning mb-3"></i>
+            <h4>Subscription Required</h4>
+            <p class="text-muted">Subscribe to access live chat and scheduled sessions for this room.</p>
+            <div class="row justify-content-center mb-4">
+                <div class="col-md-8">
+                    <div class="row text-center">
+                        <div class="col-4">
+                            <div class="p-2 bg-light rounded">
+                                <div class="text-muted small">Beginner</div>
+                                <div class="fw-bold text-success">Rs. 250/hr</div>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="p-2 bg-light rounded">
+                                <div class="text-muted small">Intermediate</div>
+                                <div class="fw-bold text-warning">Rs. 350/hr</div>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="p-2 bg-light rounded">
+                                <div class="text-muted small">Advanced</div>
+                                <div class="fw-bold text-danger">Rs. 500/hr</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <a href="{{ url_for('discussion.subscribe', room_id=room.id) }}"
+               class="btn btn-primary btn-lg">
+                <i class="fas fa-lock-open"></i> Subscribe Now
+            </a>
+        </div>
+    </div>
+    {% else %}
+
+    <div class="row">
+        <!-- LEFT: Live Chat -->
+        <div class="col-md-8 mb-4">
+            <div class="card shadow-sm">
+                <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="fas fa-comment-dots"></i> Live Chat</h5>
+                    <span class="badge bg-success" id="status-badge">
+                        <i class="fas fa-circle" style="font-size:8px"></i> Live
+                    </span>
+                </div>
+
+                <!-- Messages Area -->
+                <div id="chat-box"
+                     style="height:420px;overflow-y:auto;padding:16px;background:#f8f9fa;display:flex;flex-direction:column;gap:10px;">
+                    {% for msg in messages %}
+                    <div class="chat-message {% if msg.user_id == current_user.id %}own{% endif %}"
+                         data-id="{{ msg.id }}">
+                        <div class="d-flex {% if msg.user_id == current_user.id %}justify-content-end{% endif %}">
+                            <div style="max-width:75%">
+                                <div class="small text-muted mb-1
+                                    {% if msg.user_id == current_user.id %}text-end{% endif %}">
+                                    {% if msg.user.is_admin %}
+                                    <span class="badge bg-danger me-1">Admin</span>
+                                    {% endif %}
+                                    {{ msg.user.first_name }} {{ msg.user.last_name }}
+                                    · {{ msg.created_at.strftime('%I:%M %p') }}
+                                </div>
+                                <div class="p-2 rounded"
+                                     style="{% if msg.user_id == current_user.id %}background:#0d6efd;color:white;{% elif msg.user.is_admin %}background:#dc3545;color:white;{% else %}background:white;border:1px solid #dee2e6;{% endif %}">
+                                    {{ msg.content }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <!-- Message Input -->
+                <div class="card-footer">
+                    <div class="input-group">
+                        <input type="text" id="msg-input" class="form-control"
+                               placeholder="Type a message..." maxlength="1000"
+                               autocomplete="off">
+                        <button class="btn btn-primary" id="send-btn" onclick="sendMessage()">
+                            <i class="fas fa-paper-plane"></i> Send
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- RIGHT: Sessions -->
+        <div class="col-md-4 mb-4">
+
+            <!-- Live Session Banner -->
+            {% if live_session %}
+            <div class="card border-success shadow-sm mb-3">
+                <div class="card-header bg-success text-white">
+                    <h6 class="mb-0">
+                        <i class="fas fa-circle" style="font-size:8px"></i> Session Live Now
+                    </h6>
+                </div>
+                <div class="card-body text-center">
+                    <h6>{{ live_session.title }}</h6>
+                    <p class="text-muted small mb-2">{{ live_session.topic }}</p>
+                    <p class="small text-muted">
+                        Platform: <strong>{{ live_session.meeting_platform }}</strong>
+                    </p>
+                    {% if live_session.meeting_password %}
+                    <p class="small">
+                        Password: <code>{{ live_session.meeting_password }}</code>
+                    </p>
+                    {% endif %}
+                    <a href="{{ live_session.meeting_link }}" target="_blank"
+                       class="btn btn-success w-100">
+                        <i class="fas fa-video"></i> Join Now
+                    </a>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Upcoming Sessions -->
+            <div class="card shadow-sm">
+                <div class="card-header bg-dark text-white">
+                    <h6 class="mb-0"><i class="fas fa-calendar-alt"></i> Upcoming Sessions</h6>
+                </div>
+                <div class="card-body p-0">
+                    {% if upcoming_sessions %}
+                    {% for session in upcoming_sessions %}
+                    <div class="p-3 border-bottom">
+                        <div class="fw-bold small">{{ session.title }}</div>
+                        <div class="text-muted small">{{ session.topic }}</div>
+                        <div class="d-flex justify-content-between align-items-center mt-2">
+                            <div>
+                                <span class="badge bg-primary">
+                                    <i class="fas fa-calendar"></i>
+                                    {{ session.scheduled_at.strftime('%b %d') }}
+                                </span>
+                                <span class="badge bg-secondary ms-1">
+                                    <i class="fas fa-clock"></i>
+                                    {{ session.scheduled_at.strftime('%I:%M %p') }}
+                                </span>
+                            </div>
+                            <span class="badge bg-info">{{ session.duration_minutes }} min</span>
+                        </div>
+                        <div class="mt-2">
+                            <span class="badge bg-dark">{{ session.meeting_platform }}</span>
+                        </div>
+                    </div>
+                    {% endfor %}
+                    {% else %}
+                    <div class="text-center py-4 text-muted">
+                        <i class="fas fa-calendar-times fa-2x mb-2"></i>
+                        <p class="small mb-0">No upcoming sessions yet</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Subscription Info -->
+            {% if subscription %}
+            <div class="card shadow-sm mt-3">
+                <div class="card-header bg-info text-white">
+                    <h6 class="mb-0"><i class="fas fa-id-card"></i> Your Subscription</h6>
+                </div>
+                <div class="card-body">
+                    <table class="table table-sm table-borderless mb-0">
+                        <tr>
+                            <td class="text-muted small">Topic</td>
+                            <td class="small">{{ subscription.topic }}</td>
+                        </tr>
+                        <tr>
+                            <td class="text-muted small">Hours</td>
+                            <td class="small">{{ subscription.total_hours }} hrs total</td>
+                        </tr>
+                        <tr>
+                            <td class="text-muted small">Expires</td>
+                            <td class="small">
+                                {% if subscription.expires_at %}
+                                {{ subscription.expires_at.strftime('%b %d, %Y') }}
+                                {% else %} - {% endif %}
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+            {% endif %}
+
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+{% block extra_js %}
+{% if has_access %}
+<script>
+let lastId = {% if messages %}{{ messages[-1].id }}{% else %}0{% endif %};
+const roomId = {{ room.id }};
+const chatBox = document.getElementById('chat-box');
+
+function scrollBottom() {
+    chatBox.scrollTop = chatBox.scrollHeight;
+}
+
+function appendMessage(m) {
+    const isOwn = m.user === '{{ current_user.first_name }} {{ current_user.last_name }}';
+    const div = document.createElement('div');
+    div.className = 'chat-message' + (isOwn ? ' own' : '');
+    div.dataset.id = m.id;
+    div.innerHTML = `
+        <div class="d-flex ${isOwn ? 'justify-content-end' : ''}">
+            <div style="max-width:75%">
+                <div class="small text-muted mb-1 ${isOwn ? 'text-end' : ''}">
+                    ${m.is_admin ? '<span class="badge bg-danger me-1">Admin</span>' : ''}
+                    ${m.user} · ${m.time}
+                </div>
+                <div class="p-2 rounded" style="${isOwn ? 'background:#0d6efd;color:white;' : m.is_admin ? 'background:#dc3545;color:white;' : 'background:white;border:1px solid #dee2e6;'}">
+                    ${m.content}
+                </div>
+            </div>
+        </div>`;
+    chatBox.appendChild(div);
+    lastId = m.id;
+    scrollBottom();
+}
+
+async function sendMessage() {
+    const input = document.getElementById('msg-input');
+    const content = input.value.trim();
+    if (!content) return;
+    input.value = '';
+    try {
+        const res = await fetch(`/discussion/room/${roomId}/send`, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ content })
+        });
+        if (res.ok) {
+            const m = await res.json();
+            appendMessage(m);
+        }
+    } catch(e) { console.error(e); }
+}
+
+// Send on Enter key
+document.getElementById('msg-input').addEventListener('keydown', e => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        sendMessage();
+    }
+});
+
+// Poll for new messages every 3 seconds
+async function pollMessages() {
+    try {
+        const res = await fetch(`/discussion/room/${roomId}/messages?after=${lastId}`);
+        if (res.ok) {
+            const msgs = await res.json();
+            msgs.forEach(m => appendMessage(m));
+        }
+    } catch(e) {}
+}
+
+setInterval(pollMessages, 3000);
+scrollBottom();
+</script>
+{% endif %}
+{% endblock %}
+{% endblock %}
