@@ -197,8 +197,10 @@ def create_app(config_class=Config):
     return app
 
 
+# At the bottom of app.py, add this outside __main__
+# Add this line so gunicorn can find it
+app = create_app()
+
 if __name__ == '__main__':
-    app = create_app()
-    # FIX: use Railway's dynamic $PORT env variable, fallback to 5000 locally
     port = int(os.environ.get('PORT', 5000))
     app.run(debug=False, host='0.0.0.0', port=port)

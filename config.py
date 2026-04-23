@@ -5,12 +5,11 @@ class Config:
     # Basic Flask config
     SECRET_KEY = os.environ.get('SECRET_KEY') or 'dev-secret-key-change-in-production-12345'
     
-    # Database
-    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or 'sqlite:///lms.db'
-    
-    # Fix for Railway PostgreSQL URL
-    if SQLALCHEMY_DATABASE_URI and SQLALCHEMY_DATABASE_URI.startswith('postgres://'):
-        SQLALCHEMY_DATABASE_URI = SQLALCHEMY_DATABASE_URI.replace('postgres://', 'postgresql://', 1)
+    # Database - safely handle postgres:// -> postgresql:// for Railway
+    _db_url = os.environ.get('DATABASE_URL') or 'sqlite:///lms.db'
+    if _db_url.startswith('postgres://'):
+        _db_url = _db_url.replace('postgres://', 'postgresql://', 1)
+    SQLALCHEMY_DATABASE_URI = _db_url
     
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     SQLALCHEMY_ENGINE_OPTIONS = {
@@ -70,7 +69,6 @@ class Config:
         'contact_email': 'shoaibtahir411@gmail.com'
     }
 
-    # FIX: was missing entirely — utils.py convert_currency() crashed with KeyError
     CURRENCY_RATES = {
         'PKR': 1.0,
         'USD': 0.0036,
@@ -80,7 +78,6 @@ class Config:
         'SAR': 0.013,
     }
 
-    # FIX: was missing entirely — utils.py convert_currency() crashed with KeyError
     INTERNATIONAL_MULTIPLIER = 2.0
 
     # Hourly-Based Pricing Structure (Dual Currency)
@@ -100,9 +97,6 @@ class Config:
     }
     
     # Package Pricing
-    # Daily:   5 hours  with 10% discount
-    # Weekly:  25 hours with 20% discount
-    # Monthly: 100 hours with 30% discount
     PACKAGE_PRICING = {
         'daily': {
             'hours': 5,
@@ -136,10 +130,10 @@ class Config:
         'custom_plan_max':               {'pkr': 5000,  'usd': 40}
     }
     
-    # Multi-course discount (10% off when enrolling in 2+ courses)
+    # Multi-course discount
     MULTI_COURSE_DISCOUNT = 0.10
     
-    # Courses configuration with levels
+    # Default courses
     DEFAULT_COURSES = [
         {
             'title': 'General Linguistics',
