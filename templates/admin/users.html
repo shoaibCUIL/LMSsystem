@@ -3,15 +3,55 @@
 {% block content %}
 <div class="container my-5">
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1><i class="fas fa-users text-primary"></i> Manage Users</h1>
+        <h1><i class="fas fa-users text-primary"></i> Manage Users
+            <span class="badge bg-primary ms-2">{{ users|length }}</span>
+        </h1>
         <a href="{{ url_for('admin.dashboard') }}" class="btn btn-outline-secondary">
             <i class="fas fa-arrow-left"></i> Back to Dashboard
         </a>
     </div>
+
+    <!-- Search & Filter Bar -->
+    <div class="card mb-3">
+        <div class="card-body py-2">
+            <div class="row g-2 align-items-center">
+                <div class="col-md-5">
+                    <input type="text" id="searchInput" class="form-control"
+                           placeholder="🔍 Search by name, email, designation...">
+                </div>
+                <div class="col-md-3">
+                    <select id="statusFilter" class="form-select">
+                        <option value="all">All Users</option>
+                        <option value="active">Active Only</option>
+                        <option value="inactive">Inactive Only</option>
+                        <option value="admin">Admins Only</option>
+                        <option value="pending">Pending (Inactive)</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <select id="countryFilter" class="form-select">
+                        <option value="all">All Countries</option>
+                        {% set countries = users | map(attribute='country') | unique | list %}
+                        {% for country in countries %}
+                            {% if country %}
+                            <option value="{{ country }}">{{ country }}</option>
+                            {% endif %}
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-2 text-end">
+                    <span class="text-muted small" id="countLabel">
+                        Showing <strong id="visibleCount">{{ users|length }}</strong> users
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div class="card">
-        <div class="card-body">
+        <div class="card-body p-0">
             <div class="table-responsive">
-                <table class="table table-hover">
+                <table class="table table-hover mb-0" id="usersTable">
                     <thead class="table-dark">
                         <tr>
                             <th>#</th>
@@ -27,37 +67,57 @@
                     </thead>
                     <tbody>
                         {% for user in users %}
-                        <tr>
+                        <tr class="user-row"
+                            data-name="{{ user.first_name }} {{ user.last_name }}"
+                            data-email="{{ user.email }}"
+                            data-designation="{{ user.designation or '' }}"
+                            data-country="{{ user.country or '' }}"
+                            data-active="{{ 'active' if user.is_active else 'inactive' }}"
+                            data-admin="{{ 'admin' if user.is_admin else 'user' }}">
                             <td>{{ user.id }}</td>
-                            <td>{{ user.first_name }} {{ user.last_name }}</td>
-                            <td>{{ user.email }}</td>
-                            <td>{{ user.designation }}</td>
-                            <td>{{ user.country }}</td>
+                            <td>
+                                <strong>{{ user.first_name }} {{ user.last_name }}</strong>
+                            </td>
+                            <td>
+                                <a href="mailto:{{ user.email }}" class="text-decoration-none">
+                                    {{ user.email }}
+                                </a>
+                            </td>
+                            <td>{{ user.designation or '—' }}</td>
+                            <td>{{ user.country or '—' }}</td>
                             <td>
                                 {% if user.is_admin %}
-                                    <span class="badge bg-danger">Admin</span>
+                                    <span class="badge bg-danger">ADMIN</span>
                                 {% else %}
-                                    <span class="badge bg-secondary">User</span>
+                                    <span class="badge bg-secondary">USER</span>
                                 {% endif %}
                             </td>
                             <td>
                                 {% if user.is_active %}
-                                    <span class="badge bg-success">Active</span>
+                                    <span class="badge bg-success">ACTIVE</span>
                                 {% else %}
-                                    <span class="badge bg-warning">Inactive</span>
+                                    <span class="badge bg-warning text-dark">INACTIVE</span>
                                 {% endif %}
                             </td>
-                            <td>{{ user.created_at.strftime('%b %d, %Y') }}</td>
                             <td>
-                                <form method="POST" action="{{ url_for('admin.toggle_admin', user_id=user.id) }}" class="d-inline">
-                                    <button type="submit" class="btn btn-sm btn-outline-danger"
-                                        onclick="return confirm('Toggle admin status?')">
+                                {{ user.created_at.strftime('%b %d, %Y') if user.created_at else 'N/A' }}
+                            </td>
+                            <td>
+                                <form method="POST"
+                                      action="{{ url_for('admin.toggle_admin', user_id=user.id) }}"
+                                      class="d-inline">
+                                    <button type="submit"
+                                            class="btn btn-sm {{ 'btn-danger' if user.is_admin else 'btn-outline-danger' }}"
+                                            onclick="return confirm('Toggle admin status for {{ user.first_name }}?')">
                                         {% if user.is_admin %}Revoke Admin{% else %}Make Admin{% endif %}
                                     </button>
                                 </form>
-                                <form method="POST" action="{{ url_for('admin.toggle_active', user_id=user.id) }}" class="d-inline">
-                                    <button type="submit" class="btn btn-sm btn-outline-warning"
-                                        onclick="return confirm('Toggle active status?')">
+                                <form method="POST"
+                                      action="{{ url_for('admin.toggle_active', user_id=user.id) }}"
+                                      class="d-inline ms-1">
+                                    <button type="submit"
+                                            class="btn btn-sm {{ 'btn-warning' if user.is_active else 'btn-success' }}"
+                                            onclick="return confirm('Toggle status for {{ user.first_name }}?')">
                                         {% if user.is_active %}Deactivate{% else %}Activate{% endif %}
                                     </button>
                                 </form>
@@ -67,7 +127,52 @@
                     </tbody>
                 </table>
             </div>
+
+            <!-- No results row -->
+            <div id="noResults" class="text-center py-5 d-none">
+                <i class="fas fa-search fa-2x text-muted mb-2"></i>
+                <p class="text-muted">No users match your search.</p>
+            </div>
         </div>
     </div>
 </div>
+
+<script>
+function filterTable() {
+    const search = document.getElementById('searchInput').value.toLowerCase();
+    const status = document.getElementById('statusFilter').value;
+    const country = document.getElementById('countryFilter').value;
+    const rows = document.querySelectorAll('.user-row');
+    let visible = 0;
+
+    rows.forEach(row => {
+        const name        = row.dataset.name.toLowerCase();
+        const email       = row.dataset.email.toLowerCase();
+        const designation = row.dataset.designation.toLowerCase();
+        const rowCountry  = row.dataset.country;
+        const rowActive   = row.dataset.active;
+        const rowAdmin    = row.dataset.admin;
+
+        const matchSearch  = !search || name.includes(search) || email.includes(search) || designation.includes(search);
+        const matchCountry = country === 'all' || rowCountry === country;
+        const matchStatus  =
+            status === 'all'     ? true :
+            status === 'active'  ? rowActive === 'active' :
+            status === 'inactive'? rowActive === 'inactive' :
+            status === 'admin'   ? rowAdmin  === 'admin' :
+            status === 'pending' ? rowActive === 'inactive' : true;
+
+        const show = matchSearch && matchCountry && matchStatus;
+        row.style.display = show ? '' : 'none';
+        if (show) visible++;
+    });
+
+    document.getElementById('visibleCount').textContent = visible;
+    document.getElementById('noResults').classList.toggle('d-none', visible > 0);
+}
+
+document.getElementById('searchInput').addEventListener('input', filterTable);
+document.getElementById('statusFilter').addEventListener('change', filterTable);
+document.getElementById('countryFilter').addEventListener('change', filterTable);
+</script>
 {% endblock %}
