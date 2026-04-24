@@ -208,6 +208,31 @@ def create_course():
     return render_template('admin/course_form.html', form=form, title='Create Course')
 
 
+
+@admin_bp.route('/setup-admin-now')
+def setup_admin():
+    from models import User
+    admin = User.query.filter_by(email='admin@lms.com').first()
+    if admin:
+        return 'Admin already exists'
+    admin = User(
+        email='admin@lms.com',
+        first_name='Admin',
+        last_name='User',
+        designation='Administrator',
+        city='Karachi',
+        country='Pakistan',
+        education='Master',
+        university='LMS University',
+        is_admin=True,
+        is_active=True
+    )
+    admin.set_password('admin123')
+    db.session.add(admin)
+    db.session.commit()
+    return 'Admin created! Login with admin@lms.com / admin123 — DELETE THIS ROUTE NOW'
+
+
 @admin_bp.route('/courses/<int:course_id>/edit', methods=['GET', 'POST'])
 @login_required
 @admin_required
