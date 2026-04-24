@@ -79,6 +79,13 @@ def enrollments():
                            enrollments=enrollments,
                            status_filter=status_filter)
 
+@admin_bp.route('/debug-enrollments')
+@login_required
+@admin_required
+def debug_enrollments():
+    all_e = Enrollment.query.all()
+    result = [f"ID:{e.id} status='{e.status}' user={e.student.email} course={e.course.title}" for e in all_e]
+    return '<br>'.join(result) if result else 'No enrollments found in database at all'
 
 @admin_bp.route('/enrollments/<int:enrollment_id>')
 @login_required
