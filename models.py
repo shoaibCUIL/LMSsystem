@@ -175,7 +175,10 @@ class Enrollment(db.Model):
     enrolled_at = db.Column(db.DateTime, default=datetime.utcnow)
     approved_at = db.Column(db.DateTime)
     expires_at = db.Column(db.DateTime)
-    
+    is_completed   = db.Column(db.Boolean, default=False, nullable=False)
+    completed_at   = db.Column(db.DateTime, nullable=True)
+    certificate_id = db.Column(db.String(64), nullable=True, unique=True)
+
     # Index for faster queries
     __table_args__ = (
         db.Index('idx_user_course', 'user_id', 'course_id'),

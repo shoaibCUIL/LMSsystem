@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% block title %}{{ room.title }} - Discussion{% endblock %}
+
 {% block content %}
 <div class="container my-4">
 
@@ -54,6 +55,7 @@
             </a>
         </div>
     </div>
+
     {% else %}
 
     <div class="row">
@@ -206,8 +208,11 @@
 
         </div>
     </div>
+
     {% endif %}
+
 </div>
+{% endblock %}
 
 {% block extra_js %}
 {% if has_access %}
@@ -283,5 +288,4 @@ setInterval(pollMessages, 3000);
 scrollBottom();
 </script>
 {% endif %}
-{% endblock %}
 {% endblock %}

@@ -6,6 +6,7 @@ from database import db
 from models import User, Course, Enrollment, Lecture, Blog, Event
 from forms import CourseForm, LectureForm
 from utils import save_thumbnail, slugify, calculate_enrollment_dates
+import uuid
 
 admin_bp = Blueprint('admin', __name__, url_prefix='/admin')
 
@@ -33,12 +34,10 @@ def dashboard():
     total_enrollments = Enrollment.query.count()
     pending_count = Enrollment.query.filter_by(status='pending').count()
 
-    # Last 10 enrollments for the "Recent Activity" table
     recent_enrollments = Enrollment.query.order_by(
         Enrollment.enrolled_at.desc()
     ).limit(10).all()
 
-    # ALL pending enrollments — no limit — shown in the dedicated section
     pending_enrollments_list = Enrollment.query.filter_by(
         status='pending'
     ).order_by(Enrollment.enrolled_at.desc()).all()
@@ -79,13 +78,6 @@ def enrollments():
                            enrollments=enrollments,
                            status_filter=status_filter)
 
-@admin_bp.route('/debug-enrollments')
-@login_required
-@admin_required
-def debug_enrollments():
-    all_e = Enrollment.query.all()
-    result = [f"ID:{e.id} status='{e.status}' user={e.student.email} course={e.course.title}" for e in all_e]
-    return '<br>'.join(result) if result else 'No enrollments found in database at all'
 
 @admin_bp.route('/enrollments/<int:enrollment_id>')
 @login_required
@@ -146,6 +138,43 @@ def reject_enrollment(enrollment_id):
         db.session.rollback()
         current_app.logger.error(f'Error rejecting enrollment: {str(e)}')
         flash('An error occurred while rejecting the enrollment.', 'danger')
+
+    return redirect(url_for('admin.enrollment_detail', enrollment_id=enrollment_id))
+
+
+@admin_bp.route('/enrollments/<int:enrollment_id>/complete', methods=['POST'])
+@login_required
+@admin_required
+def mark_completed(enrollment_id):
+    """Mark an approved enrollment as completed so student can download certificate."""
+    enrollment = Enrollment.query.get_or_404(enrollment_id)
+
+    if enrollment.status != 'approved':
+        flash('Only approved enrollments can be marked as completed.', 'warning')
+        return redirect(url_for('admin.enrollment_detail', enrollment_id=enrollment_id))
+
+    if enrollment.is_completed:
+        flash('This enrollment is already marked as completed.', 'info')
+        return redirect(url_for('admin.enrollment_detail', enrollment_id=enrollment_id))
+
+    try:
+        enrollment.is_completed = True
+        enrollment.completed_at = datetime.utcnow()
+        if not enrollment.certificate_id:
+            enrollment.certificate_id = str(uuid.uuid4()).replace('-', '').upper()[:16]
+        db.session.commit()
+        current_app.logger.info(
+            f'Enrollment marked complete: ID={enrollment_id} by Admin={current_user.id}'
+        )
+        flash(
+            f'Certificate issued for '
+            f'{enrollment.student.first_name} {enrollment.student.last_name}!',
+            'success'
+        )
+    except Exception as e:
+        db.session.rollback()
+        current_app.logger.error(f'Error marking completion: {str(e)}')
+        flash('An error occurred.', 'danger')
 
     return redirect(url_for('admin.enrollment_detail', enrollment_id=enrollment_id))
 
@@ -390,9 +419,7 @@ def toggle_admin(user_id):
         user.is_admin = not user.is_admin
         db.session.commit()
         status = 'granted' if user.is_admin else 'revoked'
-        current_app.logger.info(
-            f'Admin privileges {status} for user: {user.email}'
-        )
+        current_app.logger.info(f'Admin privileges {status} for user: {user.email}')
         flash(f'Admin privileges {status} for {user.email}', 'success')
     except Exception as e:
         db.session.rollback()

@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, redirect, url_for, flash, request, current_app, send_from_directory
+from flask import Blueprint, render_template, redirect, url_for, flash, request, current_app, send_from_directory, send_file
 from flask_login import login_user, logout_user, login_required, current_user
 from urllib.parse import urlparse
 from datetime import datetime, timedelta
@@ -8,6 +8,8 @@ from forms import RegistrationForm, LoginForm, EnrollmentForm, CourseForm, Lectu
 from utils import save_receipt, get_currency_from_country, calculate_enrollment_dates, format_currency
 from captcha_utils import generate_math_captcha, verify_math_captcha
 import os
+import io
+import uuid
 
 # Blueprints
 auth_bp = Blueprint('auth', __name__, url_prefix='/auth')
@@ -37,7 +39,6 @@ def register():
             captcha_question = generate_math_captcha()
             return render_template('auth/register.html', form=form, captcha_question=captcha_question)
 
-        # Create user - inactive until admin approves
         user = User(
             email=form.email.data.lower().strip(),
             first_name=form.first_name.data.strip(),
@@ -111,7 +112,7 @@ def logout():
 
 
 # ================================
-# MAIN/PUBLIC ROUTES
+# MAIN / PUBLIC ROUTES
 # ================================
 
 @main_bp.route('/')
@@ -183,7 +184,6 @@ def enroll(slug):
     """Course enrollment with level-based pricing"""
     course = Course.query.filter_by(slug=slug, is_active=True).first_or_404()
 
-    # Check if already enrolled
     existing_enrollment = Enrollment.query.filter_by(
         user_id=current_user.id,
         course_id=course.id
@@ -200,14 +200,10 @@ def enroll(slug):
 
     if request.method == 'POST':
         try:
-            # Level selected by user (beginner/intermediate/advanced)
             enrollment_type = request.form.get('enrollment_type', 'beginner')
-
-            # Days sent by JS (months already converted to days: months * 30)
             days = int(request.form.get('custom_hours', 1))
             days = max(1, days)
 
-            # PKR rate per day based on level
             level_rates = {
                 'beginner': 250,
                 'intermediate': 350,
@@ -216,20 +212,17 @@ def enroll(slug):
             rate_per_day = level_rates.get(enrollment_type, 250)
             base_price = rate_per_day * days
 
-            # Tiered discount based on total days
-            # Months: 2mo=60d, 3mo=90d, 6mo=180d
-            # Days: 3d, 5d, 10d
-            if days >= 180:       # 6+ months
+            if days >= 180:
                 discount_pct = 0.15
-            elif days >= 90:      # 3+ months
+            elif days >= 90:
                 discount_pct = 0.10
-            elif days >= 60:      # 2+ months
+            elif days >= 60:
                 discount_pct = 0.05
-            elif days >= 10:      # 10+ days
+            elif days >= 10:
                 discount_pct = 0.15
-            elif days >= 5:       # 5+ days
+            elif days >= 5:
                 discount_pct = 0.10
-            elif days >= 3:       # 3+ days
+            elif days >= 3:
                 discount_pct = 0.05
             else:
                 discount_pct = 0
@@ -237,7 +230,6 @@ def enroll(slug):
             discount_amount = round(base_price * discount_pct)
             price_pkr = base_price - discount_amount
 
-            # Double for international users
             if current_user.country != 'Pakistan':
                 price_pkr *= 2
 
@@ -249,7 +241,6 @@ def enroll(slug):
                 flash('Please complete all steps.', 'danger')
                 return render_template('courses/enroll.html', form=form, course=course, user=current_user)
 
-            # Save receipt
             receipt_file = request.files.get('payment_receipt')
             if not receipt_file or receipt_file.filename == '':
                 flash('Please upload a payment receipt.', 'danger')
@@ -260,7 +251,6 @@ def enroll(slug):
                 flash('Failed to upload receipt. Please try again.', 'danger')
                 return render_template('courses/enroll.html', form=form, course=course, user=current_user)
 
-            # Create enrollment record
             enrollment = Enrollment(
                 user_id=current_user.id,
                 course_id=course.id,
@@ -375,6 +365,52 @@ def my_enrollments():
 def profile():
     """User profile"""
     return render_template('dashboard/profile.html', user=current_user)
+
+
+# ================================
+# CERTIFICATE DOWNLOAD
+# ================================
+
+@dashboard_bp.route('/certificate/<int:enrollment_id>/download')
+@login_required
+def download_certificate(enrollment_id):
+    """Download PDF certificate — only for completed enrollments owned by current user."""
+    from certificate_utils import generate_certificate
+
+    enrollment = Enrollment.query.get_or_404(enrollment_id)
+
+    # Security: only the student themselves can download
+    if enrollment.user_id != current_user.id:
+        flash('You do not have permission to download this certificate.', 'danger')
+        return redirect(url_for('dashboard.index'))
+
+    # Must be marked completed by admin
+    if not enrollment.is_completed or not enrollment.completed_at:
+        flash('Certificate is only available after course completion.', 'warning')
+        return redirect(url_for('dashboard.index'))
+
+    # Assign a stable certificate_id if not already set
+    if not enrollment.certificate_id:
+        enrollment.certificate_id = str(uuid.uuid4()).replace('-', '').upper()[:16]
+        db.session.commit()
+
+    student_name = f"{enrollment.student.first_name} {enrollment.student.last_name}"
+
+    pdf_bytes = generate_certificate(
+        student_name=student_name,
+        course_name=enrollment.course.title,
+        completed_at=enrollment.completed_at,
+        cert_id=enrollment.certificate_id,
+    )
+
+    filename = f"EduLearn_Certificate_{enrollment.course.slug}_{enrollment.certificate_id}.pdf"
+
+    return send_file(
+        io.BytesIO(pdf_bytes),
+        mimetype='application/pdf',
+        as_attachment=True,
+        download_name=filename,
+    )
 
 
 # ================================

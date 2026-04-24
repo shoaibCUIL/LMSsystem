@@ -11,3 +11,4 @@ gunicorn==21.2.0
 psycopg2-binary
 requests==2.31.0
 Pillow==10.2.0
+reportlab
