@@ -31,11 +31,17 @@ def dashboard():
     total_users = User.query.count()
     total_courses = Course.query.count()
     total_enrollments = Enrollment.query.count()
-    pending_enrollments = Enrollment.query.filter_by(status='pending').count()
+    pending_count = Enrollment.query.filter_by(status='pending').count()
 
+    # Last 10 enrollments for the "Recent Activity" table
     recent_enrollments = Enrollment.query.order_by(
         Enrollment.enrolled_at.desc()
     ).limit(10).all()
+
+    # ALL pending enrollments — no limit — shown in the dedicated section
+    pending_enrollments_list = Enrollment.query.filter_by(
+        status='pending'
+    ).order_by(Enrollment.enrolled_at.desc()).all()
 
     active_enrollments = Enrollment.query.filter_by(status='approved').all()
     active_count = sum(1 for e in active_enrollments if e.is_active())
@@ -44,13 +50,16 @@ def dashboard():
         'total_users': total_users,
         'total_courses': total_courses,
         'total_enrollments': total_enrollments,
-        'pending_enrollments': pending_enrollments,
+        'pending_enrollments': pending_count,
         'active_count': active_count,
     }
 
-    return render_template('admin/admin.html',
-                           stats=stats,
-                           recent_enrollments=recent_enrollments)
+    return render_template(
+        'admin/admin.html',
+        stats=stats,
+        recent_enrollments=recent_enrollments,
+        pending_enrollments_list=pending_enrollments_list,
+    )
 
 
 # ================================
@@ -95,7 +104,9 @@ def approve_enrollment(enrollment_id):
         enrollment.approved_at = approved_at
         enrollment.expires_at = expires_at
         db.session.commit()
-        current_app.logger.info(f'Enrollment approved: ID={enrollment_id} by Admin={current_user.id}')
+        current_app.logger.info(
+            f'Enrollment approved: ID={enrollment_id} by Admin={current_user.id}'
+        )
         flash('Enrollment approved successfully!', 'success')
     except Exception as e:
         db.session.rollback()
@@ -120,7 +131,9 @@ def reject_enrollment(enrollment_id):
         enrollment.status = 'rejected'
         enrollment.admin_notes = admin_notes
         db.session.commit()
-        current_app.logger.info(f'Enrollment rejected: ID={enrollment_id} by Admin={current_user.id}')
+        current_app.logger.info(
+            f'Enrollment rejected: ID={enrollment_id} by Admin={current_user.id}'
+        )
         flash('Enrollment rejected.', 'info')
     except Exception as e:
         db.session.rollback()
@@ -174,8 +187,9 @@ def create_course():
 
             db.session.add(course)
             db.session.commit()
-
-            current_app.logger.info(f'Course created: {course.title} by Admin={current_user.id}')
+            current_app.logger.info(
+                f'Course created: {course.title} by Admin={current_user.id}'
+            )
             flash('Course created successfully!', 'success')
             return redirect(url_for('admin.courses'))
 
@@ -211,7 +225,9 @@ def edit_course(course_id):
                     course.thumbnail = thumbnail_filename
 
             db.session.commit()
-            current_app.logger.info(f'Course updated: {course.title} by Admin={current_user.id}')
+            current_app.logger.info(
+                f'Course updated: {course.title} by Admin={current_user.id}'
+            )
             flash('Course updated successfully!', 'success')
             return redirect(url_for('admin.courses'))
 
@@ -231,7 +247,9 @@ def delete_course(course_id):
     try:
         db.session.delete(course)
         db.session.commit()
-        current_app.logger.info(f'Course deleted: {course.title} by Admin={current_user.id}')
+        current_app.logger.info(
+            f'Course deleted: {course.title} by Admin={current_user.id}'
+        )
         flash('Course deleted successfully!', 'success')
     except Exception as e:
         db.session.rollback()
@@ -275,7 +293,9 @@ def create_lecture(course_id):
             )
             db.session.add(lecture)
             db.session.commit()
-            current_app.logger.info(f'Lecture created: {lecture.title} for Course={course.id}')
+            current_app.logger.info(
+                f'Lecture created: {lecture.title} for Course={course.id}'
+            )
             flash('Lecture created successfully!', 'success')
             return redirect(url_for('admin.course_lectures', course_id=course.id))
 
@@ -314,7 +334,8 @@ def edit_lecture(lecture_id):
             current_app.logger.error(f'Error updating lecture: {str(e)}')
             flash('An error occurred while updating the lecture.', 'danger')
 
-    return render_template('admin/lecture_form.html', form=form, lecture=lecture, course=course, title='Edit Lecture')
+    return render_template('admin/lecture_form.html', form=form, lecture=lecture,
+                           course=course, title='Edit Lecture')
 
 
 @admin_bp.route('/lectures/<int:lecture_id>/delete', methods=['POST'])
@@ -362,7 +383,9 @@ def toggle_admin(user_id):
         user.is_admin = not user.is_admin
         db.session.commit()
         status = 'granted' if user.is_admin else 'revoked'
-        current_app.logger.info(f'Admin privileges {status} for user: {user.email}')
+        current_app.logger.info(
+            f'Admin privileges {status} for user: {user.email}'
+        )
         flash(f'Admin privileges {status} for {user.email}', 'success')
     except Exception as e:
         db.session.rollback()
@@ -395,6 +418,7 @@ def toggle_active(user_id):
 
     return redirect(url_for('admin.users'))
 
+
 # ================================
 # DISCUSSION MANAGEMENT
 # ================================
@@ -420,7 +444,11 @@ def create_discussion_room():
         if not title:
             flash('Title is required.', 'danger')
         else:
-            room = DiscussionRoom(title=title, description=description, course_id=course_id)
+            room = DiscussionRoom(
+                title=title,
+                description=description,
+                course_id=course_id
+            )
             db.session.add(room)
             db.session.commit()
             flash('Discussion room created!', 'success')
@@ -435,7 +463,8 @@ def create_discussion_room():
 def discussion_sessions():
     from models import DiscussionSession, DiscussionRoom
     sessions = DiscussionSession.query.order_by(
-        DiscussionSession.scheduled_at.desc()).all()
+        DiscussionSession.scheduled_at.desc()
+    ).all()
     rooms = DiscussionRoom.query.filter_by(is_active=True).all()
     return render_template('admin/discussion_sessions.html',
                            sessions=sessions, rooms=rooms)
@@ -524,6 +553,7 @@ def reject_discussion_sub(sub_id):
     db.session.commit()
     flash('Subscription rejected.', 'info')
     return redirect(url_for('admin.discussion_subscriptions'))
+
 
 @admin_bp.route('/discussion/rooms/<int:room_id>/toggle', methods=['POST'])
 @login_required

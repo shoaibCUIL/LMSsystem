@@ -2,251 +2,628 @@
 
 {% block title %}Admin Dashboard - {{ app_name }}{% endblock %}
 
-{% block content %}
-<div class="container my-5">
-    <div class="mb-4">
-        <h1><i class="fas fa-shield-alt text-primary"></i> Admin Dashboard</h1>
-        <p class="lead text-muted">Manage your LMS system</p>
-    </div>
-    
-    <!-- Stats Overview -->
-    <div class="row mb-4">
-        <div class="col-md-3">
-            <div class="stat-card bg-primary text-white">
-                <div class="stat-icon"><i class="fas fa-users"></i></div>
-                <div class="stat-details">
-                    <h3>{{ stats.total_users }}</h3>
-                    <p>Total Users</p>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="stat-card bg-success text-white">
-                <div class="stat-icon"><i class="fas fa-book"></i></div>
-                <div class="stat-details">
-                    <h3>{{ stats.total_courses }}</h3>
-                    <p>Total Courses</p>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="stat-card bg-info text-white">
-                <div class="stat-icon"><i class="fas fa-graduation-cap"></i></div>
-                <div class="stat-details">
-                    <h3>{{ stats.total_enrollments }}</h3>
-                    <p>Enrollments</p>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="stat-card bg-warning text-white">
-                <div class="stat-icon"><i class="fas fa-clock"></i></div>
-                <div class="stat-details">
-                    <h3>{{ stats.pending_enrollments }}</h3>
-                    <p>Pending Enrollments</p>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Admin Actions Row 1 -->
-    <div class="row">
-        <div class="col-md-4 mb-4">
-            <div class="card admin-card h-100">
-                <div class="card-body text-center">
-                    <i class="fas fa-users-cog fa-4x text-primary mb-3"></i>
-                    <h5 class="card-title">User Management</h5>
-                    <p class="card-text text-muted">View and manage all registered users</p>
-                    <a href="{{ url_for('admin.users') }}" class="btn btn-primary">
-                        <i class="fas fa-arrow-right"></i> Manage Users
-                    </a>
-                </div>
-            </div>
-        </div>
-        
-        <div class="col-md-4 mb-4">
-            <div class="card admin-card h-100">
-                <div class="card-body text-center">
-                    <i class="fas fa-book-reader fa-4x text-success mb-3"></i>
-                    <h5 class="card-title">Course Management</h5>
-                    <p class="card-text text-muted">Add, edit, and manage courses</p>
-                    <a href="{{ url_for('admin.courses') }}" class="btn btn-success">
-                        <i class="fas fa-arrow-right"></i> Manage Courses
-                    </a>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-md-4 mb-4">
-            <div class="card admin-card h-100">
-                <div class="card-body text-center">
-                    <i class="fas fa-user-graduate fa-4x text-warning mb-3"></i>
-                    <h5 class="card-title">Enrollment Management</h5>
-                    <p class="card-text text-muted">Verify payments and activate enrollments</p>
-                    <a href="{{ url_for('admin.enrollments') }}" class="btn btn-warning">
-                        <i class="fas fa-arrow-right"></i> Manage Enrollments
-                    </a>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-md-4 mb-4">
-            <div class="card admin-card h-100">
-                <div class="card-body text-center">
-                    <i class="fas fa-hourglass-half fa-4x text-danger mb-3"></i>
-                    <h5 class="card-title">Pending Approvals</h5>
-                    <p class="card-text text-muted">Review and approve pending enrollments</p>
-                    <a href="{{ url_for('admin.enrollments') }}?status=pending" class="btn btn-danger">
-                        <i class="fas fa-arrow-right"></i> View Pending
-                        {% if stats.pending_enrollments > 0 %}
-                        <span class="badge bg-white text-danger ms-1">{{ stats.pending_enrollments }}</span>
-                        {% endif %}
-                    </a>
-                </div>
-            </div>
-        </div>
-        
-        <div class="col-md-4 mb-4">
-            <div class="card admin-card h-100">
-                <div class="card-body text-center">
-                    <i class="fas fa-video fa-4x text-secondary mb-3"></i>
-                    <h5 class="card-title">Lecture Management</h5>
-                    <p class="card-text text-muted">Add and organize course lectures</p>
-                    <a href="{{ url_for('admin.courses') }}" class="btn btn-secondary">
-                        <i class="fas fa-arrow-right"></i> Manage Lectures
-                    </a>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-md-4 mb-4">
-            <div class="card admin-card h-100">
-                <div class="card-body text-center">
-                    <i class="fas fa-blog fa-4x text-info mb-3"></i>
-                    <h5 class="card-title">Blog Management</h5>
-                    <p class="card-text text-muted">Create and manage blog posts</p>
-                    <a href="#" class="btn btn-info disabled">
-                        <i class="fas fa-clock"></i> Coming Soon
-                    </a>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Discussion Management Row -->
-    <h4 class="mt-2 mb-3" style="color:#667eea; font-weight:700;">
-        💬 Discussion Management
-    </h4>
-    <div class="row">
-        <div class="col-md-4 mb-4">
-            <div class="card admin-card h-100" style="border-top: 4px solid #667eea;">
-                <div class="card-body text-center">
-                    <i class="fas fa-door-open fa-4x mb-3" style="color:#667eea;"></i>
-                    <h5 class="card-title">Discussion Rooms</h5>
-                    <p class="card-text text-muted">Create and manage discussion rooms for courses</p>
-                    <a href="{{ url_for('admin.discussion_rooms') }}" 
-                       class="btn" style="background:linear-gradient(135deg,#667eea,#764ba2); color:white;">
-                        <i class="fas fa-arrow-right"></i> Manage Rooms
-                    </a>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-md-4 mb-4">
-            <div class="card admin-card h-100" style="border-top: 4px solid #764ba2;">
-                <div class="card-body text-center">
-                    <i class="fas fa-calendar-alt fa-4x mb-3" style="color:#764ba2;"></i>
-                    <h5 class="card-title">Discussion Sessions</h5>
-                    <p class="card-text text-muted">Schedule and manage live discussion sessions</p>
-                    <a href="{{ url_for('admin.discussion_sessions') }}"
-                       class="btn" style="background:linear-gradient(135deg,#764ba2,#667eea); color:white;">
-                        <i class="fas fa-arrow-right"></i> Manage Sessions
-                    </a>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-md-4 mb-4">
-            <div class="card admin-card h-100" style="border-top: 4px solid #5a4fcf;">
-                <div class="card-body text-center">
-                    <i class="fas fa-user-check fa-4x mb-3" style="color:#5a4fcf;"></i>
-                    <h5 class="card-title">Discussion Subscriptions</h5>
-                    <p class="card-text text-muted">Approve or reject user discussion subscriptions</p>
-                    <a href="{{ url_for('admin.discussion_subscriptions') }}"
-                       class="btn" style="background:linear-gradient(135deg,#5a4fcf,#764ba2); color:white;">
-                        <i class="fas fa-arrow-right"></i> Manage Subscriptions
-                    </a>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Recent Enrollments -->
-    <div class="card mt-2">
-        <div class="card-header bg-dark text-white">
-            <h5 class="mb-0"><i class="fas fa-clock"></i> Recent Enrollments</h5>
-        </div>
-        <div class="card-body">
-            {% if recent_enrollments %}
-            <div class="table-responsive">
-                <table class="table table-hover">
-                    <thead>
-                        <tr>
-                            <th>User</th>
-                            <th>Course</th>
-                            <th>Date</th>
-                            <th>Status</th>
-                            <th>Action</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for enrollment in recent_enrollments %}
-                        <tr>
-                            <td>{{ enrollment.student.first_name }} {{ enrollment.student.last_name }}</td>
-                            <td>{{ enrollment.course.title }}</td>
-                            <td>{{ enrollment.enrolled_at.strftime('%b %d, %Y') }}</td>
-                            <td>
-                                {% if enrollment.status == 'approved' %}
-                                    <span class="badge bg-success">Approved</span>
-                                {% elif enrollment.status == 'rejected' %}
-                                    <span class="badge bg-danger">Rejected</span>
-                                {% else %}
-                                    <span class="badge bg-warning text-dark">Pending</span>
-                                {% endif %}
-                            </td>
-                            <td>
-                                <a href="{{ url_for('admin.enrollment_detail', enrollment_id=enrollment.id) }}" 
-                                   class="btn btn-sm btn-outline-primary">View</a>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-            {% else %}
-            <p class="text-muted text-center py-4">No recent activity</p>
-            {% endif %}
-        </div>
-    </div>
-</div>
-
+{% block extra_head %}
 <style>
-.stat-card {
-    border-radius: 10px; padding: 25px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-    display: flex; align-items: center; gap: 20px; margin-bottom: 15px;
-}
-.stat-icon { font-size: 3em; opacity: 0.9; }
-.stat-details h3 { font-size: 2.5em; margin: 0; font-weight: bold; }
-.stat-details p { margin: 0; opacity: 0.9; }
-.admin-card {
-    border: none;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    transition: transform 0.3s, box-shadow 0.3s;
-}
-.admin-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 4px 16px rgba(0,0,0,0.15);
-}
+    body { background: #0f1117; }
+
+    .admin-wrap {
+        max-width: 1320px;
+        margin: 0 auto;
+        padding: 2rem 1.5rem 4rem;
+    }
+
+    /* ── Page header ── */
+    .admin-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 2.5rem;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+
+    .admin-header-left h1 {
+        font-family: 'Sora', sans-serif;
+        font-size: 1.75rem;
+        font-weight: 800;
+        color: #fff;
+        letter-spacing: -.03em;
+        margin: 0;
+    }
+
+    .admin-header-left p {
+        color: rgba(255,255,255,.45);
+        font-size: .875rem;
+        margin: .25rem 0 0;
+    }
+
+    .admin-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: .4rem;
+        background: rgba(255,193,7,.12);
+        border: 1px solid rgba(255,193,7,.3);
+        color: #ffc107;
+        font-size: .75rem;
+        font-weight: 700;
+        padding: .35rem .9rem;
+        border-radius: 999px;
+        text-transform: uppercase;
+        letter-spacing: .07em;
+    }
+
+    /* ── Stat cards ── */
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 1rem;
+        margin-bottom: 2rem;
+    }
+
+    .stat-card {
+        background: #1a1d27;
+        border: 1px solid rgba(255,255,255,.07);
+        border-radius: 16px;
+        padding: 1.5rem;
+        display: flex;
+        flex-direction: column;
+        gap: .75rem;
+        position: relative;
+        overflow: hidden;
+        transition: border-color .2s, transform .2s;
+    }
+
+    .stat-card:hover {
+        border-color: rgba(255,255,255,.15);
+        transform: translateY(-3px);
+    }
+
+    .stat-card::before {
+        content: '';
+        position: absolute;
+        top: 0; left: 0; right: 0;
+        height: 3px;
+        border-radius: 16px 16px 0 0;
+    }
+
+    .stat-card.blue::before   { background: linear-gradient(90deg,#0056D2,#4FA8FF); }
+    .stat-card.green::before  { background: linear-gradient(90deg,#059669,#34D399); }
+    .stat-card.teal::before   { background: linear-gradient(90deg,#0891B2,#22D3EE); }
+    .stat-card.amber::before  { background: linear-gradient(90deg,#D97706,#FCD34D); }
+
+    .stat-icon {
+        width: 40px; height: 40px;
+        border-radius: 10px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 1.1rem;
+    }
+
+    .stat-card.blue  .stat-icon { background: rgba(0,86,210,.18); }
+    .stat-card.green .stat-icon { background: rgba(5,150,105,.18); }
+    .stat-card.teal  .stat-icon { background: rgba(8,145,178,.18); }
+    .stat-card.amber .stat-icon { background: rgba(217,119,6,.18); }
+
+    .stat-value {
+        font-family: 'Sora', sans-serif;
+        font-size: 2.25rem;
+        font-weight: 800;
+        color: #fff;
+        letter-spacing: -.04em;
+        line-height: 1;
+    }
+
+    .stat-label {
+        font-size: .8rem;
+        color: rgba(255,255,255,.45);
+        text-transform: uppercase;
+        letter-spacing: .07em;
+    }
+
+    /* ── Section title ── */
+    .section-heading {
+        font-family: 'Sora', sans-serif;
+        font-size: 1rem;
+        font-weight: 700;
+        color: rgba(255,255,255,.7);
+        text-transform: uppercase;
+        letter-spacing: .08em;
+        margin: 2rem 0 1rem;
+        display: flex;
+        align-items: center;
+        gap: .6rem;
+    }
+
+    .section-heading::after {
+        content: '';
+        flex: 1;
+        height: 1px;
+        background: rgba(255,255,255,.07);
+    }
+
+    /* ── Action cards grid ── */
+    .actions-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1rem;
+        margin-bottom: .5rem;
+    }
+
+    .action-card {
+        background: #1a1d27;
+        border: 1px solid rgba(255,255,255,.07);
+        border-radius: 16px;
+        padding: 1.5rem;
+        display: flex;
+        flex-direction: column;
+        gap: .75rem;
+        text-decoration: none;
+        transition: all .2s;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .action-card:hover {
+        border-color: rgba(255,255,255,.18);
+        transform: translateY(-3px);
+        box-shadow: 0 12px 32px rgba(0,0,0,.4);
+    }
+
+    .action-card-icon {
+        width: 48px; height: 48px;
+        border-radius: 14px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 1.35rem;
+    }
+
+    .action-card h3 {
+        font-family: 'Sora', sans-serif;
+        font-size: .95rem;
+        font-weight: 700;
+        color: #fff;
+        margin: 0;
+    }
+
+    .action-card p {
+        font-size: .82rem;
+        color: rgba(255,255,255,.45);
+        margin: 0;
+        line-height: 1.5;
+    }
+
+    .action-card-arrow {
+        margin-top: auto;
+        font-size: .8rem;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        gap: .3rem;
+        transition: gap .2s;
+    }
+
+    .action-card:hover .action-card-arrow { gap: .55rem; }
+
+    /* Color variants */
+    .ac-blue   .action-card-icon { background: rgba(0,86,210,.2); }
+    .ac-blue   .action-card-arrow { color: #4FA8FF; }
+    .ac-green  .action-card-icon { background: rgba(5,150,105,.2); }
+    .ac-green  .action-card-arrow { color: #34D399; }
+    .ac-amber  .action-card-icon { background: rgba(217,119,6,.2); }
+    .ac-amber  .action-card-arrow { color: #FCD34D; }
+    .ac-red    .action-card-icon { background: rgba(220,38,38,.2); }
+    .ac-red    .action-card-arrow { color: #F87171; }
+    .ac-gray   .action-card-icon { background: rgba(107,114,128,.2); }
+    .ac-gray   .action-card-arrow { color: #9CA3AF; }
+    .ac-purple .action-card-icon { background: rgba(139,92,246,.2); }
+    .ac-purple .action-card-arrow { color: #A78BFA; }
+    .ac-indigo .action-card-icon { background: rgba(99,102,241,.2); }
+    .ac-indigo .action-card-arrow { color: #818CF8; }
+    .ac-violet .action-card-icon { background: rgba(124,58,237,.2); }
+    .ac-violet .action-card-arrow { color: #C4B5FD; }
+    .ac-teal   .action-card-icon { background: rgba(8,145,178,.2); }
+    .ac-teal   .action-card-arrow { color: #22D3EE; }
+
+    /* Badge on action card */
+    .action-badge {
+        position: absolute;
+        top: 1rem; right: 1rem;
+        background: #ef4444;
+        color: white;
+        font-size: .7rem;
+        font-weight: 800;
+        padding: .2rem .55rem;
+        border-radius: 999px;
+        min-width: 22px;
+        text-align: center;
+    }
+
+    /* ── Panel (table container) ── */
+    .panel {
+        background: #1a1d27;
+        border: 1px solid rgba(255,255,255,.07);
+        border-radius: 16px;
+        overflow: hidden;
+        margin-bottom: 1.5rem;
+    }
+
+    .panel-header {
+        padding: 1.25rem 1.5rem;
+        border-bottom: 1px solid rgba(255,255,255,.07);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        flex-wrap: wrap;
+    }
+
+    .panel-header h2 {
+        font-family: 'Sora', sans-serif;
+        font-size: 1rem;
+        font-weight: 700;
+        color: #fff;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: .5rem;
+    }
+
+    .panel-count {
+        background: #ef4444;
+        color: white;
+        font-size: .7rem;
+        font-weight: 800;
+        padding: .18rem .55rem;
+        border-radius: 999px;
+    }
+
+    .panel-link {
+        font-size: .8rem;
+        font-weight: 600;
+        color: #4FA8FF;
+        text-decoration: none;
+        transition: opacity .2s;
+    }
+
+    .panel-link:hover { opacity: .75; }
+
+    /* ── Table ── */
+    .data-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .data-table th {
+        padding: .75rem 1.5rem;
+        font-size: .72rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: .08em;
+        color: rgba(255,255,255,.35);
+        text-align: left;
+        border-bottom: 1px solid rgba(255,255,255,.06);
+        white-space: nowrap;
+    }
+
+    .data-table td {
+        padding: .9rem 1.5rem;
+        font-size: .875rem;
+        color: rgba(255,255,255,.8);
+        border-bottom: 1px solid rgba(255,255,255,.04);
+        vertical-align: middle;
+    }
+
+    .data-table tr:last-child td { border-bottom: none; }
+
+    .data-table tr:hover td { background: rgba(255,255,255,.025); }
+
+    .data-table .user-name {
+        font-weight: 600;
+        color: #fff;
+    }
+
+    .data-table .user-email {
+        font-size: .78rem;
+        color: rgba(255,255,255,.35);
+        margin-top: .15rem;
+    }
+
+    /* ── Status badges ── */
+    .badge {
+        display: inline-flex;
+        align-items: center;
+        gap: .3rem;
+        font-size: .72rem;
+        font-weight: 700;
+        padding: .25rem .65rem;
+        border-radius: 999px;
+        text-transform: uppercase;
+        letter-spacing: .04em;
+    }
+
+    .badge-pending  { background: rgba(245,158,11,.15); color: #FCD34D; border: 1px solid rgba(245,158,11,.25); }
+    .badge-approved { background: rgba(5,150,105,.15);  color: #34D399; border: 1px solid rgba(5,150,105,.25); }
+    .badge-rejected { background: rgba(239,68,68,.15);  color: #F87171; border: 1px solid rgba(239,68,68,.25); }
+
+    .badge::before {
+        content: '';
+        width: 5px; height: 5px;
+        border-radius: 50%;
+    }
+
+    .badge-pending::before  { background: #FCD34D; }
+    .badge-approved::before { background: #34D399; }
+    .badge-rejected::before { background: #F87171; }
+
+    /* ── Buttons ── */
+    .btn-sm-action {
+        display: inline-flex;
+        align-items: center;
+        gap: .3rem;
+        padding: .35rem .8rem;
+        border-radius: 8px;
+        font-size: .78rem;
+        font-weight: 600;
+        text-decoration: none;
+        transition: all .2s;
+        border: none;
+        cursor: pointer;
+    }
+
+    .btn-review {
+        background: rgba(239,68,68,.15);
+        color: #F87171;
+        border: 1px solid rgba(239,68,68,.25);
+    }
+
+    .btn-review:hover {
+        background: rgba(239,68,68,.25);
+        color: #fff;
+    }
+
+    .btn-view {
+        background: rgba(79,168,255,.12);
+        color: #4FA8FF;
+        border: 1px solid rgba(79,168,255,.2);
+    }
+
+    .btn-view:hover {
+        background: rgba(79,168,255,.22);
+        color: #fff;
+    }
+
+    /* ── Empty state ── */
+    .empty-state {
+        text-align: center;
+        padding: 3rem 1.5rem;
+        color: rgba(255,255,255,.3);
+        font-size: .875rem;
+    }
+
+    /* ── Responsive ── */
+    @media (max-width: 1100px) {
+        .stats-grid   { grid-template-columns: repeat(2,1fr); }
+        .actions-grid { grid-template-columns: repeat(2,1fr); }
+    }
+
+    @media (max-width: 640px) {
+        .stats-grid   { grid-template-columns: 1fr; }
+        .actions-grid { grid-template-columns: 1fr; }
+        .data-table th,
+        .data-table td { padding: .75rem 1rem; }
+    }
 </style>
+{% endblock %}
+
+{% block content %}
+<div class="admin-wrap">
+
+    <!-- Page Header -->
+    <div class="admin-header">
+        <div class="admin-header-left">
+            <h1>⚙️ Admin Dashboard</h1>
+            <p>Manage your EduLearn platform</p>
+        </div>
+        <span class="admin-badge">⭐ Administrator</span>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats-grid">
+        <div class="stat-card blue">
+            <div class="stat-icon">👥</div>
+            <div class="stat-value">{{ stats.total_users }}</div>
+            <div class="stat-label">Total Users</div>
+        </div>
+        <div class="stat-card green">
+            <div class="stat-icon">📚</div>
+            <div class="stat-value">{{ stats.total_courses }}</div>
+            <div class="stat-label">Total Courses</div>
+        </div>
+        <div class="stat-card teal">
+            <div class="stat-icon">🎓</div>
+            <div class="stat-value">{{ stats.total_enrollments }}</div>
+            <div class="stat-label">Total Enrollments</div>
+        </div>
+        <div class="stat-card amber">
+            <div class="stat-icon">⏳</div>
+            <div class="stat-value">{{ stats.pending_enrollments }}</div>
+            <div class="stat-label">Pending Approvals</div>
+        </div>
+    </div>
+
+    <!-- Management Actions -->
+    <div class="section-heading">Core Management</div>
+    <div class="actions-grid">
+        <a href="{{ url_for('admin.users') }}" class="action-card ac-blue">
+            <div class="action-card-icon">👤</div>
+            <h3>User Management</h3>
+            <p>View and manage all registered users</p>
+            <span class="action-card-arrow">Manage Users →</span>
+        </a>
+
+        <a href="{{ url_for('admin.courses') }}" class="action-card ac-green">
+            <div class="action-card-icon">📖</div>
+            <h3>Course Management</h3>
+            <p>Add, edit, and manage courses</p>
+            <span class="action-card-arrow">Manage Courses →</span>
+        </a>
+
+        <a href="{{ url_for('admin.enrollments') }}" class="action-card ac-amber">
+            <div class="action-card-icon">🎓</div>
+            <h3>Enrollment Management</h3>
+            <p>Verify payments and activate enrollments</p>
+            <span class="action-card-arrow">Manage Enrollments →</span>
+        </a>
+
+        <a href="{{ url_for('admin.enrollments') }}?status=pending" class="action-card ac-red">
+            {% if stats.pending_enrollments > 0 %}
+            <span class="action-badge">{{ stats.pending_enrollments }}</span>
+            {% endif %}
+            <div class="action-card-icon">⏰</div>
+            <h3>Pending Approvals</h3>
+            <p>Review and approve pending enrollments</p>
+            <span class="action-card-arrow">View Pending →</span>
+        </a>
+
+        <a href="{{ url_for('admin.courses') }}" class="action-card ac-gray">
+            <div class="action-card-icon">🎬</div>
+            <h3>Lecture Management</h3>
+            <p>Add and organize course lectures</p>
+            <span class="action-card-arrow">Manage Lectures →</span>
+        </a>
+
+        <div class="action-card ac-teal" style="opacity:.5; cursor:not-allowed;">
+            <div class="action-card-icon">✍️</div>
+            <h3>Blog Management</h3>
+            <p>Create and manage blog posts</p>
+            <span class="action-card-arrow" style="color:#22D3EE;">Coming Soon</span>
+        </div>
+    </div>
+
+    <!-- Discussion Management -->
+    <div class="section-heading">💬 Discussion Management</div>
+    <div class="actions-grid">
+        <a href="{{ url_for('admin.discussion_rooms') }}" class="action-card ac-purple">
+            <div class="action-card-icon">🚪</div>
+            <h3>Discussion Rooms</h3>
+            <p>Create and manage discussion rooms for courses</p>
+            <span class="action-card-arrow">Manage Rooms →</span>
+        </a>
+
+        <a href="{{ url_for('admin.discussion_sessions') }}" class="action-card ac-indigo">
+            <div class="action-card-icon">📅</div>
+            <h3>Discussion Sessions</h3>
+            <p>Schedule and manage live discussion sessions</p>
+            <span class="action-card-arrow">Manage Sessions →</span>
+        </a>
+
+        <a href="{{ url_for('admin.discussion_subscriptions') }}" class="action-card ac-violet">
+            <div class="action-card-icon">✅</div>
+            <h3>Discussion Subscriptions</h3>
+            <p>Approve or reject user discussion subscriptions</p>
+            <span class="action-card-arrow">Manage Subscriptions →</span>
+        </a>
+    </div>
+
+    <!-- ALL Pending Enrollments -->
+    {% if pending_enrollments_list %}
+    <div class="section-heading">⏳ All Pending Enrollments</div>
+    <div class="panel">
+        <div class="panel-header">
+            <h2>
+                Awaiting Review
+                <span class="panel-count">{{ pending_enrollments_list | length }}</span>
+            </h2>
+            <a href="{{ url_for('admin.enrollments') }}?status=pending" class="panel-link">View all →</a>
+        </div>
+        <div style="overflow-x:auto;">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Student</th>
+                        <th>Course</th>
+                        <th>Amount</th>
+                        <th>Payment Method</th>
+                        <th>Submitted</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for enrollment in pending_enrollments_list %}
+                    <tr>
+                        <td>
+                            <div class="user-name">{{ enrollment.student.first_name }} {{ enrollment.student.last_name }}</div>
+                            <div class="user-email">{{ enrollment.student.email }}</div>
+                        </td>
+                        <td>{{ enrollment.course.title }}</td>
+                        <td>Rs. {{ "%.0f" | format(enrollment.price_paid_pkr) }}</td>
+                        <td>
+                            {% if enrollment.payment_method == 'jazzcash' %}JazzCash
+                            {% elif enrollment.payment_method == 'easypaisa' %}Easypaisa
+                            {% elif enrollment.payment_method == 'bank' %}Bank Transfer
+                            {% else %}{{ enrollment.payment_method }}{% endif %}
+                        </td>
+                        <td>{{ enrollment.enrolled_at.strftime('%b %d, %Y') }}</td>
+                        <td>
+                            <a href="{{ url_for('admin.enrollment_detail', enrollment_id=enrollment.id) }}"
+                               class="btn-sm-action btn-review">Review →</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Recent Enrollments -->
+    <div class="section-heading">🕐 Recent Enrollments</div>
+    <div class="panel">
+        <div class="panel-header">
+            <h2>Latest Activity</h2>
+            <a href="{{ url_for('admin.enrollments') }}" class="panel-link">View all →</a>
+        </div>
+        {% if recent_enrollments %}
+        <div style="overflow-x:auto;">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Student</th>
+                        <th>Course</th>
+                        <th>Date</th>
+                        <th>Status</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for enrollment in recent_enrollments %}
+                    <tr>
+                        <td>
+                            <div class="user-name">{{ enrollment.student.first_name }} {{ enrollment.student.last_name }}</div>
+                            <div class="user-email">{{ enrollment.student.email }}</div>
+                        </td>
+                        <td>{{ enrollment.course.title }}</td>
+                        <td>{{ enrollment.enrolled_at.strftime('%b %d, %Y') }}</td>
+                        <td>
+                            {% if enrollment.status == 'approved' %}
+                                <span class="badge badge-approved">Approved</span>
+                            {% elif enrollment.status == 'rejected' %}
+                                <span class="badge badge-rejected">Rejected</span>
+                            {% else %}
+                                <span class="badge badge-pending">Pending</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <a href="{{ url_for('admin.enrollment_detail', enrollment_id=enrollment.id) }}"
+                               class="btn-sm-action btn-view">View →</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="empty-state">No recent activity yet.</div>
+        {% endif %}
+    </div>
+
+</div>
 {% endblock %}
