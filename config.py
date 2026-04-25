@@ -18,11 +18,11 @@ class Config:
     }
 
     # File uploads
-    UPLOAD_FOLDER    = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'uploads')
-    RECEIPTS_FOLDER  = os.path.join(UPLOAD_FOLDER, 'receipts')
+    UPLOAD_FOLDER     = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'uploads')
+    RECEIPTS_FOLDER   = os.path.join(UPLOAD_FOLDER, 'receipts')
     THUMBNAILS_FOLDER = os.path.join(UPLOAD_FOLDER, 'thumbnails')
 
-    MAX_CONTENT_LENGTH       = 16 * 1024 * 1024
+    MAX_CONTENT_LENGTH         = 16 * 1024 * 1024
     ALLOWED_RECEIPT_EXTENSIONS = {'png', 'jpg', 'jpeg', 'pdf'}
     ALLOWED_IMAGE_EXTENSIONS   = {'png', 'jpg', 'jpeg', 'gif', 'webp'}
 
@@ -65,14 +65,15 @@ class Config:
 
     # Currency
     CURRENCY_RATES = {
-        'PKR': 1.0,   'USD': 0.0036, 'GBP': 0.0028,
+        'PKR': 1.0,    'USD': 0.0036, 'GBP': 0.0028,
         'EUR': 0.0033, 'AED': 0.013,  'SAR': 0.013,
     }
     INTERNATIONAL_MULTIPLIER = 2.0
 
     # ─────────────────────────────────────────────────────────
-    # DURATION-TIER PRICING  (Option A — student picks tier)
-    # Tier price depends on course level: beginner/intermediate/advanced
+    # DURATION-TIER PRICING
+    # Student picks: Short (1 mo) / Standard (2 mo) / Intensive (3 mo)
+    # Price depends on course level: beginner | intermediate | advanced
     # ─────────────────────────────────────────────────────────
     DURATION_TIERS = {
         'short': {
@@ -144,7 +145,7 @@ class Config:
         'intermediate': {'pkr': 1200, 'usd': 10},
         'advanced':     {'pkr': 2000, 'usd': 16},
     }
-    PACKAGE_PRICING       = {}   # replaced by DURATION_TIERS
+    PACKAGE_PRICING       = {}
     ADD_ON_PRICING        = {
         'guided_support':            {'pkr': 5000,  'usd': 40},
         'one_on_one_mentorship_min': {'pkr': 12000, 'usd': 100},
@@ -155,9 +156,20 @@ class Config:
     MULTI_COURSE_DISCOUNT = 0.10
 
     # ─────────────────────────────────────────────────────────
-    # DEFAULT COURSES  (7 courses)
+    # DEFAULT COURSES — 8 courses
     # ─────────────────────────────────────────────────────────
     DEFAULT_COURSES = [
+
+        # ── BEGINNER ──────────────────────────────────────────
+        {
+            'title':             'Computer Essentials',
+            'slug':              'computer-essentials',
+            'description':       'Complete beginner course covering computer basics, internet skills, Microsoft Office, email, and essential digital literacy for everyday use.',
+            'level':             'beginner',
+            'duration_estimate': '4–6 weeks',
+            'hourly_rate_pkr':   800,
+            'hourly_rate_usd':   6,
+        },
         {
             'title':             'General Linguistics',
             'slug':              'general-linguistics',
@@ -176,15 +188,8 @@ class Config:
             'hourly_rate_pkr':   800,
             'hourly_rate_usd':   6,
         },
-        {
-            'title':             'Corpus Linguistics',
-            'slug':              'corpus-linguistics',
-            'description':       'Analyse large language datasets, identify patterns, and draw evidence-based conclusions from real text corpora.',
-            'level':             'intermediate',
-            'duration_estimate': '8–10 weeks',
-            'hourly_rate_pkr':   1200,
-            'hourly_rate_usd':   10,
-        },
+
+        # ── INTERMEDIATE ──────────────────────────────────────
         {
             'title':             'Python Full Course',
             'slug':              'python-full-course',
@@ -195,13 +200,33 @@ class Config:
             'hourly_rate_usd':   10,
         },
         {
-            'title':             'Coding with AI',
-            'slug':              'coding-with-ai',
-            'description':       'Practical course on using AI tools and LLMs to accelerate coding, automate tasks, and build AI-assisted projects.',
+            'title':             'Corpus Linguistics',
+            'slug':              'corpus-linguistics',
+            'description':       'Analyse large language datasets, identify patterns, and draw evidence-based conclusions from real text corpora.',
             'level':             'intermediate',
             'duration_estimate': '8–10 weeks',
             'hourly_rate_pkr':   1200,
             'hourly_rate_usd':   10,
+        },
+        {
+            'title':             'Vibe Coding with AI',
+            'slug':              'vibe-coding-with-ai',
+            'description':       'Learn to build real projects using AI tools like ChatGPT, Copilot, and Claude. Write less code, ship faster, think smarter.',
+            'level':             'intermediate',
+            'duration_estimate': '8–10 weeks',
+            'hourly_rate_pkr':   1200,
+            'hourly_rate_usd':   10,
+        },
+
+        # ── ADVANCED ──────────────────────────────────────────
+        {
+            'title':             'Statistics for Corpus Linguistics',
+            'slug':              'stats-for-corpus',
+            'description':       'Applied statistics for corpus researchers: frequency analysis, collocations, chi-square, log-likelihood, and R/Python tools.',
+            'level':             'advanced',
+            'duration_estimate': '10–12 weeks',
+            'hourly_rate_pkr':   2000,
+            'hourly_rate_usd':   16,
         },
         {
             'title':             'Computational Linguistics',
@@ -209,15 +234,6 @@ class Config:
             'description':       'Three-level programme — Basics → Techniques → Projects. Covers NLP fundamentals, language modelling, and AI language systems.',
             'level':             'advanced',
             'duration_estimate': '12 weeks (3 levels)',
-            'hourly_rate_pkr':   2000,
-            'hourly_rate_usd':   16,
-        },
-        {
-            'title':             'Statistics for Corpus Linguistics',
-            'slug':              'stats-for-corpus',
-            'description':       'Applied statistics for corpus researchers: frequency analysis, collocations, chi-square, log-likelihood, and R/Python tools.',
-            'level':             'advanced',
-            'duration_estimate': '10–12 weeks',
             'hourly_rate_pkr':   2000,
             'hourly_rate_usd':   16,
         },
