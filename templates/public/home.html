@@ -1085,7 +1085,7 @@
         <div class="courses-grid">
             {% if featured_courses %}
                 {% for course in featured_courses[:4] %}
-                <a href="{{ url_for('courses.detail', course_id=course.id) }}" class="course-card">
+                <a href="{{ url_for('courses.detail', slug=course.slug) }}" class="course-card">
                     <div class="course-card-thumb thumb-{{ loop.index }}">
                         {% if loop.index == 1 %}🔤{% elif loop.index == 2 %}📊{% elif loop.index == 3 %}🤖{% else %}📖{% endif %}
                     </div>
