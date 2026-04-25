@@ -3,132 +3,159 @@
 
 {% block extra_head %}
 <style>
-.enrollment-container { max-width: 860px; margin: 2rem auto; padding: 0 1rem; }
+.enrollment-container { max-width: 860px; margin: 2rem auto; padding: 0 1rem 3rem; }
 
 .course-header {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white; padding: 2rem; border-radius: 12px; margin-bottom: 2rem;
+    background: linear-gradient(135deg, #0056D2 0%, #6366F1 100%);
+    color: white; padding: 2rem; border-radius: 16px; margin-bottom: 2rem;
+    position: relative; overflow: hidden;
 }
+.course-header::before {
+    content: ''; position: absolute; inset: 0;
+    background-image: linear-gradient(rgba(255,255,255,.04) 1px, transparent 1px),
+                      linear-gradient(90deg, rgba(255,255,255,.04) 1px, transparent 1px);
+    background-size: 40px 40px;
+}
+.course-header-inner { position: relative; z-index: 1; }
 
 .enrollment-card {
-    background: white; padding: 2rem; border-radius: 12px;
-    box-shadow: 0 2px 12px rgba(0,0,0,0.08); margin-bottom: 1.5rem;
+    background: white; padding: 2rem; border-radius: 16px;
+    box-shadow: 0 2px 16px rgba(0,0,0,.07); margin-bottom: 1.5rem;
     border: 1px solid #f0f0f0;
 }
 
 .step-header {
-    font-size: 1.1rem; font-weight: 700; color: #2c3e50;
-    margin-bottom: 1.5rem; padding-bottom: 0.75rem;
-    border-bottom: 2px solid #f0f0f0; display: flex; align-items: center; gap: 0.6rem;
+    font-size: 1.05rem; font-weight: 700; color: #2c3e50;
+    margin-bottom: 1.5rem; padding-bottom: .75rem;
+    border-bottom: 2px solid #f0f0f0;
+    display: flex; align-items: center; gap: .6rem;
 }
-
 .step-number {
-    background: #3498db; color: white;
+    background: var(--brand-blue); color: white;
     width: 30px; height: 30px; border-radius: 50%;
     display: inline-flex; align-items: center; justify-content: center;
-    font-size: 0.85rem; font-weight: bold; flex-shrink: 0;
+    font-size: .85rem; font-weight: bold; flex-shrink: 0;
 }
 
-/* Level Cards */
-.level-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
-.level-card {
-    border: 2px solid #ecf0f1; border-radius: 10px;
+/* ── STEP 1: Duration Tiers ── */
+.tier-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 1rem; }
+.tier-card {
+    border: 2px solid #ecf0f1; border-radius: 12px;
     padding: 1.25rem; text-align: center; cursor: pointer;
-    transition: all 0.2s;
+    transition: all .2s;
 }
-.level-card:hover { border-color: #3498db; transform: translateY(-3px); box-shadow: 0 4px 12px rgba(52,152,219,0.2); }
-.level-card.selected { border-color: #3498db; background: #ebf5fb; }
-.level-emoji { font-size: 2.2rem; margin-bottom: 0.4rem; }
-.level-name { font-weight: 700; font-size: 1rem; margin-bottom: 0.2rem; }
-.level-desc { font-size: 0.78rem; color: #7f8c8d; }
+.tier-card:hover { border-color: var(--brand-blue); transform: translateY(-3px); box-shadow: 0 4px 16px rgba(0,86,210,.15); }
+.tier-card.selected { border-color: var(--brand-blue); background: #ebf5fb; }
+.tier-emoji { font-size: 2rem; margin-bottom: .4rem; }
+.tier-label { font-weight: 700; font-size: .95rem; margin-bottom: .15rem; color: #2c3e50; }
+.tier-duration { font-size: .75rem; color: #7f8c8d; margin-bottom: .5rem; }
+.tier-price-pkr { font-family: 'Sora', sans-serif; font-weight: 800; font-size: 1.1rem; color: var(--brand-blue); }
+.tier-price-usd { font-size: .75rem; color: #7f8c8d; }
 
-/* Duration Toggle */
-.duration-toggle { display: flex; gap: 0; border: 2px solid #3498db; border-radius: 8px; overflow: hidden; margin-bottom: 1.5rem; }
-.toggle-btn {
-    flex: 1; padding: 0.75rem; text-align: center; cursor: pointer;
-    font-weight: 600; background: white; color: #3498db;
-    border: none; transition: all 0.2s; font-size: 1rem;
+/* ── STEP 2: Learning Mode ── */
+.mode-grid { display: grid; grid-template-columns: repeat(2,1fr); gap: 1rem; }
+.mode-card {
+    border: 2px solid #ecf0f1; border-radius: 12px;
+    padding: 1.25rem; cursor: pointer; transition: all .2s;
+    display: flex; align-items: flex-start; gap: .75rem;
 }
-.toggle-btn.active { background: #3498db; color: white; }
+.mode-card:hover { border-color: var(--brand-blue); box-shadow: 0 4px 16px rgba(0,86,210,.12); }
+.mode-card.selected { border-color: var(--brand-blue); background: #ebf5fb; }
+.mode-card.face-to-face-card { border-color: #F59E0B; }
+.mode-card.face-to-face-card:hover { border-color: #D97706; box-shadow: 0 4px 16px rgba(245,158,11,.2); }
+.mode-card.face-to-face-card.selected { border-color: #D97706; background: #FFFBEB; }
+.mode-icon { font-size: 2rem; flex-shrink: 0; }
+.mode-info {}
+.mode-name { font-weight: 700; font-size: .95rem; color: #2c3e50; margin-bottom: .2rem; }
+.mode-desc { font-size: .78rem; color: #7f8c8d; line-height: 1.4; }
+.mode-badge {
+    display: inline-block; font-size: .68rem; font-weight: 700;
+    padding: .15rem .5rem; border-radius: 999px; margin-top: .3rem;
+}
+.badge-3x { background: #FEF3C7; color: #B45309; }
+.badge-same { background: #ECFDF5; color: #059669; }
 
-/* Duration Input */
-.duration-input-group {
-    display: flex; align-items: center; gap: 1rem;
-    background: #f8f9fa; border-radius: 10px; padding: 1rem;
+/* Face-to-face extra fields */
+.ftf-fields {
+    background: #FFFBEB; border: 1.5px solid #F59E0B;
+    border-radius: 12px; padding: 1.25rem; margin-top: 1rem;
+    display: none;
 }
-.duration-number {
-    display: flex; align-items: center; gap: 0.5rem;
-}
-.qty-btn {
-    width: 36px; height: 36px; border: 2px solid #3498db; border-radius: 50%;
-    background: white; color: #3498db; font-size: 1.2rem; font-weight: bold;
-    cursor: pointer; display: flex; align-items: center; justify-content: center;
-    transition: all 0.2s;
-}
-.qty-btn:hover { background: #3498db; color: white; }
-.qty-value {
-    font-size: 2rem; font-weight: 800; color: #2c3e50;
-    min-width: 60px; text-align: center;
-}
-.qty-label { font-size: 1rem; color: #7f8c8d; font-weight: 500; }
+.ftf-fields.show { display: block; }
+.ftf-fields h4 { font-size: .9rem; font-weight: 700; color: #92400E; margin-bottom: 1rem; }
 
-/* Discount Badges */
-.discount-info { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: 1rem; }
-.disc-badge {
-    padding: 0.3rem 0.7rem; border-radius: 20px; font-size: 0.78rem; font-weight: 600;
+.city-grid { display: grid; grid-template-columns: 1fr 1fr; gap: .75rem; margin-bottom: 1rem; }
+.city-btn {
+    border: 2px solid #F59E0B; border-radius: 10px;
+    padding: .75rem; text-align: center; cursor: pointer;
+    font-weight: 700; font-size: .9rem; transition: all .2s;
+    background: white; color: #92400E;
 }
-.disc-badge.tier1 { background: #fff3cd; color: #856404; }
-.disc-badge.tier2 { background: #d4edda; color: #155724; }
-.disc-badge.tier3 { background: #cce5ff; color: #004085; }
-.disc-badge.active-tier { transform: scale(1.05); box-shadow: 0 2px 8px rgba(0,0,0,0.15); }
+.city-btn:hover, .city-btn.selected { background: #F59E0B; color: white; }
 
-/* Price Breakdown */
-.price-breakdown {
-    background: linear-gradient(135deg, #f8f9fa, #e8f4fd);
-    border: 2px solid #3498db; border-radius: 12px; padding: 1.5rem;
-    margin-top: 1.5rem;
+.form-field { margin-bottom: 1rem; }
+.form-field label { display: block; font-size: .85rem; font-weight: 600; color: #374151; margin-bottom: .35rem; }
+.form-field input, .form-field textarea, .form-field select {
+    width: 100%; padding: .65rem .9rem;
+    border: 1.5px solid #e5e7eb; border-radius: 8px;
+    font-size: .9rem; font-family: 'DM Sans', sans-serif;
+    transition: border-color .18s;
 }
-.breakdown-row {
+.form-field input:focus, .form-field textarea:focus {
+    outline: none; border-color: var(--brand-blue);
+    box-shadow: 0 0 0 3px rgba(0,86,210,.1);
+}
+
+/* ── Price Summary ── */
+.price-summary {
+    background: linear-gradient(135deg, #f0f7ff, #e8f4fd);
+    border: 2px solid var(--brand-blue); border-radius: 12px;
+    padding: 1.25rem; margin-top: 1.25rem; display: none;
+}
+.price-summary.show { display: block; }
+.ps-row {
     display: flex; justify-content: space-between;
-    padding: 0.4rem 0; font-size: 0.95rem;
+    padding: .35rem 0; font-size: .9rem; color: #374151;
 }
-.breakdown-row.total {
-    border-top: 2px solid #3498db; margin-top: 0.5rem;
-    padding-top: 0.75rem; font-size: 1.2rem; font-weight: 800;
+.ps-row.total {
+    border-top: 2px solid var(--brand-blue); margin-top: .5rem;
+    padding-top: .75rem; font-size: 1.15rem; font-weight: 800;
 }
-.breakdown-row.discount-row { color: #27ae60; }
-.breakdown-row.intl-row { color: #e67e22; }
-.final-amount { font-size: 2rem; font-weight: 800; color: #3498db; }
+.ps-amount { font-family: 'Sora', sans-serif; font-weight: 700; color: var(--brand-blue); }
+.ps-multiplier { color: #D97706; font-weight: 700; }
+.ps-total-amount { font-family: 'Sora', sans-serif; font-size: 1.6rem; font-weight: 800; color: var(--brand-blue); }
 
-/* Payment */
+/* ── Payment Methods ── */
 .payment-option {
     border: 2px solid #ecf0f1; border-radius: 10px; padding: 1rem 1.25rem;
-    margin-bottom: 0.75rem; cursor: pointer; display: flex;
-    align-items: center; gap: 1rem; transition: all 0.2s;
+    margin-bottom: .75rem; cursor: pointer;
+    display: flex; align-items: center; gap: 1rem; transition: all .2s;
 }
-.payment-option:hover { border-color: #3498db; background: #f8fbff; }
-.payment-option.selected { border-color: #3498db; background: #ebf5fb; }
+.payment-option:hover { border-color: var(--brand-blue); background: #f8fbff; }
+.payment-option.selected { border-color: var(--brand-blue); background: #ebf5fb; }
 .payment-details-box {
-    background: #f0f7ff; border-left: 4px solid #3498db;
-    padding: 0.75rem 1rem; border-radius: 0 8px 8px 0;
-    margin-bottom: 0.75rem; display: none;
+    background: #f0f7ff; border-left: 4px solid var(--brand-blue);
+    padding: .75rem 1rem; border-radius: 0 8px 8px 0;
+    margin-bottom: .75rem; display: none; font-size: .88rem;
 }
 .payment-details-box.active { display: block; }
 
-/* Submit */
+/* ── Submit ── */
 .btn-submit {
-    background: linear-gradient(135deg, #3498db, #2980b9);
+    background: linear-gradient(135deg, var(--brand-blue), #003E99);
     color: white; border: none; padding: 1rem 2rem;
-    border-radius: 10px; font-size: 1.1rem; font-weight: 700;
-    width: 100%; cursor: pointer; transition: all 0.3s; margin-top: 1rem;
+    border-radius: 12px; font-size: 1.05rem; font-weight: 700;
+    width: 100%; cursor: pointer; transition: all .3s; margin-top: 1rem;
 }
-.btn-submit:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(52,152,219,0.4); }
+.btn-submit:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,86,210,.4); }
 .btn-submit:disabled { background: #bdc3c7; cursor: not-allowed; }
 
 .hidden-section { display: none; }
 
 @media (max-width: 600px) {
-    .level-grid { grid-template-columns: 1fr; }
+    .tier-grid { grid-template-columns: 1fr; }
+    .mode-grid  { grid-template-columns: 1fr; }
+    .city-grid  { grid-template-columns: 1fr; }
 }
 </style>
 {% endblock %}
@@ -138,193 +165,256 @@
 
     <!-- Course Header -->
     <div class="course-header">
-        <h1 style="margin: 0 0 0.5rem;">{{ course.title }}</h1>
-        <p style="opacity: 0.85; margin: 0 0 1rem;">{{ course.description }}</p>
-        {% if course.duration_estimate %}
-        <span style="background: rgba(255,255,255,0.2); padding: 0.25rem 0.75rem; border-radius: 20px; font-size: 0.85rem;">
-            📅 {{ course.duration_estimate }}
-        </span>
-        {% endif %}
+        <div class="course-header-inner">
+            <h1 style="margin:0 0 .5rem; font-family:'Sora',sans-serif; font-size:1.8rem;">{{ course.title }}</h1>
+            <p style="opacity:.85; margin:0 0 1rem; line-height:1.6;">{{ course.description }}</p>
+            <span style="background:rgba(255,255,255,.2);padding:.25rem .75rem;border-radius:20px;font-size:.85rem;">
+                {% if course.level == 'beginner' %}🟢{% elif course.level == 'intermediate' %}🔵{% else %}🔴{% endif %}
+                {{ course.level | capitalize }}
+                {% if course.duration_estimate %} · {{ course.duration_estimate }}{% endif %}
+            </span>
+        </div>
     </div>
 
     <form method="POST" enctype="multipart/form-data" id="enrollForm">
         {{ form.hidden_tag() }}
 
-        <!-- Hidden fields populated by JS -->
-        <input type="hidden" name="enrollment_type" id="hiddenLevel" value="">
-        <input type="hidden" name="custom_hours" id="hiddenDays" value="1">
-        <input type="hidden" name="payment_method" id="hiddenPayment" value="">
+        <!-- Hidden fields -->
+        <input type="hidden" name="duration_tier"    id="hiddenTier"     value="">
+        <input type="hidden" name="custom_hours"     id="hiddenDays"     value="">
+        <input type="hidden" name="enrollment_type"  id="hiddenLevel"    value="{{ course.level }}">
+        <input type="hidden" name="payment_method"   id="hiddenPayment"  value="">
+        <input type="hidden" name="learning_mode"    id="hiddenMode"     value="">
+        <input type="hidden" name="preferred_city"   id="hiddenCity"     value="">
 
-        <!-- STEP 1: Level -->
+        <!-- ══ STEP 1: Duration Tier ══ -->
         <div class="enrollment-card">
             <div class="step-header">
-                <span class="step-number">1</span> Choose Your Level
+                <span class="step-number">1</span> Choose Your Duration Plan
             </div>
-            <div class="level-grid">
-                <div class="level-card" onclick="selectLevel('beginner', this)">
-                    <div class="level-emoji">🌱</div>
-                    <div class="level-name">Beginner</div>
-                    <div class="level-desc">No prior knowledge needed</div>
+            <div class="tier-grid">
+                <div class="tier-card" onclick="selectTier('short', 30, this)">
+                    <div class="tier-emoji">🟢</div>
+                    <div class="tier-label">Short</div>
+                    <div class="tier-duration">1 Month · 30 Days</div>
+                    {% if course.level == 'beginner' %}
+                        <div class="tier-price-pkr">Rs. 4,000</div><div class="tier-price-usd">$30</div>
+                    {% elif course.level == 'intermediate' %}
+                        <div class="tier-price-pkr">Rs. 6,000</div><div class="tier-price-usd">$45</div>
+                    {% else %}
+                        <div class="tier-price-pkr">Rs. 8,000</div><div class="tier-price-usd">$60</div>
+                    {% endif %}
                 </div>
-                <div class="level-card" onclick="selectLevel('intermediate', this)">
-                    <div class="level-emoji">📚</div>
-                    <div class="level-name">Intermediate</div>
-                    <div class="level-desc">Some basics required</div>
+                <div class="tier-card" onclick="selectTier('standard', 60, this)">
+                    <div class="tier-emoji">🔵</div>
+                    <div class="tier-label">Standard</div>
+                    <div class="tier-duration">2 Months · 60 Days</div>
+                    {% if course.level == 'beginner' %}
+                        <div class="tier-price-pkr">Rs. 8,000</div><div class="tier-price-usd">$60</div>
+                    {% elif course.level == 'intermediate' %}
+                        <div class="tier-price-pkr">Rs. 11,000</div><div class="tier-price-usd">$85</div>
+                    {% else %}
+                        <div class="tier-price-pkr">Rs. 15,000</div><div class="tier-price-usd">$120</div>
+                    {% endif %}
                 </div>
-                <div class="level-card" onclick="selectLevel('advanced', this)">
-                    <div class="level-emoji">🚀</div>
-                    <div class="level-name">Advanced</div>
-                    <div class="level-desc">Strong foundation needed</div>
+                <div class="tier-card" onclick="selectTier('intensive', 90, this)">
+                    <div class="tier-emoji">🔴</div>
+                    <div class="tier-label">Intensive</div>
+                    <div class="tier-duration">3 Months · 90 Days</div>
+                    {% if course.level == 'beginner' %}
+                        <div class="tier-price-pkr">Rs. 15,000</div><div class="tier-price-usd">$120</div>
+                    {% elif course.level == 'intermediate' %}
+                        <div class="tier-price-pkr">Rs. 22,000</div><div class="tier-price-usd">$170</div>
+                    {% else %}
+                        <div class="tier-price-pkr">Rs. 35,000</div><div class="tier-price-usd">$250</div>
+                    {% endif %}
                 </div>
             </div>
         </div>
 
-        <!-- STEP 2: Duration -->
-        <div class="enrollment-card hidden-section" id="durationSection">
+        <!-- ══ STEP 2: Learning Mode ══ -->
+        <div class="enrollment-card hidden-section" id="modeSection">
             <div class="step-header">
-                <span class="step-number">2</span> Choose Duration
+                <span class="step-number">2</span> Choose Learning Mode
             </div>
 
-            <!-- Days / Months Toggle -->
-            <div class="duration-toggle">
-                <button type="button" class="toggle-btn active" id="btnDays" onclick="setDurationType('days')">
-                    📆 Days
-                </button>
-                <button type="button" class="toggle-btn" id="btnMonths" onclick="setDurationType('months')">
-                    🗓️ Months
-                </button>
+            <div class="mode-grid">
+                <!-- Self-Paced -->
+                <div class="mode-card" onclick="selectMode('self_paced', this)">
+                    <div class="mode-icon">📹</div>
+                    <div class="mode-info">
+                        <div class="mode-name">Self-Paced</div>
+                        <div class="mode-desc">Recorded lectures. Watch anytime, at your own pace.</div>
+                        <span class="mode-badge badge-same">Standard price</span>
+                    </div>
+                </div>
+
+                <!-- Live Online -->
+                <div class="mode-card" onclick="selectMode('live_online', this)">
+                    <div class="mode-icon">🎥</div>
+                    <div class="mode-info">
+                        <div class="mode-name">Live Online</div>
+                        <div class="mode-desc">Scheduled live sessions via Zoom, Teams, or Google Meet.</div>
+                        <span class="mode-badge badge-same">Standard price</span>
+                    </div>
+                </div>
+
+                <!-- Face to Face Lahore -->
+                <div class="mode-card face-to-face-card" onclick="selectMode('face_to_face_lahore', this)">
+                    <div class="mode-icon">🏫</div>
+                    <div class="mode-info">
+                        <div class="mode-name">Face to Face — Lahore</div>
+                        <div class="mode-desc">In-person classes at our Lahore location.</div>
+                        <span class="mode-badge badge-3x">3× price</span>
+                    </div>
+                </div>
+
+                <!-- Face to Face Faisalabad -->
+                <div class="mode-card face-to-face-card" onclick="selectMode('face_to_face_faisalabad', this)">
+                    <div class="mode-icon">🏫</div>
+                    <div class="mode-info">
+                        <div class="mode-name">Face to Face — Faisalabad</div>
+                        <div class="mode-desc">In-person classes at our Faisalabad location.</div>
+                        <span class="mode-badge badge-3x">3× price</span>
+                    </div>
+                </div>
             </div>
 
-            <!-- Quantity Picker -->
-            <div class="duration-input-group">
-                <div class="duration-number">
-                    <button type="button" class="qty-btn" onclick="changeQty(-1)">−</button>
-                    <div class="qty-value" id="qtyDisplay">1</div>
-                    <button type="button" class="qty-btn" onclick="changeQty(1)">+</button>
+            <!-- Face-to-Face Extra Fields -->
+            <div class="ftf-fields" id="ftfFields">
+                <h4>🏫 Face-to-Face Preferences</h4>
+
+                <div class="form-field">
+                    <label>Preferred Days <span style="color:#EF4444;">*</span></label>
+                    <input type="text" name="preferred_days" id="preferredDays"
+                           placeholder="e.g. Monday & Wednesday, Weekends, Flexible..."
+                           oninput="validateForm()">
                 </div>
-                <div class="qty-label" id="qtyLabel">Day(s)</div>
-                <div style="margin-left: auto;">
-                    <input type="number" id="manualQty" min="1" max="365"
-                        style="width: 80px; padding: 0.5rem; border: 2px solid #ddd; border-radius: 8px; font-size: 1rem; text-align: center;"
-                        placeholder="..." oninput="setManualQty(this.value)">
-                    <div style="font-size: 0.75rem; color: #7f8c8d; text-align: center; margin-top: 0.2rem;">or type</div>
+
+                <div class="form-field">
+                    <label>Preferred Time <span style="color:#EF4444;">*</span></label>
+                    <input type="text" name="preferred_time" id="preferredTime"
+                           placeholder="e.g. 10am-12pm, After 5pm, Flexible..."
+                           oninput="validateForm()">
+                </div>
+
+                <div class="form-field">
+                    <label>Any Additional Notes</label>
+                    <textarea name="schedule_notes" rows="2"
+                              placeholder="Any special requirements or preferences..."></textarea>
                 </div>
             </div>
 
-            <!-- Discount Tiers -->
-            <div class="discount-info">
-                <span class="disc-badge tier1" id="tier1Badge">3+ days → 5% off</span>
-                <span class="disc-badge tier2" id="tier2Badge">5+ days → 10% off</span>
-                <span class="disc-badge tier3" id="tier3Badge">10+ days → 15% off</span>
-            </div>
-
-            <!-- Price Breakdown -->
-            <div class="price-breakdown" id="priceBreakdown" style="display:none;">
-                <div style="font-weight: 700; margin-bottom: 0.75rem; color: #2c3e50;">
-                    💰 Price Breakdown
+            <!-- Price Summary -->
+            <div class="price-summary" id="priceSummary">
+                <div style="font-weight:700;margin-bottom:.75rem;color:#2c3e50;">💰 Price Summary</div>
+                <div class="ps-row">
+                    <span id="psBaseLabel">Base price</span>
+                    <span class="ps-amount" id="psBasePrice">Rs. 0</span>
                 </div>
-                <div class="breakdown-row">
-                    <span id="bdBaseLabel">Base price (1 day)</span>
-                    <span id="bdBasePrice">Rs. 0</span>
+                <div class="ps-row" id="psMultiplierRow" style="display:none;">
+                    <span>Face-to-face multiplier</span>
+                    <span class="ps-multiplier">× 3</span>
                 </div>
-                <div class="breakdown-row discount-row" id="bdDiscountRow" style="display:none;">
-                    <span id="bdDiscountLabel">Discount (0%)</span>
-                    <span id="bdDiscountAmt">- Rs. 0</span>
+                <div class="ps-row" id="psIntlRow" style="display:{% if user.country != 'Pakistan' %}flex{% else %}none{% endif %};">
+                    <span>International rate</span>
+                    <span class="ps-multiplier">× 2</span>
                 </div>
-                <div class="breakdown-row intl-row" id="bdIntlRow" style="display:{% if user.country != 'Pakistan' %}flex{% else %}none{% endif %};">
-                    <span>International rate (×2)</span>
-                    <span>Applied</span>
-                </div>
-                <div class="breakdown-row total">
+                <div class="ps-row total">
                     <span>Total</span>
-                    <span class="final-amount" id="bdTotal">Rs. 0</span>
+                    <span class="ps-total-amount" id="psTotal">Rs. 0</span>
                 </div>
                 {% if user.country != 'Pakistan' %}
-                <div style="font-size: 0.8rem; color: #e67e22; margin-top: 0.5rem; text-align: center;">
-                    🌍 International rate applied — 2× PKR base price
+                <div style="font-size:.78rem;color:#E67E22;margin-top:.5rem;text-align:center;">
+                    🌍 International rate applied
                 </div>
                 {% endif %}
             </div>
         </div>
 
-        <!-- STEP 3: Payment Method -->
+        <!-- ══ STEP 3: Payment Method ══ -->
         <div class="enrollment-card hidden-section" id="paymentSection">
             <div class="step-header">
                 <span class="step-number">3</span> Select Payment Method
             </div>
 
             <div class="payment-option" onclick="selectPayment('jazzcash', this)">
-                <span style="font-size: 1.8rem;">💳</span>
+                <span style="font-size:1.8rem;">💳</span>
                 <div>
-                    <div style="font-weight: 700;">JazzCash</div>
-                    <div style="font-size: 0.85rem; color: #7f8c8d;">Mobile wallet payment</div>
+                    <div style="font-weight:700;">JazzCash</div>
+                    <div style="font-size:.85rem;color:#7f8c8d;">Mobile wallet payment</div>
                 </div>
             </div>
             <div class="payment-details-box" id="pd-jazzcash">
-                Send the exact amount to JazzCash and upload the screenshot below.
+                Send <strong id="pdAmt1"></strong> to JazzCash <strong>+92-341-4763186</strong> (Muhammad Shoaib Tahir) and upload the screenshot below.
             </div>
 
             <div class="payment-option" onclick="selectPayment('easypaisa', this)">
-                <span style="font-size: 1.8rem;">📱</span>
+                <span style="font-size:1.8rem;">📱</span>
                 <div>
-                    <div style="font-weight: 700;">Easypaisa</div>
-                    <div style="font-size: 0.85rem; color: #7f8c8d;">Mobile wallet payment</div>
+                    <div style="font-weight:700;">Easypaisa</div>
+                    <div style="font-size:.85rem;color:#7f8c8d;">Mobile wallet payment</div>
                 </div>
             </div>
             <div class="payment-details-box" id="pd-easypaisa">
-                Send the exact amount to Easypaisa and upload the screenshot below.
+                Send <strong id="pdAmt2"></strong> to Easypaisa <strong>+92-341-4763186</strong> (Muhammad Shoaib Tahir) and upload the screenshot below.
             </div>
 
             <div class="payment-option" onclick="selectPayment('bank', this)">
-                <span style="font-size: 1.8rem;">🏦</span>
+                <span style="font-size:1.8rem;">🏦</span>
                 <div>
-                    <div style="font-weight: 700;">Bank Transfer</div>
-                    <div style="font-size: 0.85rem; color: #7f8c8d;">Meezan Bank transfer</div>
+                    <div style="font-weight:700;">Bank Transfer</div>
+                    <div style="font-size:.85rem;color:#7f8c8d;">Meezan Bank transfer</div>
                 </div>
             </div>
             <div class="payment-details-box" id="pd-bank">
-                Transfer the exact amount to Meezan Bank and upload the receipt below.
+                Transfer <strong id="pdAmt3"></strong> to Meezan Bank · Account: <strong>04110104042981</strong> · IBAN: <strong>PK41MEZN0004110104042981</strong> (Muhammad Shoaib Tahir) and upload the receipt.
             </div>
         </div>
 
-        <!-- STEP 4: Upload Receipt -->
+        <!-- ══ STEP 4: Receipt & Submit ══ -->
         <div class="enrollment-card hidden-section" id="receiptSection">
             <div class="step-header">
                 <span class="step-number">4</span> Upload Payment Receipt
             </div>
 
-            <div style="background: #fff3cd; border: 1px solid #ffc107; padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem; font-size: 0.9rem;">
-                <strong>⚠️ Important:</strong> Receipt must clearly show the transaction.
+            <div style="background:#fff3cd;border:1px solid #ffc107;padding:1rem;border-radius:8px;margin-bottom:1.5rem;font-size:.88rem;">
+                <strong>⚠️ Important:</strong> Receipt must clearly show the transaction amount and reference.
                 Accepted: JPG, PNG, PDF (max 16MB). Enrollment activates after admin verification.
             </div>
 
-            <div class="mb-3">
+            <div class="form-field">
                 {{ form.payment_receipt.label(class="form-label fw-bold") }}
                 {{ form.payment_receipt(class="form-control") }}
                 {% for error in form.payment_receipt.errors %}
-                    <div class="text-danger small">{{ error }}</div>
+                    <div style="color:#DC2626;font-size:.82rem;margin-top:.25rem;">{{ error }}</div>
                 {% endfor %}
             </div>
 
-            <div class="mb-3">
+            <div class="form-field">
                 {{ form.notes.label(class="form-label fw-bold") }}
-                {{ form.notes(class="form-control", rows=3,
-                   placeholder="Any notes for admin (optional)") }}
+                {{ form.notes(class="form-control", rows=3, placeholder="Any notes for admin (optional)") }}
             </div>
 
             <!-- Final Summary -->
-            <div style="background: #f8f9fa; border-radius: 10px; padding: 1rem; margin-bottom: 1rem; font-size: 0.9rem;">
-                <strong>📋 Enrollment Summary</strong>
-                <div style="margin-top: 0.5rem; display: grid; grid-template-columns: 1fr 1fr; gap: 0.3rem;">
-                    <span style="color: #7f8c8d;">Course:</span><span id="sumCourse">{{ course.title }}</span>
-                    <span style="color: #7f8c8d;">Level:</span><span id="sumLevel">-</span>
-                    <span style="color: #7f8c8d;">Duration:</span><span id="sumDuration">-</span>
-                    <span style="color: #7f8c8d;">Total Price:</span><span id="sumPrice" style="font-weight: 700; color: #3498db;">-</span>
+            <div style="background:#f8f9fa;border-radius:12px;padding:1.25rem;margin-bottom:1rem;font-size:.88rem;border:1px solid #e5e7eb;">
+                <strong style="font-family:'Sora',sans-serif;font-size:.9rem;">📋 Enrollment Summary</strong>
+                <div style="margin-top:.75rem;display:grid;grid-template-columns:auto 1fr;gap:.3rem .75rem;">
+                    <span style="color:#7f8c8d;">Course</span>
+                    <span style="font-weight:600;">{{ course.title }}</span>
+                    <span style="color:#7f8c8d;">Plan</span>
+                    <span id="sumTier" style="font-weight:600;">-</span>
+                    <span style="color:#7f8c8d;">Mode</span>
+                    <span id="sumMode" style="font-weight:600;">-</span>
+                    <span id="sumCityLabel" style="color:#7f8c8d;display:none;">City</span>
+                    <span id="sumCity" style="font-weight:600;display:none;">-</span>
+                    <span style="color:#7f8c8d;">Total Price</span>
+                    <span id="sumPrice" style="font-weight:800;color:var(--brand-blue);font-family:'Sora',sans-serif;">-</span>
                 </div>
             </div>
 
             <button type="submit" class="btn-submit" id="submitBtn" disabled>
-                <i class="fas fa-paper-plane"></i> Submit Enrollment Request
+                Submit Enrollment Request →
             </button>
         </div>
 
@@ -333,163 +423,107 @@
 
 <script>
 const isInternational = {{ 'true' if user.country != 'Pakistan' else 'false' }};
+const courseLvl = '{{ course.level }}';
 
-// PKR per day rates
-const levelRates = {
-    beginner: 250,
-    intermediate: 350,
-    advanced: 500
+// Base prices per tier per level (PKR)
+const tierPrices = {
+    short:     { beginner: 4000,  intermediate: 6000,  advanced: 8000  },
+    standard:  { beginner: 8000,  intermediate: 11000, advanced: 15000 },
+    intensive: { beginner: 15000, intermediate: 22000, advanced: 35000 },
 };
+const tierDays = { short: 30, standard: 60, intensive: 90 };
+const tierLabels = { short: '🟢 Short (1 Month)', standard: '🔵 Standard (2 Months)', intensive: '🔴 Intensive (3 Months)' };
 
-let state = {
-    level: '',
-    durationType: 'days',  // 'days' or 'months'
-    qty: 1,
-    payment: ''
-};
+let state = { tier: '', days: 0, mode: '', city: '', payment: '' };
 
-// ---- LEVEL ----
-function selectLevel(level, el) {
-    document.querySelectorAll('.level-card').forEach(c => c.classList.remove('selected'));
+// ── TIER ──
+function selectTier(tier, days, el) {
+    document.querySelectorAll('.tier-card').forEach(c => c.classList.remove('selected'));
     el.classList.add('selected');
-    state.level = level;
-    document.getElementById('hiddenLevel').value = level;
-    document.getElementById('sumLevel').textContent = level.charAt(0).toUpperCase() + level.slice(1);
-    show('durationSection');
-    updatePrice();
-}
-
-// ---- DURATION TYPE ----
-function setDurationType(type) {
-    state.durationType = type;
-    state.qty = 1;
-    document.getElementById('qtyDisplay').textContent = 1;
-    document.getElementById('manualQty').value = '';
-
-    if (type === 'days') {
-        document.getElementById('btnDays').classList.add('active');
-        document.getElementById('btnMonths').classList.remove('active');
-        document.getElementById('qtyLabel').textContent = 'Day(s)';
-        // Show day-based discount badges
-        document.getElementById('tier1Badge').textContent = '3+ days → 5% off';
-        document.getElementById('tier2Badge').textContent = '5+ days → 10% off';
-        document.getElementById('tier3Badge').textContent = '10+ days → 15% off';
-    } else {
-        document.getElementById('btnMonths').classList.add('active');
-        document.getElementById('btnDays').classList.remove('active');
-        document.getElementById('qtyLabel').textContent = 'Month(s)';
-        // Show month-based discount badges
-        document.getElementById('tier1Badge').textContent = '2+ months → 5% off';
-        document.getElementById('tier2Badge').textContent = '3+ months → 10% off';
-        document.getElementById('tier3Badge').textContent = '6+ months → 15% off';
-    }
-    updatePrice();
-}
-
-// ---- QTY ----
-function changeQty(delta) {
-    const newVal = Math.max(1, state.qty + delta);
-    state.qty = newVal;
-    document.getElementById('qtyDisplay').textContent = newVal;
-    document.getElementById('manualQty').value = newVal;
-    updatePrice();
-}
-
-function setManualQty(val) {
-    const newVal = Math.max(1, parseInt(val) || 1);
-    state.qty = newVal;
-    document.getElementById('qtyDisplay').textContent = newVal;
-    updatePrice();
-}
-
-// ---- DISCOUNT ----
-function getDiscount(days) {
-    if (days >= 10) return 0.15;
-    if (days >= 5)  return 0.10;
-    if (days >= 3)  return 0.05;
-    return 0;
-}
-
-function getDiscountMonths(months) {
-    if (months >= 6) return 0.15;
-    if (months >= 3) return 0.10;
-    if (months >= 2) return 0.05;
-    return 0;
-}
-
-// ---- PRICE CALCULATION ----
-function updatePrice() {
-    if (!state.level) return;
-
-    const rate = levelRates[state.level]; // PKR per day
-    let days, discount, durationLabel;
-
-    if (state.durationType === 'days') {
-        days = state.qty;
-        discount = getDiscount(days);
-        durationLabel = days + ' day' + (days > 1 ? 's' : '');
-        updateDiscountBadges('days', days);
-    } else {
-        days = state.qty * 30;
-        discount = getDiscountMonths(state.qty);
-        durationLabel = state.qty + ' month' + (state.qty > 1 ? 's' : '') + ' (' + days + ' days)';
-        updateDiscountBadges('months', state.qty);
-    }
-
-    const basePrice = rate * days;
-    const discountAmt = Math.round(basePrice * discount);
-    let finalPrice = basePrice - discountAmt;
-
-    if (isInternational) finalPrice *= 2;
-    finalPrice = Math.round(finalPrice);
-
-    // Update breakdown
-    document.getElementById('bdBaseLabel').textContent = 'Base price (' + durationLabel + ')';
-    document.getElementById('bdBasePrice').textContent = 'Rs. ' + basePrice.toLocaleString();
-
-    if (discount > 0) {
-        document.getElementById('bdDiscountRow').style.display = 'flex';
-        document.getElementById('bdDiscountLabel').textContent = 'Discount (' + (discount * 100) + '%)';
-        document.getElementById('bdDiscountAmt').textContent = '− Rs. ' + discountAmt.toLocaleString();
-    } else {
-        document.getElementById('bdDiscountRow').style.display = 'none';
-    }
-
-    document.getElementById('bdTotal').textContent = 'Rs. ' + finalPrice.toLocaleString();
-    document.getElementById('priceBreakdown').style.display = 'block';
-
-    // Update summary
-    document.getElementById('sumDuration').textContent = durationLabel;
-    document.getElementById('sumPrice').textContent = 'Rs. ' + finalPrice.toLocaleString();
-
-    // Update hidden days field
+    state.tier = tier;
+    state.days = days;
+    document.getElementById('hiddenTier').value = tier;
     document.getElementById('hiddenDays').value = days;
+    document.getElementById('sumTier').textContent = tierLabels[tier];
+    show('modeSection');
+    updatePrice();
+}
 
+// ── MODE ──
+function selectMode(mode, el) {
+    document.querySelectorAll('.mode-card').forEach(c => c.classList.remove('selected'));
+    el.classList.add('selected');
+    state.mode = mode;
+    document.getElementById('hiddenMode').value = mode;
+
+    const isFtf = mode.startsWith('face_to_face');
+    const ftfFields = document.getElementById('ftfFields');
+
+    if (isFtf) {
+        ftfFields.classList.add('show');
+        const city = mode === 'face_to_face_lahore' ? 'Lahore' : 'Faisalabad';
+        state.city = city;
+        document.getElementById('hiddenCity').value = city;
+        document.getElementById('sumCityLabel').style.display = '';
+        document.getElementById('sumCity').style.display = '';
+        document.getElementById('sumCity').textContent = city;
+    } else {
+        ftfFields.classList.remove('show');
+        state.city = '';
+        document.getElementById('hiddenCity').value = '';
+        document.getElementById('sumCityLabel').style.display = 'none';
+        document.getElementById('sumCity').style.display = 'none';
+    }
+
+    // Mode label for summary
+    const modeLabels = {
+        self_paced:              '📹 Self-Paced (Recorded)',
+        live_online:             '🎥 Live Online (Zoom/Teams/Meet)',
+        face_to_face_lahore:     '🏫 Face to Face — Lahore',
+        face_to_face_faisalabad: '🏫 Face to Face — Faisalabad',
+    };
+    document.getElementById('sumMode').textContent = modeLabels[mode] || mode;
+
+    updatePrice();
     show('paymentSection');
     validateForm();
 }
 
-function updateDiscountBadges(type, val) {
-    const t1 = document.getElementById('tier1Badge');
-    const t2 = document.getElementById('tier2Badge');
-    const t3 = document.getElementById('tier3Badge');
+// ── PRICE ──
+function updatePrice() {
+    if (!state.tier || !state.mode) return;
 
-    t1.classList.remove('active-tier');
-    t2.classList.remove('active-tier');
-    t3.classList.remove('active-tier');
+    const base = tierPrices[state.tier][courseLvl] || 0;
+    const isFtf = state.mode.startsWith('face_to_face');
+    let total = isFtf ? base * 3 : base;
+    if (isInternational) total *= 2;
+    total = Math.round(total);
 
-    if (type === 'days') {
-        if (val >= 10) t3.classList.add('active-tier');
-        else if (val >= 5) t2.classList.add('active-tier');
-        else if (val >= 3) t1.classList.add('active-tier');
-    } else {
-        if (val >= 6) t3.classList.add('active-tier');
-        else if (val >= 3) t2.classList.add('active-tier');
-        else if (val >= 2) t1.classList.add('active-tier');
-    }
+    // Update summary panel
+    document.getElementById('psBaseLabel').textContent =
+        tierLabels[state.tier] + ' base';
+    document.getElementById('psBasePrice').textContent =
+        'Rs. ' + base.toLocaleString();
+    document.getElementById('psMultiplierRow').style.display =
+        isFtf ? 'flex' : 'none';
+    document.getElementById('psTotal').textContent =
+        'Rs. ' + total.toLocaleString();
+    document.getElementById('priceSummary').classList.add('show');
+
+    document.getElementById('sumPrice').textContent =
+        'Rs. ' + total.toLocaleString();
+
+    // Update payment detail amounts
+    const amtStr = 'Rs. ' + total.toLocaleString();
+    ['pdAmt1','pdAmt2','pdAmt3'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.textContent = amtStr;
+    });
+
+    validateForm();
 }
 
-// ---- PAYMENT ----
+// ── PAYMENT ──
 function selectPayment(method, el) {
     document.querySelectorAll('.payment-option').forEach(c => c.classList.remove('selected'));
     document.querySelectorAll('.payment-details-box').forEach(d => d.classList.remove('active'));
@@ -501,18 +535,22 @@ function selectPayment(method, el) {
     validateForm();
 }
 
-// ---- HELPERS ----
+// ── HELPERS ──
 function show(id) {
     const el = document.getElementById(id);
     if (el) {
         el.classList.remove('hidden-section');
         el.style.display = 'block';
-        setTimeout(() => el.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 100);
+        setTimeout(() => el.scrollIntoView({ behavior:'smooth', block:'nearest' }), 120);
     }
 }
 
 function validateForm() {
-    const ok = state.level && state.qty >= 1 && state.payment;
+    const isFtf = state.mode.startsWith('face_to_face');
+    const daysOk = document.getElementById('preferredDays');
+    const timeOk = document.getElementById('preferredTime');
+    const ftfOk  = !isFtf || (daysOk.value.trim() && timeOk.value.trim());
+    const ok = state.tier && state.mode && state.payment && ftfOk;
     document.getElementById('submitBtn').disabled = !ok;
 }
 </script>
