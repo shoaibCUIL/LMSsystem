@@ -12,10 +12,10 @@ import io
 import uuid
 
 # Blueprints
-auth_bp = Blueprint('auth', __name__, url_prefix='/auth')
-course_bp = Blueprint('courses', __name__, url_prefix='/courses')
+auth_bp     = Blueprint('auth',      __name__, url_prefix='/auth')
+course_bp   = Blueprint('courses',   __name__, url_prefix='/courses')
 dashboard_bp = Blueprint('dashboard', __name__, url_prefix='/dashboard')
-main_bp = Blueprint('main', __name__)
+main_bp     = Blueprint('main',      __name__)
 
 
 # ================================
@@ -24,7 +24,6 @@ main_bp = Blueprint('main', __name__)
 
 @auth_bp.route('/register', methods=['GET', 'POST'])
 def register():
-    """Enhanced registration with custom CAPTCHA"""
     if current_user.is_authenticated:
         return redirect(url_for('main.index'))
 
@@ -48,7 +47,7 @@ def register():
             country=form.country.data,
             education=form.education.data,
             university=form.university.data.strip(),
-            is_active=False  # Requires admin approval
+            is_active=False
         )
         user.set_password(form.password.data)
 
@@ -56,9 +55,8 @@ def register():
             db.session.add(user)
             db.session.commit()
             current_app.logger.info(f'New user registered (pending approval): {user.email}')
-            flash('Registration successful! Your account is pending admin approval. You will be able to login once approved.', 'info')
+            flash('Registration successful! Your account is pending admin approval.', 'info')
             return redirect(url_for('auth.login'))
-
         except Exception as e:
             db.session.rollback()
             current_app.logger.error(f'Registration error: {str(e)}')
@@ -72,7 +70,6 @@ def register():
 
 @auth_bp.route('/login', methods=['GET', 'POST'])
 def login():
-    """User login"""
     if current_user.is_authenticated:
         return redirect(url_for('dashboard.index'))
 
@@ -86,7 +83,7 @@ def login():
             return redirect(url_for('auth.login'))
 
         if not user.is_active:
-            flash('Your account is pending admin approval. Please wait for activation.', 'warning')
+            flash('Your account is pending admin approval.', 'warning')
             return redirect(url_for('auth.login'))
 
         login_user(user, remember=form.remember_me.data)
@@ -95,7 +92,6 @@ def login():
         next_page = request.args.get('next')
         if not next_page or urlparse(next_page).netloc != '':
             next_page = url_for('dashboard.index')
-
         return redirect(next_page)
 
     return render_template('auth/login.html', form=form)
@@ -104,7 +100,6 @@ def login():
 @auth_bp.route('/logout')
 @login_required
 def logout():
-    """User logout"""
     current_app.logger.info(f'User logged out: {current_user.email}')
     logout_user()
     flash('You have been logged out successfully.', 'info')
@@ -117,7 +112,6 @@ def logout():
 
 @main_bp.route('/')
 def index():
-    """Homepage"""
     courses = Course.query.filter_by(is_active=True).all()
     recent_blogs = Blog.query.filter_by(is_published=True).order_by(Blog.created_at.desc()).limit(3).all()
     upcoming_events = Event.query.filter(
@@ -126,6 +120,7 @@ def index():
     ).order_by(Event.event_date).limit(3).all()
 
     return render_template('public/home.html',
+                           featured_courses=courses,
                            courses=courses,
                            blogs=recent_blogs,
                            events=upcoming_events)
@@ -133,7 +128,6 @@ def index():
 
 @main_bp.route('/courses')
 def courses():
-    """List all courses"""
     courses = Course.query.filter_by(is_active=True).all()
     return render_template('public/courses.html', courses=courses)
 
@@ -154,11 +148,10 @@ def contact():
 
 @course_bp.route('/<slug>')
 def detail(slug):
-    """Course detail page"""
     course = Course.query.filter_by(slug=slug, is_active=True).first_or_404()
     lectures = course.lectures.order_by(Lecture.order_number).all()
 
-    is_enrolled = False
+    is_enrolled      = False
     active_enrollment = None
 
     if current_user.is_authenticated:
@@ -167,30 +160,35 @@ def detail(slug):
             course_id=course.id,
             status='approved'
         ).first()
-
         if active_enrollment and active_enrollment.is_active():
             is_enrolled = True
+
+    # Pass duration tiers for the pricing display on detail page
+    duration_tiers = current_app.config.get('DURATION_TIERS', {})
 
     return render_template('courses/course_detail.html',
                            course=course,
                            lectures=lectures,
                            is_enrolled=is_enrolled,
-                           enrollment=active_enrollment)
+                           enrollment=active_enrollment,
+                           duration_tiers=duration_tiers)
 
 
 @course_bp.route('/<slug>/enroll', methods=['GET', 'POST'])
 @login_required
 def enroll(slug):
-    """Course enrollment with level-based pricing"""
+    """Course enrollment with duration-tier pricing."""
     course = Course.query.filter_by(slug=slug, is_active=True).first_or_404()
+    duration_tiers = current_app.config.get('DURATION_TIERS', {})
 
-    existing_enrollment = Enrollment.query.filter_by(
+    # Block if already pending or approved
+    existing = Enrollment.query.filter_by(
         user_id=current_user.id,
         course_id=course.id
     ).filter(Enrollment.status.in_(['pending', 'approved'])).first()
 
-    if existing_enrollment:
-        if existing_enrollment.status == 'pending':
+    if existing:
+        if existing.status == 'pending':
             flash('You already have a pending enrollment for this course.', 'warning')
         else:
             flash('You are already enrolled in this course.', 'info')
@@ -200,65 +198,68 @@ def enroll(slug):
 
     if request.method == 'POST':
         try:
-            enrollment_type = request.form.get('enrollment_type', 'beginner')
-            days = int(request.form.get('custom_hours', 1))
-            days = max(1, days)
+            # ── Read tier selection ──────────────────────────
+            tier_key = request.form.get('duration_tier', 'short')   # short / standard / intensive
+            tier     = duration_tiers.get(tier_key)
 
-            level_rates = {
-                'beginner': 250,
-                'intermediate': 350,
-                'advanced': 500
-            }
-            rate_per_day = level_rates.get(enrollment_type, 250)
-            base_price = rate_per_day * days
+            if not tier:
+                flash('Invalid duration tier selected.', 'danger')
+                return render_template('courses/enroll.html',
+                                       form=form, course=course,
+                                       duration_tiers=duration_tiers,
+                                       user=current_user)
 
-            if days >= 180:
-                discount_pct = 0.15
-            elif days >= 90:
-                discount_pct = 0.10
-            elif days >= 60:
-                discount_pct = 0.05
-            elif days >= 10:
-                discount_pct = 0.15
-            elif days >= 5:
-                discount_pct = 0.10
-            elif days >= 3:
-                discount_pct = 0.05
+            # ── Determine price from course level ────────────
+            course_level = course.level.lower()   # beginner / intermediate / advanced
+            is_international = current_user.country != 'Pakistan'
+            currency_key = 'usd' if is_international else 'pkr'
+
+            level_prices = tier.get(course_level, tier.get('beginner', {}))
+            price = level_prices.get(currency_key, 0)
+
+            # For PKR storage we convert USD→PKR for international users
+            if is_international:
+                price_pkr = round(price / current_app.config['CURRENCY_RATES']['USD'])
             else:
-                discount_pct = 0
+                price_pkr = price
 
-            discount_amount = round(base_price * discount_pct)
-            price_pkr = base_price - discount_amount
+            total_days = tier['total_days']
 
-            if current_user.country != 'Pakistan':
-                price_pkr *= 2
-
-            price_pkr = round(price_pkr)
-
+            # ── Payment method ───────────────────────────────
             payment_method = request.form.get('payment_method', '')
+            if not payment_method:
+                flash('Please select a payment method.', 'danger')
+                return render_template('courses/enroll.html',
+                                       form=form, course=course,
+                                       duration_tiers=duration_tiers,
+                                       user=current_user)
 
-            if not enrollment_type or not payment_method:
-                flash('Please complete all steps.', 'danger')
-                return render_template('courses/enroll.html', form=form, course=course, user=current_user)
-
+            # ── Receipt upload ───────────────────────────────
             receipt_file = request.files.get('payment_receipt')
             if not receipt_file or receipt_file.filename == '':
                 flash('Please upload a payment receipt.', 'danger')
-                return render_template('courses/enroll.html', form=form, course=course, user=current_user)
+                return render_template('courses/enroll.html',
+                                       form=form, course=course,
+                                       duration_tiers=duration_tiers,
+                                       user=current_user)
 
             receipt_filename = save_receipt(receipt_file)
             if not receipt_filename:
                 flash('Failed to upload receipt. Please try again.', 'danger')
-                return render_template('courses/enroll.html', form=form, course=course, user=current_user)
+                return render_template('courses/enroll.html',
+                                       form=form, course=course,
+                                       duration_tiers=duration_tiers,
+                                       user=current_user)
 
+            # ── Create enrollment ────────────────────────────
             enrollment = Enrollment(
                 user_id=current_user.id,
                 course_id=course.id,
-                enrollment_type=enrollment_type,
-                duration_value=days,
-                total_days=days,
+                enrollment_type=tier_key,
+                duration_value=tier['months'],
+                total_days=total_days,
                 price_paid_pkr=price_pkr,
-                currency='PKR' if current_user.country == 'Pakistan' else 'USD',
+                currency='USD' if is_international else 'PKR',
                 payment_method=payment_method,
                 payment_receipt=receipt_filename,
                 status='pending'
@@ -269,15 +270,14 @@ def enroll(slug):
 
             current_app.logger.info(
                 f'Enrollment: User={current_user.id}, Course={course.id}, '
-                f'Level={enrollment_type}, Days={days}, Price=Rs.{price_pkr}, '
-                f'Discount={int(discount_pct * 100)}%'
+                f'Tier={tier_key}, Days={total_days}, Price=Rs.{price_pkr}'
             )
 
-            flash_msg = 'Enrollment submitted successfully! '
-            if discount_pct > 0:
-                flash_msg += f'You saved Rs. {discount_amount:,} with a {int(discount_pct * 100)}% discount. '
-            flash_msg += 'Awaiting admin approval.'
-            flash(flash_msg, 'success')
+            flash(
+                f'Enrollment submitted! You selected the {tier["label"]} plan '
+                f'for {course.title}. Awaiting admin approval.',
+                'success'
+            )
             return redirect(url_for('dashboard.my_enrollments'))
 
         except Exception as e:
@@ -285,14 +285,17 @@ def enroll(slug):
             current_app.logger.error(f'Enrollment error: {str(e)}')
             flash('An error occurred. Please try again.', 'danger')
 
-    return render_template('courses/enroll.html', form=form, course=course, user=current_user)
+    return render_template('courses/enroll.html',
+                           form=form,
+                           course=course,
+                           duration_tiers=duration_tiers,
+                           user=current_user)
 
 
 @course_bp.route('/<slug>/lecture/<int:lecture_id>')
 @login_required
 def lecture(slug, lecture_id):
-    """View individual lecture"""
-    course = Course.query.filter_by(slug=slug, is_active=True).first_or_404()
+    course  = Course.query.filter_by(slug=slug, is_active=True).first_or_404()
     lecture = Lecture.query.get_or_404(lecture_id)
 
     if lecture.course_id != course.id:
@@ -300,7 +303,6 @@ def lecture(slug, lecture_id):
         return redirect(url_for('courses.detail', slug=slug))
 
     has_access = False
-
     if lecture.is_free:
         has_access = True
     else:
@@ -309,7 +311,6 @@ def lecture(slug, lecture_id):
             course_id=course.id,
             status='approved'
         ).first()
-
         if enrollment and enrollment.is_active():
             has_access = True
 
@@ -318,7 +319,6 @@ def lecture(slug, lecture_id):
         return redirect(url_for('courses.detail', slug=slug))
 
     all_lectures = course.lectures.order_by(Lecture.order_number).all()
-
     return render_template('courses/lecture.html',
                            course=course,
                            lecture=lecture,
@@ -332,7 +332,6 @@ def lecture(slug, lecture_id):
 @dashboard_bp.route('/')
 @login_required
 def index():
-    """User dashboard"""
     active_enrollments = Enrollment.query.filter_by(
         user_id=current_user.id,
         status='approved'
@@ -352,18 +351,15 @@ def index():
 @dashboard_bp.route('/enrollments')
 @login_required
 def my_enrollments():
-    """View all enrollments"""
     enrollments = Enrollment.query.filter_by(
         user_id=current_user.id
     ).order_by(Enrollment.enrolled_at.desc()).all()
-
     return render_template('dashboard/enrollments.html', enrollments=enrollments)
 
 
 @dashboard_bp.route('/profile')
 @login_required
 def profile():
-    """User profile"""
     return render_template('dashboard/profile.html', user=current_user)
 
 
@@ -374,28 +370,23 @@ def profile():
 @dashboard_bp.route('/certificate/<int:enrollment_id>/download')
 @login_required
 def download_certificate(enrollment_id):
-    """Download PDF certificate — only for completed enrollments owned by current user."""
     from certificate_utils import generate_certificate
 
     enrollment = Enrollment.query.get_or_404(enrollment_id)
 
-    # Security: only the student themselves can download
     if enrollment.user_id != current_user.id:
         flash('You do not have permission to download this certificate.', 'danger')
         return redirect(url_for('dashboard.index'))
 
-    # Must be marked completed by admin
     if not enrollment.is_completed or not enrollment.completed_at:
         flash('Certificate is only available after course completion.', 'warning')
         return redirect(url_for('dashboard.index'))
 
-    # Assign a stable certificate_id if not already set
     if not enrollment.certificate_id:
         enrollment.certificate_id = str(uuid.uuid4()).replace('-', '').upper()[:16]
         db.session.commit()
 
     student_name = f"{enrollment.student.first_name} {enrollment.student.last_name}"
-
     pdf_bytes = generate_certificate(
         student_name=student_name,
         course_name=enrollment.course.title,
@@ -404,7 +395,6 @@ def download_certificate(enrollment_id):
     )
 
     filename = f"EduLearn_Certificate_{enrollment.course.slug}_{enrollment.certificate_id}.pdf"
-
     return send_file(
         io.BytesIO(pdf_bytes),
         mimetype='application/pdf',
@@ -419,6 +409,5 @@ def download_certificate(enrollment_id):
 
 @main_bp.route('/uploads/<folder>/<filename>')
 def uploaded_file(folder, filename):
-    """Serve uploaded files"""
     upload_folder = current_app.config['UPLOAD_FOLDER']
     return send_from_directory(os.path.join(upload_folder, folder), filename)
