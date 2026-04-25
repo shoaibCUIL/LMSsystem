@@ -3,9 +3,6 @@
 
 {% block extra_head %}
 <style>
-    /* ===========================
-       GLOBAL PAGE RESET
-    =========================== */
     body { background: var(--surface-0); }
 
     /* ===========================
@@ -18,7 +15,6 @@
         padding: 6rem 0 5rem;
     }
 
-    /* Animated grid lines */
     .hero-grid {
         position: absolute;
         inset: 0;
@@ -29,35 +25,30 @@
         mask-image: radial-gradient(ellipse 80% 80% at 50% 0%, black 40%, transparent 100%);
     }
 
-    /* Glow orbs */
     .hero-orb {
         position: absolute;
         border-radius: 50%;
         filter: blur(80px);
         pointer-events: none;
     }
-
     .hero-orb-1 {
         width: 500px; height: 500px;
         background: radial-gradient(circle, rgba(0,86,210,.35) 0%, transparent 70%);
         top: -150px; left: -100px;
         animation: orbFloat 8s ease-in-out infinite;
     }
-
     .hero-orb-2 {
         width: 400px; height: 400px;
         background: radial-gradient(circle, rgba(0,166,147,.25) 0%, transparent 70%);
         top: 50px; right: -80px;
         animation: orbFloat 10s ease-in-out infinite reverse;
     }
-
     .hero-orb-3 {
         width: 300px; height: 300px;
         background: radial-gradient(circle, rgba(99,102,241,.2) 0%, transparent 70%);
         bottom: -80px; left: 40%;
         animation: orbFloat 12s ease-in-out infinite;
     }
-
     @keyframes orbFloat {
         0%, 100% { transform: translateY(0px) scale(1); }
         50%       { transform: translateY(-30px) scale(1.05); }
@@ -100,7 +91,6 @@
         background: var(--accent-teal);
         animation: pulse 2s infinite;
     }
-
     @keyframes pulse {
         0%, 100% { opacity: 1; transform: scale(1); }
         50%       { opacity: .6; transform: scale(1.3); }
@@ -115,7 +105,6 @@
         color: #FFFFFF;
         animation: fadeSlideUp .6s .1s ease both;
     }
-
     .hero-headline span {
         background: linear-gradient(135deg, #4FA8FF, #00D4B8);
         -webkit-background-clip: text;
@@ -157,7 +146,6 @@
         box-shadow: 0 4px 20px rgba(0,86,210,.45);
         transition: all 200ms ease;
     }
-
     .btn-hero-primary:hover {
         background: #0047B3;
         box-shadow: 0 6px 28px rgba(0,86,210,.6);
@@ -181,22 +169,18 @@
         text-decoration: none;
         transition: all 200ms ease;
     }
-
     .btn-hero-ghost:hover {
         background: rgba(255,255,255,.14);
         border-color: rgba(255,255,255,.3);
     }
 
-    /* Hero stats */
     .hero-stats {
         display: flex;
         gap: 2rem;
         padding-top: .5rem;
         animation: fadeSlideUp .6s .4s ease both;
     }
-
     .hero-stat { display: flex; flex-direction: column; gap: .15rem; }
-
     .hero-stat-value {
         font-family: 'Sora', sans-serif;
         font-weight: 800;
@@ -204,21 +188,19 @@
         color: white;
         letter-spacing: -.03em;
     }
-
     .hero-stat-label {
         font-size: .78rem;
         color: rgba(255,255,255,.45);
         text-transform: uppercase;
         letter-spacing: .06em;
     }
-
     .hero-stat-divider {
         width: 1px;
         background: rgba(255,255,255,.1);
         align-self: stretch;
     }
 
-    /* Hero right — visual card stack */
+    /* Hero right */
     .hero-right {
         position: relative;
         display: flex;
@@ -226,13 +208,11 @@
         align-items: center;
         animation: fadeSlideUp .6s .2s ease both;
     }
-
     .hero-card-stack {
         position: relative;
         width: 340px;
         height: 360px;
     }
-
     .hero-card {
         position: absolute;
         background: rgba(255,255,255,.05);
@@ -242,152 +222,73 @@
         padding: 1.5rem;
         transition: transform .3s ease;
     }
-
     .hero-card-back {
-        width: 280px;
-        top: 30px;
-        left: 50px;
+        width: 280px; top: 30px; left: 50px;
         transform: rotate(4deg);
         background: rgba(0,86,210,.15);
         border-color: rgba(0,86,210,.25);
     }
-
-    .hero-card-front {
-        width: 300px;
-        top: 0;
-        left: 20px;
-        z-index: 2;
-    }
-
+    .hero-card-front { width: 300px; top: 0; left: 20px; z-index: 2; }
     .hero-card:hover { transform: translateY(-6px) rotate(0deg) !important; }
 
     .hc-tag {
-        font-size: .72rem;
-        font-weight: 700;
-        padding: .25rem .65rem;
-        border-radius: 999px;
-        background: rgba(0,166,147,.2);
-        color: #00D4B8;
+        font-size: .72rem; font-weight: 700;
+        padding: .25rem .65rem; border-radius: 999px;
+        background: rgba(0,166,147,.2); color: #00D4B8;
         border: 1px solid rgba(0,166,147,.3);
-        width: fit-content;
-        margin-bottom: .75rem;
+        width: fit-content; margin-bottom: .75rem;
     }
-
     .hc-title {
-        font-family: 'Sora', sans-serif;
-        font-weight: 700;
-        font-size: 1rem;
-        color: white;
-        margin-bottom: .5rem;
-        line-height: 1.3;
+        font-family: 'Sora', sans-serif; font-weight: 700;
+        font-size: 1rem; color: white; margin-bottom: .5rem; line-height: 1.3;
     }
-
-    .hc-meta {
-        font-size: .78rem;
-        color: rgba(255,255,255,.5);
-        margin-bottom: 1rem;
-    }
-
+    .hc-meta { font-size: .78rem; color: rgba(255,255,255,.5); margin-bottom: 1rem; }
     .hc-progress-bar {
-        height: 4px;
-        background: rgba(255,255,255,.1);
-        border-radius: 999px;
-        overflow: hidden;
-        margin-bottom: .5rem;
+        height: 4px; background: rgba(255,255,255,.1);
+        border-radius: 999px; overflow: hidden; margin-bottom: .5rem;
     }
-
     .hc-progress-fill {
         height: 100%;
         background: linear-gradient(90deg, var(--brand-blue), var(--accent-teal));
-        border-radius: 999px;
-        width: 65%;
+        border-radius: 999px; width: 65%;
         animation: progressGrow 1.5s 1s ease both;
     }
-
-    @keyframes progressGrow {
-        from { width: 0; }
-        to   { width: 65%; }
-    }
-
-    .hc-progress-label {
-        font-size: .72rem;
-        color: rgba(255,255,255,.45);
-    }
-
-    .hc-avatars {
-        display: flex;
-        align-items: center;
-        gap: -.25rem;
-        margin-top: .75rem;
-    }
-
+    @keyframes progressGrow { from { width: 0; } to { width: 65%; } }
+    .hc-progress-label { font-size: .72rem; color: rgba(255,255,255,.45); }
+    .hc-avatars { display: flex; align-items: center; margin-top: .75rem; }
     .hc-avatar {
-        width: 26px;
-        height: 26px;
-        border-radius: 50%;
+        width: 26px; height: 26px; border-radius: 50%;
         border: 2px solid rgba(255,255,255,.2);
         background: linear-gradient(135deg, var(--brand-blue), var(--accent-teal));
-        margin-left: -6px;
-        font-size: .6rem;
-        font-weight: 700;
-        color: white;
-        display: flex;
-        align-items: center;
-        justify-content: center;
+        margin-left: -6px; font-size: .6rem; font-weight: 700; color: white;
+        display: flex; align-items: center; justify-content: center;
     }
-
     .hc-avatar:first-child { margin-left: 0; }
+    .hc-enrolled-label { font-size: .75rem; color: rgba(255,255,255,.5); margin-left: .5rem; }
 
-    .hc-enrolled-label {
-        font-size: .75rem;
-        color: rgba(255,255,255,.5);
-        margin-left: .5rem;
-    }
-
-    /* Floating badge */
     .hero-float-badge {
-        position: absolute;
-        bottom: 20px;
-        right: -10px;
-        background: white;
-        border-radius: 14px;
+        position: absolute; bottom: 20px; right: -10px;
+        background: white; border-radius: 14px;
         padding: .75rem 1rem;
         box-shadow: 0 8px 32px rgba(0,0,0,.25);
-        display: flex;
-        align-items: center;
-        gap: .6rem;
+        display: flex; align-items: center; gap: .6rem;
         z-index: 3;
         animation: badgeFloat 3s ease-in-out infinite;
     }
-
     @keyframes badgeFloat {
         0%, 100% { transform: translateY(0); }
         50%       { transform: translateY(-8px); }
     }
-
     .float-badge-icon {
-        width: 34px;
-        height: 34px;
-        border-radius: 10px;
+        width: 34px; height: 34px; border-radius: 10px;
         background: linear-gradient(135deg, #10B981, #059669);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 1rem;
+        display: flex; align-items: center; justify-content: center; font-size: 1rem;
     }
-
     .float-badge-text strong {
-        display: block;
-        font-family: 'Sora', sans-serif;
-        font-weight: 700;
-        font-size: .8rem;
-        color: var(--text-primary);
+        display: block; font-family: 'Sora', sans-serif;
+        font-weight: 700; font-size: .8rem; color: var(--text-primary);
     }
-
-    .float-badge-text span {
-        font-size: .72rem;
-        color: var(--text-muted);
-    }
+    .float-badge-text span { font-size: .72rem; color: var(--text-muted); }
 
     @keyframes fadeSlideUp {
         from { opacity: 0; transform: translateY(20px); }
@@ -402,57 +303,26 @@
         border-bottom: 1px solid var(--border-light);
         padding: 1.25rem 0;
     }
-
     .trust-bar-inner {
-        max-width: 1280px;
-        margin: 0 auto;
-        padding: 0 1.5rem;
-        display: flex;
-        align-items: center;
-        gap: 2rem;
-        flex-wrap: wrap;
+        max-width: 1280px; margin: 0 auto; padding: 0 1.5rem;
+        display: flex; align-items: center; gap: 2rem; flex-wrap: wrap;
     }
-
     .trust-label {
-        font-size: .8rem;
-        font-weight: 600;
-        color: var(--text-muted);
-        text-transform: uppercase;
-        letter-spacing: .07em;
-        white-space: nowrap;
-        flex-shrink: 0;
+        font-size: .8rem; font-weight: 600; color: var(--text-muted);
+        text-transform: uppercase; letter-spacing: .07em;
+        white-space: nowrap; flex-shrink: 0;
     }
-
-    .trust-divider {
-        width: 1px;
-        height: 20px;
-        background: var(--border-mid);
-        flex-shrink: 0;
-    }
-
-    .trust-tags {
-        display: flex;
-        gap: .6rem;
-        flex-wrap: wrap;
-    }
-
+    .trust-divider { width: 1px; height: 20px; background: var(--border-mid); flex-shrink: 0; }
+    .trust-tags { display: flex; gap: .6rem; flex-wrap: wrap; }
     .trust-tag {
-        display: flex;
-        align-items: center;
-        gap: .4rem;
-        font-size: .82rem;
-        font-weight: 500;
-        color: var(--text-secondary);
-        padding: .3rem .8rem;
-        border-radius: 999px;
-        border: 1px solid var(--border-light);
-        background: var(--surface-1);
+        display: flex; align-items: center; gap: .4rem;
+        font-size: .82rem; font-weight: 500; color: var(--text-secondary);
+        padding: .3rem .8rem; border-radius: 999px;
+        border: 1px solid var(--border-light); background: var(--surface-1);
         transition: all 200ms ease;
     }
-
     .trust-tag:hover {
-        border-color: var(--brand-blue);
-        color: var(--brand-blue);
+        border-color: var(--brand-blue); color: var(--brand-blue);
         background: var(--brand-blue-light);
     }
 
@@ -461,428 +331,215 @@
     =========================== */
     .section { padding: 5rem 0; }
     .section-alt { background: var(--surface-1); }
-
-    .section-container {
-        max-width: 1280px;
-        margin: 0 auto;
-        padding: 0 1.5rem;
-    }
-
+    .section-container { max-width: 1280px; margin: 0 auto; padding: 0 1.5rem; }
     .section-header {
-        text-align: center;
-        margin-bottom: 3.5rem;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: .75rem;
+        text-align: center; margin-bottom: 3.5rem;
+        display: flex; flex-direction: column; align-items: center; gap: .75rem;
     }
-
     .section-eyebrow {
-        font-size: .75rem;
-        font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: .1em;
-        color: var(--brand-blue);
+        font-size: .75rem; font-weight: 700; text-transform: uppercase;
+        letter-spacing: .1em; color: var(--brand-blue);
     }
-
     .section-title {
-        font-family: 'Sora', sans-serif;
-        font-weight: 800;
-        font-size: clamp(1.6rem, 3vw, 2.25rem);
-        color: var(--text-primary);
-        letter-spacing: -.03em;
-        line-height: 1.2;
+        font-family: 'Sora', sans-serif; font-weight: 800;
+        font-size: clamp(1.6rem, 3vw, 2.25rem); color: var(--text-primary);
+        letter-spacing: -.03em; line-height: 1.2;
     }
-
     .section-desc {
-        font-size: 1rem;
-        color: var(--text-muted);
-        max-width: 560px;
-        line-height: 1.7;
+        font-size: 1rem; color: var(--text-muted); max-width: 560px; line-height: 1.7;
     }
 
     /* ===========================
-       WHY US — FEATURE CARDS
+       FEATURES
     =========================== */
-    .features-grid {
-        display: grid;
-        grid-template-columns: repeat(4, 1fr);
-        gap: 1.25rem;
-    }
-
+    .features-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.25rem; }
     .feature-card {
-        background: var(--surface-0);
-        border: 1px solid var(--border-light);
-        border-radius: var(--radius-lg);
-        padding: 1.75rem 1.5rem;
-        display: flex;
-        flex-direction: column;
-        gap: 1rem;
-        transition: all 200ms ease;
-        cursor: default;
+        background: var(--surface-0); border: 1px solid var(--border-light);
+        border-radius: var(--radius-lg); padding: 1.75rem 1.5rem;
+        display: flex; flex-direction: column; gap: 1rem;
+        transition: all 200ms ease; cursor: default;
     }
-
     .feature-card:hover {
-        border-color: var(--brand-blue);
-        box-shadow: var(--shadow-md);
-        transform: translateY(-4px);
+        border-color: var(--brand-blue); box-shadow: var(--shadow-md); transform: translateY(-4px);
     }
-
     .feature-icon {
-        width: 48px;
-        height: 48px;
-        border-radius: var(--radius-md);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 1.4rem;
-        flex-shrink: 0;
+        width: 48px; height: 48px; border-radius: var(--radius-md);
+        display: flex; align-items: center; justify-content: center;
+        font-size: 1.4rem; flex-shrink: 0;
     }
-
-    .feature-card h3 {
-        font-family: 'Sora', sans-serif;
-        font-weight: 700;
-        font-size: .95rem;
-        color: var(--text-primary);
-    }
-
-    .feature-card p {
-        font-size: .85rem;
-        color: var(--text-muted);
-        line-height: 1.6;
-    }
+    .feature-card h3 { font-family: 'Sora', sans-serif; font-weight: 700; font-size: .95rem; color: var(--text-primary); }
+    .feature-card p { font-size: .85rem; color: var(--text-muted); line-height: 1.6; }
 
     /* ===========================
        CATEGORIES
     =========================== */
-    .categories-grid {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 1.5rem;
-    }
-
+    .categories-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; }
     .category-card {
-        position: relative;
-        border-radius: var(--radius-lg);
-        overflow: hidden;
-        padding: 2.5rem 2rem;
-        display: flex;
-        flex-direction: column;
-        gap: 1rem;
-        min-height: 240px;
-        text-decoration: none;
+        position: relative; border-radius: var(--radius-lg); overflow: hidden;
+        padding: 2.5rem 2rem; display: flex; flex-direction: column;
+        gap: 1rem; min-height: 240px; text-decoration: none;
         transition: transform 200ms ease, box-shadow 200ms ease;
     }
-
-    .category-card:hover {
-        transform: translateY(-5px);
-        box-shadow: var(--shadow-lg);
-    }
-
+    .category-card:hover { transform: translateY(-5px); box-shadow: var(--shadow-lg); }
     .category-card-1 { background: linear-gradient(135deg, #0056D2 0%, #003899 100%); }
     .category-card-2 { background: linear-gradient(135deg, #00A693 0%, #007A6B 100%); }
     .category-card-3 { background: linear-gradient(135deg, #6366F1 0%, #4338CA 100%); }
-
     .category-pattern {
-        position: absolute;
-        inset: 0;
-        opacity: .07;
+        position: absolute; inset: 0; opacity: .07;
         background-image: radial-gradient(circle at 70% 20%, white 1px, transparent 1px),
                           radial-gradient(circle at 30% 80%, white 1px, transparent 1px);
         background-size: 40px 40px;
     }
-
-    .category-icon {
-        font-size: 2.2rem;
-        position: relative;
-        z-index: 1;
-    }
-
+    .category-icon { font-size: 2.2rem; position: relative; z-index: 1; }
     .category-card h3 {
-        font-family: 'Sora', sans-serif;
-        font-weight: 800;
-        font-size: 1.25rem;
-        color: white;
-        line-height: 1.2;
-        position: relative;
-        z-index: 1;
+        font-family: 'Sora', sans-serif; font-weight: 800; font-size: 1.25rem;
+        color: white; line-height: 1.2; position: relative; z-index: 1;
     }
-
     .category-card p {
-        font-size: .875rem;
-        color: rgba(255,255,255,.75);
-        line-height: 1.6;
-        position: relative;
-        z-index: 1;
+        font-size: .875rem; color: rgba(255,255,255,.75); line-height: 1.6;
+        position: relative; z-index: 1;
     }
-
     .category-link {
-        display: inline-flex;
-        align-items: center;
-        gap: .35rem;
-        font-size: .85rem;
-        font-weight: 700;
-        color: rgba(255,255,255,.9);
-        position: relative;
-        z-index: 1;
-        margin-top: auto;
-        transition: gap 200ms ease;
+        display: inline-flex; align-items: center; gap: .35rem;
+        font-size: .85rem; font-weight: 700; color: rgba(255,255,255,.9);
+        position: relative; z-index: 1; margin-top: auto; transition: gap 200ms ease;
     }
-
     .category-card:hover .category-link { gap: .6rem; }
 
     /* ===========================
        FEATURED COURSES
     =========================== */
-    .courses-grid {
-        display: grid;
-        grid-template-columns: repeat(4, 1fr);
-        gap: 1.25rem;
-    }
-
+    .courses-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.25rem; }
     .course-card {
-        background: var(--surface-0);
-        border: 1px solid var(--border-light);
-        border-radius: var(--radius-lg);
-        overflow: hidden;
-        display: flex;
-        flex-direction: column;
-        transition: all 200ms ease;
-        text-decoration: none;
+        background: var(--surface-0); border: 1px solid var(--border-light);
+        border-radius: var(--radius-lg); overflow: hidden;
+        display: flex; flex-direction: column;
+        transition: all 200ms ease; text-decoration: none;
     }
-
     .course-card:hover {
-        box-shadow: var(--shadow-md);
-        transform: translateY(-4px);
+        box-shadow: var(--shadow-md); transform: translateY(-4px);
         border-color: rgba(0,86,210,.2);
     }
-
     .course-card-thumb {
-        height: 140px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 3rem;
-        position: relative;
-        overflow: hidden;
+        height: 140px; display: flex; align-items: center;
+        justify-content: center; font-size: 3rem;
+        position: relative; overflow: hidden;
     }
-
     .thumb-1 { background: linear-gradient(135deg, #EBF2FF, #C7DCFF); }
     .thumb-2 { background: linear-gradient(135deg, #ECFDF5, #A7F3D0); }
     .thumb-3 { background: linear-gradient(135deg, #F5F3FF, #DDD6FE); }
     .thumb-4 { background: linear-gradient(135deg, #FFF7ED, #FDBA74); }
 
     .course-card-body {
-        padding: 1.25rem;
-        display: flex;
-        flex-direction: column;
-        gap: .5rem;
-        flex: 1;
+        padding: 1.25rem; display: flex; flex-direction: column; gap: .5rem; flex: 1;
     }
-
     .course-level-badge {
-        font-size: .7rem;
-        font-weight: 700;
-        padding: .2rem .55rem;
-        border-radius: 999px;
-        width: fit-content;
-        text-transform: uppercase;
-        letter-spacing: .04em;
+        font-size: .7rem; font-weight: 700; padding: .2rem .55rem;
+        border-radius: 999px; width: fit-content;
+        text-transform: uppercase; letter-spacing: .04em;
     }
-
     .level-beginner     { background: #ECFDF5; color: #065F46; }
     .level-intermediate { background: #FFFBEB; color: #92400E; }
     .level-advanced     { background: #FEF2F2; color: #991B1B; }
-
     .course-card-title {
-        font-family: 'Sora', sans-serif;
-        font-weight: 700;
-        font-size: .92rem;
-        color: var(--text-primary);
-        line-height: 1.35;
+        font-family: 'Sora', sans-serif; font-weight: 700; font-size: .92rem;
+        color: var(--text-primary); line-height: 1.35;
     }
-
     .course-card-meta {
-        font-size: .78rem;
-        color: var(--text-muted);
-        display: flex;
-        align-items: center;
-        gap: .4rem;
+        font-size: .78rem; color: var(--text-muted);
+        display: flex; align-items: center; gap: .4rem;
     }
-
     .course-card-footer {
-        padding: .9rem 1.25rem;
-        border-top: 1px solid var(--border-light);
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: .5rem;
+        padding: .9rem 1.25rem; border-top: 1px solid var(--border-light);
+        display: flex; align-items: center; justify-content: space-between; gap: .5rem;
     }
-
     .course-price {
-        font-family: 'Sora', sans-serif;
-        font-weight: 700;
-        font-size: .9rem;
-        color: var(--text-primary);
+        font-family: 'Sora', sans-serif; font-weight: 700;
+        font-size: .9rem; color: var(--text-primary);
     }
-
+    .course-from-label {
+        font-size: .68rem; color: var(--text-muted); margin-bottom: .1rem;
+    }
     .course-enroll-btn {
-        font-size: .78rem;
-        font-weight: 700;
-        color: var(--brand-blue);
-        display: flex;
-        align-items: center;
-        gap: .25rem;
-        transition: gap 200ms ease;
+        font-size: .78rem; font-weight: 700; color: var(--brand-blue);
+        display: flex; align-items: center; gap: .25rem; transition: gap 200ms ease;
     }
-
     .course-card:hover .course-enroll-btn { gap: .45rem; }
-
-    .courses-cta {
-        text-align: center;
-        margin-top: 2.5rem;
-    }
+    .courses-cta { text-align: center; margin-top: 2.5rem; }
 
     /* ===========================
        HOW IT WORKS
     =========================== */
     .steps-grid {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 2rem;
-        position: relative;
+        display: grid; grid-template-columns: repeat(3, 1fr);
+        gap: 2rem; position: relative;
     }
-
     .steps-grid::before {
-        content: '';
-        position: absolute;
-        top: 36px;
-        left: calc(16.66% + 36px);
-        right: calc(16.66% + 36px);
+        content: ''; position: absolute; top: 36px;
+        left: calc(16.66% + 36px); right: calc(16.66% + 36px);
         height: 2px;
-        background: linear-gradient(90deg, var(--brand-blue), var(--accent-teal));
-        opacity: .3;
+        background: linear-gradient(90deg, var(--brand-blue), var(--accent-teal)); opacity: .3;
     }
-
     .step-card {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        text-align: center;
-        gap: 1rem;
-        padding: 1.5rem;
+        display: flex; flex-direction: column; align-items: center;
+        text-align: center; gap: 1rem; padding: 1.5rem;
     }
-
     .step-number {
-        width: 72px;
-        height: 72px;
-        border-radius: 50%;
-        border: 2px solid var(--border-mid);
-        background: var(--surface-0);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-family: 'Sora', sans-serif;
-        font-weight: 800;
-        font-size: 1.5rem;
-        color: var(--brand-blue);
-        position: relative;
-        z-index: 1;
+        width: 72px; height: 72px; border-radius: 50%;
+        border: 2px solid var(--border-mid); background: var(--surface-0);
+        display: flex; align-items: center; justify-content: center;
+        font-family: 'Sora', sans-serif; font-weight: 800; font-size: 1.5rem;
+        color: var(--brand-blue); position: relative; z-index: 1;
         transition: all 200ms ease;
     }
-
     .step-card:hover .step-number {
-        background: var(--brand-blue);
-        color: white;
-        border-color: var(--brand-blue);
-        box-shadow: 0 0 0 6px rgba(0,86,210,.1);
+        background: var(--brand-blue); color: white;
+        border-color: var(--brand-blue); box-shadow: 0 0 0 6px rgba(0,86,210,.1);
     }
-
-    .step-card h3 {
-        font-family: 'Sora', sans-serif;
-        font-weight: 700;
-        font-size: 1rem;
-        color: var(--text-primary);
-    }
-
-    .step-card p {
-        font-size: .875rem;
-        color: var(--text-muted);
-        line-height: 1.6;
-        max-width: 240px;
-    }
+    .step-card h3 { font-family: 'Sora', sans-serif; font-weight: 700; font-size: 1rem; color: var(--text-primary); }
+    .step-card p { font-size: .875rem; color: var(--text-muted); line-height: 1.6; max-width: 240px; }
 
     /* ===========================
        CTA BANNER
     =========================== */
     .cta-banner {
         background: linear-gradient(135deg, #050E27 0%, #0D2461 50%, #0E3B75 100%);
-        padding: 5rem 0;
-        position: relative;
-        overflow: hidden;
+        padding: 5rem 0; position: relative; overflow: hidden;
     }
-
     .cta-banner::before {
-        content: '';
-        position: absolute;
-        inset: 0;
+        content: ''; position: absolute; inset: 0;
         background-image:
             linear-gradient(rgba(255,255,255,.02) 1px, transparent 1px),
             linear-gradient(90deg, rgba(255,255,255,.02) 1px, transparent 1px);
         background-size: 50px 50px;
     }
-
     .cta-inner {
-        max-width: 700px;
-        margin: 0 auto;
-        padding: 0 1.5rem;
-        text-align: center;
-        position: relative;
-        z-index: 1;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 1.5rem;
+        max-width: 700px; margin: 0 auto; padding: 0 1.5rem;
+        text-align: center; position: relative; z-index: 1;
+        display: flex; flex-direction: column; align-items: center; gap: 1.5rem;
     }
-
     .cta-inner h2 {
-        font-family: 'Sora', sans-serif;
-        font-weight: 800;
-        font-size: clamp(1.75rem, 3vw, 2.5rem);
-        color: white;
-        letter-spacing: -.03em;
-        line-height: 1.15;
+        font-family: 'Sora', sans-serif; font-weight: 800;
+        font-size: clamp(1.75rem, 3vw, 2.5rem); color: white;
+        letter-spacing: -.03em; line-height: 1.15;
     }
-
-    .cta-inner p {
-        font-size: 1rem;
-        color: rgba(255,255,255,.6);
-        line-height: 1.7;
-    }
-
-    .cta-actions {
-        display: flex;
-        gap: 1rem;
-        flex-wrap: wrap;
-        justify-content: center;
-    }
+    .cta-inner p { font-size: 1rem; color: rgba(255,255,255,.6); line-height: 1.7; }
+    .cta-actions { display: flex; gap: 1rem; flex-wrap: wrap; justify-content: center; }
 
     /* ===========================
        RESPONSIVE
     =========================== */
     @media (max-width: 1100px) {
-        .features-grid  { grid-template-columns: repeat(2, 1fr); }
-        .courses-grid   { grid-template-columns: repeat(2, 1fr); }
+        .features-grid { grid-template-columns: repeat(2, 1fr); }
+        .courses-grid  { grid-template-columns: repeat(2, 1fr); }
     }
-
     @media (max-width: 900px) {
-        .hero-container   { grid-template-columns: 1fr; }
-        .hero-right       { display: none; }
-        .categories-grid  { grid-template-columns: 1fr; }
-        .steps-grid       { grid-template-columns: 1fr; }
+        .hero-container  { grid-template-columns: 1fr; }
+        .hero-right      { display: none; }
+        .categories-grid { grid-template-columns: 1fr; }
+        .steps-grid      { grid-template-columns: 1fr; }
         .steps-grid::before { display: none; }
     }
-
     @media (max-width: 600px) {
         .features-grid { grid-template-columns: 1fr; }
         .courses-grid  { grid-template-columns: 1fr; }
@@ -905,7 +562,7 @@
         <div class="hero-left">
             <div class="hero-eyebrow">
                 <span class="hero-eyebrow-dot"></span>
-                Expert-Led Linguistics Courses
+                Expert-Led Linguistics &amp; Tech Courses
             </div>
 
             <h1 class="hero-headline">
@@ -914,7 +571,7 @@
             </h1>
 
             <p class="hero-subtext">
-                Master General Linguistics, Corpus Studies, and Computational Language Research through structured, expert-designed courses built for serious learners.
+                Master General Linguistics, Corpus Studies, Python, and Computational Language Research through structured, expert-designed courses built for serious learners.
             </p>
 
             <div class="hero-actions">
@@ -923,19 +580,15 @@
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
                 </a>
                 {% if not current_user.is_authenticated %}
-                <a href="{{ url_for('auth.register') }}" class="btn-hero-ghost">
-                    Sign up free
-                </a>
+                <a href="{{ url_for('auth.register') }}" class="btn-hero-ghost">Sign up free</a>
                 {% else %}
-                <a href="{{ url_for('dashboard.index') }}" class="btn-hero-ghost">
-                    My Dashboard →
-                </a>
+                <a href="{{ url_for('dashboard.index') }}" class="btn-hero-ghost">My Dashboard →</a>
                 {% endif %}
             </div>
 
             <div class="hero-stats">
                 <div class="hero-stat">
-                    <span class="hero-stat-value">6+</span>
+                    <span class="hero-stat-value">8+</span>
                     <span class="hero-stat-label">Courses</span>
                 </div>
                 <div class="hero-stat-divider"></div>
@@ -963,9 +616,7 @@
                     <div class="hc-tag">In Progress</div>
                     <div class="hc-title">Introduction to Computational Linguistics</div>
                     <div class="hc-meta">8 modules · 6 hours</div>
-                    <div class="hc-progress-bar">
-                        <div class="hc-progress-fill"></div>
-                    </div>
+                    <div class="hc-progress-bar"><div class="hc-progress-fill"></div></div>
                     <div class="hc-progress-label">65% complete</div>
                     <div class="hc-avatars">
                         <div class="hc-avatar">AK</div>
@@ -974,7 +625,6 @@
                         <span class="hc-enrolled-label">+47 enrolled</span>
                     </div>
                 </div>
-
                 <div class="hero-float-badge">
                     <div class="float-badge-icon">🎓</div>
                     <div class="float-badge-text">
@@ -1000,6 +650,8 @@
             <span class="trust-tag">📊 Corpus Methods</span>
             <span class="trust-tag">🤖 NLP Fundamentals</span>
             <span class="trust-tag">🌍 Sociolinguistics</span>
+            <span class="trust-tag">🐍 Python</span>
+            <span class="trust-tag">✨ Vibe Coding</span>
         </div>
     </div>
 </div>
@@ -1012,7 +664,6 @@
             <h2 class="section-title">Everything you need to go further</h2>
             <p class="section-desc">Built for linguistics students, researchers, and educators who want structured, rigorous learning.</p>
         </div>
-
         <div class="features-grid">
             <div class="feature-card">
                 <div class="feature-icon" style="background:#EBF2FF;">🎯</div>
@@ -1032,7 +683,7 @@
             <div class="feature-card">
                 <div class="feature-icon" style="background:#FFF7ED;">🏆</div>
                 <h3>Certified Learning</h3>
-                <p>Earn recognised course certificates to validate your expertise in linguistics fields.</p>
+                <p>Earn recognised course certificates to validate your expertise in linguistics and tech fields.</p>
             </div>
         </div>
     </div>
@@ -1044,29 +695,28 @@
         <div class="section-header">
             <span class="section-eyebrow">Specializations</span>
             <h2 class="section-title">Find your path</h2>
-            <p class="section-desc">Three focused specializations to guide your linguistics journey from foundations to advanced research.</p>
+            <p class="section-desc">Three focused specializations to guide your journey from foundations to advanced research.</p>
         </div>
-
         <div class="categories-grid">
             <a href="{{ url_for('main.courses') }}" class="category-card category-card-1">
                 <div class="category-pattern"></div>
                 <div class="category-icon">🔤</div>
-                <h3>General Linguistics</h3>
+                <h3>Linguistics</h3>
                 <p>Build a solid foundation in phonetics, morphology, syntax, semantics, and the science of human language.</p>
                 <span class="category-link">Browse courses →</span>
             </a>
             <a href="{{ url_for('main.courses') }}" class="category-card category-card-2">
                 <div class="category-pattern"></div>
-                <div class="category-icon">📊</div>
-                <h3>Corpus Linguistics</h3>
-                <p>Learn to analyse large language datasets, identify patterns, and draw evidence-based conclusions from real text.</p>
+                <div class="category-icon">🐍</div>
+                <h3>Python & Coding</h3>
+                <p>Learn Python, vibe coding with AI tools, and computer essentials — from beginner to advanced level.</p>
                 <span class="category-link">Browse courses →</span>
             </a>
             <a href="{{ url_for('main.courses') }}" class="category-card category-card-3">
                 <div class="category-pattern"></div>
                 <div class="category-icon">🤖</div>
                 <h3>Computational Linguistics</h3>
-                <p>Explore NLP fundamentals, language modelling, and the tools that power modern AI language systems.</p>
+                <p>Explore NLP fundamentals, corpus statistics, language modelling, and AI language systems.</p>
                 <span class="category-link">Browse courses →</span>
             </a>
         </div>
@@ -1079,16 +729,26 @@
         <div class="section-header">
             <span class="section-eyebrow">Featured Courses</span>
             <h2 class="section-title">Start learning today</h2>
-            <p class="section-desc">A selection of our most popular courses across all three specializations.</p>
+            <p class="section-desc">A selection of our most popular courses across all specializations.</p>
         </div>
 
         <div class="courses-grid">
             {% if featured_courses %}
                 {% for course in featured_courses[:4] %}
+
+                {# Pick icon by slug #}
+                {% if course.slug == 'general-linguistics' %}{% set icon = '🔤' %}
+                {% elif 'python-for' in course.slug %}{% set icon = '🐍' %}
+                {% elif 'corpus' in course.slug %}{% set icon = '📊' %}
+                {% elif 'python-full' in course.slug %}{% set icon = '💻' %}
+                {% elif 'vibe' in course.slug or 'coding-with' in course.slug %}{% set icon = '✨' %}
+                {% elif 'computational' in course.slug %}{% set icon = '🧠' %}
+                {% elif 'stats' in course.slug %}{% set icon = '📈' %}
+                {% elif 'computer-essentials' in course.slug %}{% set icon = '🖥️' %}
+                {% else %}{% set icon = '📖' %}{% endif %}
+
                 <a href="{{ url_for('courses.detail', slug=course.slug) }}" class="course-card">
-                    <div class="course-card-thumb thumb-{{ loop.index }}">
-                        {% if loop.index == 1 %}🔤{% elif loop.index == 2 %}📊{% elif loop.index == 3 %}🤖{% else %}📖{% endif %}
-                    </div>
+                    <div class="course-card-thumb thumb-{{ loop.index }}">{{ icon }}</div>
                     <div class="course-card-body">
                         <span class="course-level-badge level-{{ course.level | lower }}">{{ course.level }}</span>
                         <h3 class="course-card-title">{{ course.title }}</h3>
@@ -1100,24 +760,36 @@
                         </div>
                     </div>
                     <div class="course-card-footer">
-                        <span class="course-price">Rs. {{ course.hourly_rate_pkr }}<span style="font-size:.75rem;font-weight:400;color:var(--text-muted)">/hr</span></span>
-                        <span class="course-enroll-btn">Enroll <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></span>
+                        <div>
+                            <div class="course-from-label">From</div>
+                            {% if course.level == 'beginner' %}
+                                <span class="course-price">Rs. 4,000</span>
+                            {% elif course.level == 'intermediate' %}
+                                <span class="course-price">Rs. 6,000</span>
+                            {% else %}
+                                <span class="course-price">Rs. 8,000</span>
+                            {% endif %}
+                        </div>
+                        <span class="course-enroll-btn">Enroll
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+                        </span>
                     </div>
                 </a>
                 {% endfor %}
+
             {% else %}
-                <!-- Placeholder cards when no courses in context -->
+                {# Placeholder cards when no courses in DB yet #}
                 {% set placeholders = [
-                    {'title': 'Introduction to Phonetics & Phonology', 'level': 'Beginner', 'thumb': 'thumb-1', 'icon': '🔤', 'price': '1,200', 'duration': '6 hours'},
-                    {'title': 'Corpus Analysis with AntConc', 'level': 'Intermediate', 'thumb': 'thumb-2', 'icon': '📊', 'price': '1,800', 'duration': '8 hours'},
-                    {'title': 'NLP Fundamentals with Python', 'level': 'Intermediate', 'thumb': 'thumb-3', 'icon': '🤖', 'price': '2,200', 'duration': '10 hours'},
-                    {'title': 'Syntax & Sentence Structure', 'level': 'Beginner', 'thumb': 'thumb-4', 'icon': '📖', 'price': '1,400', 'duration': '5 hours'}
+                    {'title': 'General Linguistics',       'level': 'beginner',     'icon': '🔤', 'thumb': 'thumb-1', 'price': '4,000', 'duration': '4–6 weeks'},
+                    {'title': 'Corpus Linguistics',        'level': 'intermediate', 'icon': '📊', 'thumb': 'thumb-2', 'price': '6,000', 'duration': '8–10 weeks'},
+                    {'title': 'Vibe Coding with AI',       'level': 'intermediate', 'icon': '✨', 'thumb': 'thumb-3', 'price': '6,000', 'duration': '8–10 weeks'},
+                    {'title': 'Computational Linguistics', 'level': 'advanced',     'icon': '🧠', 'thumb': 'thumb-4', 'price': '8,000', 'duration': '12 weeks'},
                 ] %}
                 {% for p in placeholders %}
                 <a href="{{ url_for('main.courses') }}" class="course-card">
                     <div class="course-card-thumb {{ p.thumb }}">{{ p.icon }}</div>
                     <div class="course-card-body">
-                        <span class="course-level-badge level-{{ p.level | lower }}">{{ p.level }}</span>
+                        <span class="course-level-badge level-{{ p.level }}">{{ p.level | capitalize }}</span>
                         <h3 class="course-card-title">{{ p.title }}</h3>
                         <div class="course-card-meta">
                             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
@@ -1125,8 +797,13 @@
                         </div>
                     </div>
                     <div class="course-card-footer">
-                        <span class="course-price">Rs. {{ p.price }}<span style="font-size:.75rem;font-weight:400;color:var(--text-muted)">/hr</span></span>
-                        <span class="course-enroll-btn">Enroll <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></span>
+                        <div>
+                            <div class="course-from-label">From</div>
+                            <span class="course-price">Rs. {{ p.price }}</span>
+                        </div>
+                        <span class="course-enroll-btn">Enroll
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+                        </span>
                     </div>
                 </a>
                 {% endfor %}
@@ -1135,7 +812,7 @@
 
         <div class="courses-cta">
             <a href="{{ url_for('main.courses') }}" class="btn btn-outline" style="height:44px;padding:0 1.75rem;font-size:.9rem;">
-                View all courses →
+                View all {{ featured_courses | length if featured_courses else 8 }} courses →
             </a>
         </div>
     </div>
@@ -1148,22 +825,21 @@
             <span class="section-eyebrow">How It Works</span>
             <h2 class="section-title">Three steps to start learning</h2>
         </div>
-
         <div class="steps-grid">
             <div class="step-card">
                 <div class="step-number">1</div>
                 <h3>Browse & Choose</h3>
-                <p>Explore our catalogue across three linguistics specializations and find the course that fits your goals.</p>
+                <p>Explore our catalogue of 8 courses across linguistics, Python, and AI — find what fits your goals.</p>
             </div>
             <div class="step-card">
                 <div class="step-number">2</div>
                 <h3>Enroll & Access</h3>
-                <p>Create a free account, enroll in your chosen course, and get instant access to all lectures and materials.</p>
+                <p>Create a free account, pick your duration tier, pay, and get instant access once approved.</p>
             </div>
             <div class="step-card">
                 <div class="step-number">3</div>
                 <h3>Learn & Earn</h3>
-                <p>Progress through structured content, participate in discussions, and earn your certificate on completion.</p>
+                <p>Progress through structured content, join discussions, and earn your certificate on completion.</p>
             </div>
         </div>
     </div>
@@ -1172,8 +848,8 @@
 <!-- ===================== CTA BANNER ===================== -->
 <section class="cta-banner">
     <div class="cta-inner">
-        <h2>Ready to start your linguistics journey?</h2>
-        <p>Join hundreds of learners already studying General, Corpus, and Computational Linguistics on EduLearn.</p>
+        <h2>Ready to start your learning journey?</h2>
+        <p>Join learners already studying Linguistics, Python, Corpus Studies, and AI on EduLearn.</p>
         <div class="cta-actions">
             {% if current_user.is_authenticated %}
                 <a href="{{ url_for('main.courses') }}" class="btn-hero-primary">Browse courses</a>
