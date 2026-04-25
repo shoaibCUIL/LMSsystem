@@ -62,6 +62,44 @@ def dashboard():
 
 
 # ================================
+# SEED COURSES (one-time use)
+# Visit /admin/seed-new-courses then DELETE this route
+# ================================
+
+@admin_bp.route('/seed-new-courses')
+@login_required
+@admin_required
+def seed_new_courses():
+    courses_data = current_app.config['DEFAULT_COURSES']
+    created = []
+    skipped = []
+    for c in courses_data:
+        existing = Course.query.filter_by(slug=c['slug']).first()
+        if not existing:
+            course = Course(
+                title=c['title'],
+                slug=c['slug'],
+                description=c['description'],
+                level=c['level'],
+                duration_estimate=c['duration_estimate'],
+                hourly_rate_pkr=c['hourly_rate_pkr'],
+                hourly_rate_usd=c['hourly_rate_usd'],
+                is_active=True
+            )
+            db.session.add(course)
+            created.append(c['title'])
+        else:
+            skipped.append(c['title'])
+    db.session.commit()
+    return (
+        f"<h2>✅ Done!</h2>"
+        f"<p><strong>Created:</strong> {created}</p>"
+        f"<p><strong>Already existed:</strong> {skipped}</p>"
+        f"<p style='color:red;'><strong>⚠️ Now delete this route from admin_routes.py and redeploy!</strong></p>"
+    )
+
+
+# ================================
 # ENROLLMENT MANAGEMENT
 # ================================
 
