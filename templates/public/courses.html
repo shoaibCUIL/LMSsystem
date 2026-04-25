@@ -1,93 +1,423 @@
 {% extends "base.html" %}
+{% block title %}Explore Courses — EduLearn{% endblock %}
 
-{% block title %}All Courses - LMS Platform{% endblock %}
+{% block extra_head %}
+<style>
+    body { background: var(--surface-1); }
+
+    /* ── Hero ── */
+    .courses-hero {
+        background: linear-gradient(135deg, #050E27 0%, #0D2461 60%, #1a3a6e 100%);
+        padding: 3.5rem 0 3rem;
+        position: relative;
+        overflow: hidden;
+    }
+    .courses-hero::before {
+        content: '';
+        position: absolute; inset: 0;
+        background-image:
+            linear-gradient(rgba(255,255,255,.025) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(255,255,255,.025) 1px, transparent 1px);
+        background-size: 50px 50px;
+    }
+    .courses-hero-inner {
+        max-width: 1280px; margin: 0 auto; padding: 0 1.5rem;
+        position: relative; z-index: 1; text-align: center;
+    }
+    .courses-hero h1 {
+        font-family: 'Sora', sans-serif;
+        font-size: clamp(1.8rem, 3vw, 2.6rem);
+        font-weight: 800; color: #fff;
+        letter-spacing: -.03em; margin-bottom: .75rem;
+    }
+    .courses-hero p {
+        color: rgba(255,255,255,.6); font-size: 1rem; margin: 0;
+    }
+
+    /* ── Filter tabs ── */
+    .filter-bar {
+        background: var(--surface-0);
+        border-bottom: 1px solid var(--border-light);
+        padding: .75rem 0;
+        position: sticky; top: var(--nav-height); z-index: 90;
+    }
+    .filter-bar-inner {
+        max-width: 1280px; margin: 0 auto; padding: 0 1.5rem;
+        display: flex; align-items: center; gap: .5rem; flex-wrap: wrap;
+    }
+    .filter-btn {
+        padding: .35rem .9rem; border-radius: 999px;
+        font-size: .82rem; font-weight: 600; cursor: pointer;
+        border: 1.5px solid var(--border-mid);
+        background: var(--surface-0); color: var(--text-secondary);
+        transition: all .18s ease;
+    }
+    .filter-btn:hover, .filter-btn.active {
+        background: var(--brand-blue);
+        border-color: var(--brand-blue);
+        color: white;
+    }
+
+    /* ── Main layout ── */
+    .courses-wrap {
+        max-width: 1280px; margin: 0 auto;
+        padding: 2.5rem 1.5rem 4rem;
+    }
+
+    .courses-count {
+        font-size: .85rem; color: var(--text-muted);
+        margin-bottom: 1.5rem;
+    }
+    .courses-count strong { color: var(--text-primary); }
+
+    /* ── Grid ── */
+    .courses-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1.5rem;
+    }
+
+    /* ── Card ── */
+    .course-card {
+        background: var(--surface-0);
+        border: 1px solid var(--border-light);
+        border-radius: 20px;
+        overflow: hidden;
+        display: flex; flex-direction: column;
+        transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease;
+        text-decoration: none;
+    }
+    .course-card:hover {
+        transform: translateY(-5px);
+        box-shadow: var(--shadow-lg);
+        border-color: rgba(0,86,210,.2);
+    }
+
+    /* Thumbnail */
+    .course-thumb {
+        height: 150px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 3rem; position: relative; overflow: hidden;
+        flex-shrink: 0;
+    }
+    .course-thumb img { width: 100%; height: 100%; object-fit: cover; }
+
+    .thumb-gl  { background: linear-gradient(135deg,#EBF2FF,#C7DCFF); }
+    .thumb-py  { background: linear-gradient(135deg,#FFF7ED,#FED7AA); }
+    .thumb-cl  { background: linear-gradient(135deg,#ECFDF5,#A7F3D0); }
+    .thumb-pf  { background: linear-gradient(135deg,#FFF7ED,#FDBA74); }
+    .thumb-ai  { background: linear-gradient(135deg,#F0FDF4,#BBF7D0); }
+    .thumb-cpl { background: linear-gradient(135deg,#F5F3FF,#DDD6FE); }
+    .thumb-st  { background: linear-gradient(135deg,#FEF2F2,#FECACA); }
+    .thumb-def { background: linear-gradient(135deg,#667eea,#764ba2); }
+
+    /* Body */
+    .course-body {
+        padding: 1.25rem 1.25rem .75rem;
+        display: flex; flex-direction: column; gap: .6rem; flex: 1;
+    }
+
+    .course-meta {
+        display: flex; align-items: center; gap: .4rem; flex-wrap: wrap;
+    }
+
+    .badge-level {
+        font-size: .68rem; font-weight: 700; padding: .2rem .55rem;
+        border-radius: 999px; text-transform: uppercase; letter-spacing: .04em;
+    }
+    .level-beginner     { background: #ECFDF5; color: #065F46; }
+    .level-intermediate { background: #FFFBEB; color: #92400E; }
+    .level-advanced     { background: #FEF2F2; color: #991B1B; }
+
+    .badge-duration {
+        font-size: .68rem; font-weight: 600; padding: .2rem .55rem;
+        border-radius: 999px; background: var(--surface-2);
+        color: var(--text-secondary);
+    }
+
+    .course-title {
+        font-family: 'Sora', sans-serif;
+        font-size: .97rem; font-weight: 700;
+        color: var(--text-primary); line-height: 1.35; margin: 0;
+    }
+
+    .course-desc {
+        font-size: .82rem; color: var(--text-muted);
+        line-height: 1.55; margin: 0;
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    /* Pricing tiers inside card */
+    .tier-pricing {
+        display: flex; flex-direction: column; gap: .35rem;
+        padding: .75rem; background: var(--surface-1);
+        border-radius: 12px; margin-top: auto;
+    }
+
+    .tier-row {
+        display: flex; align-items: center;
+        justify-content: space-between; gap: .5rem;
+    }
+
+    .tier-label {
+        font-size: .72rem; font-weight: 700;
+        color: var(--text-muted); text-transform: uppercase;
+        letter-spacing: .05em; white-space: nowrap;
+    }
+
+    .tier-prices {
+        display: flex; align-items: center; gap: .5rem;
+    }
+
+    .tier-pkr {
+        font-family: 'Sora', sans-serif;
+        font-size: .82rem; font-weight: 700; color: var(--brand-blue);
+    }
+
+    .tier-usd {
+        font-size: .72rem; color: var(--text-muted);
+    }
+
+    .tier-divider {
+        height: 1px; background: var(--border-light); margin: .1rem 0;
+    }
+
+    /* Footer */
+    .course-footer {
+        padding: .85rem 1.25rem;
+        border-top: 1px solid var(--border-light);
+        display: flex; align-items: center; justify-content: space-between;
+    }
+
+    .enroll-btn {
+        display: inline-flex; align-items: center; gap: .35rem;
+        font-size: .8rem; font-weight: 700; color: var(--brand-blue);
+        text-decoration: none; transition: gap .18s ease;
+    }
+    .course-card:hover .enroll-btn { gap: .55rem; }
+
+    .intl-note {
+        font-size: .7rem; color: var(--text-muted);
+    }
+
+    /* Empty state */
+    .empty-state {
+        text-align: center; padding: 4rem 2rem;
+        background: var(--surface-0); border-radius: 20px;
+        border: 1px solid var(--border-light);
+    }
+    .empty-state h3 { font-family: 'Sora', sans-serif; color: var(--text-secondary); margin-bottom: .5rem; }
+    .empty-state p  { color: var(--text-muted); font-size: .9rem; }
+
+    /* CTA banner */
+    .cta-strip {
+        background: var(--surface-0);
+        border: 1px solid var(--border-light);
+        border-radius: 20px; padding: 2rem;
+        text-align: center; margin-top: 3rem;
+    }
+    .cta-strip h3 {
+        font-family: 'Sora', sans-serif; font-weight: 700;
+        font-size: 1.15rem; color: var(--text-primary); margin-bottom: .4rem;
+    }
+    .cta-strip p { font-size: .875rem; color: var(--text-muted); margin-bottom: 1.25rem; }
+
+    /* Responsive */
+    @media (max-width: 1024px) { .courses-grid { grid-template-columns: repeat(2,1fr); } }
+    @media (max-width: 600px)  { .courses-grid { grid-template-columns: 1fr; } }
+</style>
+{% endblock %}
 
 {% block content %}
-<div class="hero" style="padding: 2rem 0;">
-    <div class="container">
-        <h1 style="font-size: 2.5rem;">Explore Our Courses</h1>
+
+<!-- Hero -->
+<div class="courses-hero">
+    <div class="courses-hero-inner">
+        <h1>Explore Our Courses</h1>
         <p>Comprehensive linguistics courses for all skill levels</p>
     </div>
 </div>
 
-<div class="container" style="margin-top: 2rem; margin-bottom: 3rem;">
-    {% if courses %}
-    <div class="courses-grid">
-        {% for course in courses %}
-        <div class="course-card">
-            {% if course.thumbnail %}
-                <img src="{{ url_for('main.uploaded_file', folder='thumbnails', filename=course.thumbnail) }}"
-                     alt="{{ course.title }}"
-                     class="course-thumbnail">
-            {% else %}
-                <div class="course-thumbnail" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); height: 160px; display: flex; align-items: center; justify-content: center;">
-                    <i class="fas fa-book fa-3x" style="color: white; opacity: 0.7;"></i>
-                </div>
-            {% endif %}
+<!-- Filter bar -->
+<div class="filter-bar">
+    <div class="filter-bar-inner">
+        <button class="filter-btn active" onclick="filterCourses('all', this)">All</button>
+        <button class="filter-btn" onclick="filterCourses('beginner', this)">🟢 Beginner</button>
+        <button class="filter-btn" onclick="filterCourses('intermediate', this)">🔵 Intermediate</button>
+        <button class="filter-btn" onclick="filterCourses('advanced', this)">🔴 Advanced</button>
+    </div>
+</div>
 
-            <div class="course-content">
-                <div style="margin-bottom: 1rem;">
-                    <span class="badge badge-primary">{{ course.level | capitalize or 'All Levels' }}</span>
+<!-- Main -->
+<div class="courses-wrap">
+
+    {% if courses %}
+
+    <p class="courses-count">
+        Showing <strong>{{ courses | length }}</strong> course{{ 's' if courses | length != 1 else '' }}
+    </p>
+
+    <div class="courses-grid" id="coursesGrid">
+        {% for course in courses %}
+
+        {# Pick thumb class by slug #}
+        {% if course.slug == 'general-linguistics' %}
+            {% set thumb_cls = 'thumb-gl' %}{% set thumb_icon = '🔤' %}
+        {% elif 'python-for' in course.slug %}
+            {% set thumb_cls = 'thumb-py' %}{% set thumb_icon = '🐍' %}
+        {% elif course.slug == 'corpus-linguistics' %}
+            {% set thumb_cls = 'thumb-cl' %}{% set thumb_icon = '📊' %}
+        {% elif 'python-full' in course.slug %}
+            {% set thumb_cls = 'thumb-pf' %}{% set thumb_icon = '💻' %}
+        {% elif 'coding-with' in course.slug %}
+            {% set thumb_cls = 'thumb-ai' %}{% set thumb_icon = '🤖' %}
+        {% elif 'computational' in course.slug %}
+            {% set thumb_cls = 'thumb-cpl' %}{% set thumb_icon = '🧠' %}
+        {% elif 'stats' in course.slug %}
+            {% set thumb_cls = 'thumb-st' %}{% set thumb_icon = '📈' %}
+        {% else %}
+            {% set thumb_cls = 'thumb-def' %}{% set thumb_icon = '📖' %}
+        {% endif %}
+
+        <div class="course-card" data-level="{{ course.level }}">
+
+            <!-- Thumbnail -->
+            <div class="course-thumb {{ thumb_cls }}">
+                {% if course.thumbnail %}
+                    <img src="{{ url_for('main.uploaded_file', folder='thumbnails', filename=course.thumbnail) }}"
+                         alt="{{ course.title }}">
+                {% else %}
+                    {{ thumb_icon }}
+                {% endif %}
+            </div>
+
+            <!-- Body -->
+            <div class="course-body">
+                <div class="course-meta">
+                    <span class="badge-level level-{{ course.level }}">{{ course.level | capitalize }}</span>
                     {% if course.duration_estimate %}
-                        <span class="badge" style="background: #34495e; color: white; margin-left: 0.5rem;">
-                            {{ course.duration_estimate }}
-                        </span>
+                    <span class="badge-duration">{{ course.duration_estimate }}</span>
                     {% endif %}
                 </div>
 
                 <h3 class="course-title">{{ course.title }}</h3>
-                <p class="course-description">{{ course.description }}</p>
+                <p class="course-desc">{{ course.description }}</p>
 
-                <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #ecf0f1;">
-                    <!-- PKR Pricing -->
-                    <div style="margin-bottom: 0.5rem;">
-                        <div style="font-size: 0.85rem; color: #7f8c8d;">Rate (Pakistan)</div>
-                        <div style="font-size: 1.4rem; font-weight: 700; color: #3498db;">
-                            Rs. {{ course.hourly_rate_pkr * 5 | int }}<span style="font-size: 0.9rem; font-weight: normal;">/day</span>
+                <!-- Duration-tier pricing -->
+                <div class="tier-pricing">
+                    <div class="tier-row">
+                        <span class="tier-label">🟢 Short (1 mo)</span>
+                        <div class="tier-prices">
+                            {% if course.level == 'beginner' %}
+                                <span class="tier-pkr">Rs. 4,000</span>
+                                <span class="tier-usd">/ $30</span>
+                            {% elif course.level == 'intermediate' %}
+                                <span class="tier-pkr">Rs. 6,000</span>
+                                <span class="tier-usd">/ $45</span>
+                            {% else %}
+                                <span class="tier-pkr">Rs. 8,000</span>
+                                <span class="tier-usd">/ $60</span>
+                            {% endif %}
                         </div>
                     </div>
-
-                    <!-- International Pricing -->
-                    <div style="margin-bottom: 1rem;">
-                        <div style="font-size: 0.85rem; color: #7f8c8d;">Rate (International)</div>
-                        <div style="font-size: 1.1rem; font-weight: 600; color: #e67e22;">
-                            Rs. {{ course.hourly_rate_pkr * 5 * 2 | int }}<span style="font-size: 0.85rem; font-weight: normal;">/day</span>
-                            <span style="font-size: 0.75rem; color: #27ae60; margin-left: 0.5rem;">
-                                (${{ course.hourly_rate_usd * 5 }}/day)
-                            </span>
+                    <div class="tier-divider"></div>
+                    <div class="tier-row">
+                        <span class="tier-label">🔵 Standard (2 mo)</span>
+                        <div class="tier-prices">
+                            {% if course.level == 'beginner' %}
+                                <span class="tier-pkr">Rs. 8,000</span>
+                                <span class="tier-usd">/ $60</span>
+                            {% elif course.level == 'intermediate' %}
+                                <span class="tier-pkr">Rs. 11,000</span>
+                                <span class="tier-usd">/ $85</span>
+                            {% else %}
+                                <span class="tier-pkr">Rs. 15,000</span>
+                                <span class="tier-usd">/ $120</span>
+                            {% endif %}
                         </div>
                     </div>
-
-                    <!-- Discount Badge -->
-                    <div style="margin-bottom: 1rem;">
-                        <span style="background: #27ae60; color: white; padding: 0.2rem 0.6rem; border-radius: 20px; font-size: 0.8rem;">
-                            🎉 Discount available on 2+ days
-                        </span>
+                    <div class="tier-divider"></div>
+                    <div class="tier-row">
+                        <span class="tier-label">🔴 Intensive (3 mo)</span>
+                        <div class="tier-prices">
+                            {% if course.level == 'beginner' %}
+                                <span class="tier-pkr">Rs. 15,000</span>
+                                <span class="tier-usd">/ $120</span>
+                            {% elif course.level == 'intermediate' %}
+                                <span class="tier-pkr">Rs. 22,000</span>
+                                <span class="tier-usd">/ $170</span>
+                            {% else %}
+                                <span class="tier-pkr">Rs. 35,000</span>
+                                <span class="tier-usd">/ $250</span>
+                            {% endif %}
+                        </div>
                     </div>
-
-                    <a href="{{ url_for('courses.detail', slug=course.slug) }}" class="btn btn-primary btn-block">
-                        View Details & Enroll
-                    </a>
                 </div>
             </div>
+
+            <!-- Footer -->
+            <div class="course-footer">
+                <span class="intl-note">International rates in USD</span>
+                <a href="{{ url_for('courses.detail', slug=course.slug) }}" class="enroll-btn">
+                    View & Enroll
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
+                         stroke="currentColor" stroke-width="2.5">
+                        <path d="M5 12h14"/><path d="m12 5 7 7-7 7"/>
+                    </svg>
+                </a>
+            </div>
+
         </div>
         {% endfor %}
     </div>
+
     {% else %}
-    <div class="card text-center" style="padding: 3rem;">
-        <h3 style="color: #7f8c8d; margin-bottom: 1rem;">No Courses Available</h3>
-        <p style="color: #95a5a6;">We're working on adding new courses. Please check back soon!</p>
+    <div class="empty-state">
+        <h3>No Courses Available Yet</h3>
+        <p>We're working on adding new courses. Please check back soon!</p>
     </div>
     {% endif %}
+
+    {% if not current_user.is_authenticated %}
+    <div class="cta-strip">
+        <h3>New to EduLearn?</h3>
+        <p>Create a free account to access course details and enroll in any course.</p>
+        <a href="{{ url_for('auth.register') }}"
+           class="btn btn-primary" style="height:44px;padding:0 1.75rem;font-size:.9rem;">
+            Create Free Account →
+        </a>
+    </div>
+    {% endif %}
+
 </div>
 
-{% if not current_user.is_authenticated %}
-<div class="container" style="margin-bottom: 3rem;">
-    <div class="card" style="background: #ecf0f1; text-align: center; padding: 2rem;">
-        <h3 style="color: #2c3e50; margin-bottom: 1rem;">New to our platform?</h3>
-        <p style="color: #7f8c8d; margin-bottom: 1.5rem;">Create a free account to access course details and enroll</p>
-        <a href="{{ url_for('auth.register') }}" class="btn btn-success btn-lg">Create Free Account</a>
-    </div>
-</div>
-{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function filterCourses(level, btn) {
+    // Update active button
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+
+    // Show/hide cards
+    document.querySelectorAll('.course-card').forEach(card => {
+        if (level === 'all' || card.dataset.level === level) {
+            card.style.display = '';
+        } else {
+            card.style.display = 'none';
+        }
+    });
+
+    // Update count
+    const visible = document.querySelectorAll('.course-card:not([style*="display: none"])').length;
+    const countEl = document.querySelector('.courses-count');
+    if (countEl) {
+        countEl.innerHTML = `Showing <strong>${visible}</strong> course${visible !== 1 ? 's' : ''}`;
+    }
+}
+</script>
 {% endblock %}

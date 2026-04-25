@@ -62,6 +62,44 @@ def dashboard():
 
 
 # ================================
+# SEED COURSES (one-time use)
+# Visit /admin/seed-new-courses then DELETE this route
+# ================================
+
+@admin_bp.route('/seed-new-courses')
+@login_required
+@admin_required
+def seed_new_courses():
+    courses_data = current_app.config['DEFAULT_COURSES']
+    created = []
+    skipped = []
+    for c in courses_data:
+        existing = Course.query.filter_by(slug=c['slug']).first()
+        if not existing:
+            course = Course(
+                title=c['title'],
+                slug=c['slug'],
+                description=c['description'],
+                level=c['level'],
+                duration_estimate=c['duration_estimate'],
+                hourly_rate_pkr=c['hourly_rate_pkr'],
+                hourly_rate_usd=c['hourly_rate_usd'],
+                is_active=True
+            )
+            db.session.add(course)
+            created.append(c['title'])
+        else:
+            skipped.append(c['title'])
+    db.session.commit()
+    return (
+        f"<h2>✅ Done!</h2>"
+        f"<p><strong>Created:</strong> {created}</p>"
+        f"<p><strong>Already existed:</strong> {skipped}</p>"
+        f"<p style='color:red;'><strong>⚠️ Now delete this route from admin_routes.py and redeploy!</strong></p>"
+    )
+
+
+# ================================
 # ENROLLMENT MANAGEMENT
 # ================================
 
@@ -410,11 +448,9 @@ def users():
 @admin_required
 def toggle_admin(user_id):
     user = User.query.get_or_404(user_id)
-
     if user.id == current_user.id:
         flash('You cannot change your own admin status.', 'warning')
         return redirect(url_for('admin.users'))
-
     try:
         user.is_admin = not user.is_admin
         db.session.commit()
@@ -425,7 +461,6 @@ def toggle_admin(user_id):
         db.session.rollback()
         current_app.logger.error(f'Error toggling admin status: {str(e)}')
         flash('An error occurred.', 'danger')
-
     return redirect(url_for('admin.users'))
 
 
@@ -434,11 +469,9 @@ def toggle_admin(user_id):
 @admin_required
 def toggle_active(user_id):
     user = User.query.get_or_404(user_id)
-
     if user.id == current_user.id:
         flash('You cannot deactivate your own account.', 'warning')
         return redirect(url_for('admin.users'))
-
     try:
         user.is_active = not user.is_active
         db.session.commit()
@@ -449,7 +482,6 @@ def toggle_active(user_id):
         db.session.rollback()
         current_app.logger.error(f'Error toggling user status: {str(e)}')
         flash('An error occurred.', 'danger')
-
     return redirect(url_for('admin.users'))
 
 
@@ -478,11 +510,7 @@ def create_discussion_room():
         if not title:
             flash('Title is required.', 'danger')
         else:
-            room = DiscussionRoom(
-                title=title,
-                description=description,
-                course_id=course_id
-            )
+            room = DiscussionRoom(title=title, description=description, course_id=course_id)
             db.session.add(room)
             db.session.commit()
             flash('Discussion room created!', 'success')
@@ -496,12 +524,9 @@ def create_discussion_room():
 @admin_required
 def discussion_sessions():
     from models import DiscussionSession, DiscussionRoom
-    sessions = DiscussionSession.query.order_by(
-        DiscussionSession.scheduled_at.desc()
-    ).all()
+    sessions = DiscussionSession.query.order_by(DiscussionSession.scheduled_at.desc()).all()
     rooms = DiscussionRoom.query.filter_by(is_active=True).all()
-    return render_template('admin/discussion_sessions.html',
-                           sessions=sessions, rooms=rooms)
+    return render_template('admin/discussion_sessions.html', sessions=sessions, rooms=rooms)
 
 
 @admin_bp.route('/discussion/sessions/create', methods=['POST'])
@@ -512,7 +537,6 @@ def create_discussion_session():
     try:
         scheduled_str = request.form.get('scheduled_at', '')
         scheduled_at = datetime.strptime(scheduled_str, '%Y-%m-%dT%H:%M')
-
         session = DiscussionSession(
             room_id=int(request.form.get('room_id')),
             title=request.form.get('title', '').strip(),
