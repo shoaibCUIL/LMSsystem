@@ -51,7 +51,7 @@
         align-items: start;
     }
 
-    /* ── Card ── */
+    /* ── Cards ── */
     .detail-card {
         background: var(--surface-0);
         border: 1px solid var(--border-light);
@@ -62,7 +62,79 @@
         font-family: 'Sora', sans-serif; font-weight: 700;
         font-size: 1.1rem; color: var(--text-primary);
         margin-bottom: 1.25rem;
+        display: flex; align-items: center; gap: .5rem;
     }
+
+    /* ── Access banner ── */
+    .access-banner {
+        border-radius: 14px; padding: 1.25rem 1.5rem;
+        margin-bottom: 1.5rem;
+        display: flex; align-items: flex-start; gap: 1rem;
+    }
+    .access-banner.live {
+        background: linear-gradient(135deg, #EBF2FF, #DBEAFE);
+        border: 1px solid #BFDBFE;
+    }
+    .access-banner.face {
+        background: linear-gradient(135deg, #FFFBEB, #FEF3C7);
+        border: 1px solid #FDE68A;
+    }
+    .access-banner.recorded {
+        background: linear-gradient(135deg, #F5F3FF, #EDE9FE);
+        border: 1px solid #DDD6FE;
+    }
+    .access-banner-icon { font-size: 2rem; flex-shrink: 0; }
+    .access-banner-title {
+        font-family: 'Sora', sans-serif; font-weight: 700;
+        font-size: 1rem; margin-bottom: .3rem;
+    }
+    .access-banner-desc { font-size: .875rem; color: var(--text-secondary); line-height: 1.5; }
+
+    /* ── Zoom / meeting link ── */
+    .meeting-card {
+        background: linear-gradient(135deg, #EBF2FF, #DBEAFE);
+        border: 1px solid #BFDBFE;
+        border-radius: 14px; padding: 1.25rem;
+        margin-bottom: 1rem;
+        display: flex; align-items: center; justify-content: space-between;
+        gap: 1rem; flex-wrap: wrap;
+    }
+    .meeting-card-left { display: flex; align-items: center; gap: .75rem; }
+    .meeting-icon {
+        width: 44px; height: 44px; border-radius: 12px;
+        background: var(--brand-blue); display: flex;
+        align-items: center; justify-content: center; font-size: 1.2rem;
+        flex-shrink: 0;
+    }
+    .meeting-title { font-weight: 700; font-size: .95rem; color: var(--text-primary); }
+    .meeting-subtitle { font-size: .8rem; color: var(--text-muted); margin-top: .1rem; }
+    .join-btn {
+        display: inline-flex; align-items: center; gap: .4rem;
+        padding: .55rem 1.25rem; border-radius: 8px;
+        background: var(--brand-blue); color: white;
+        font-weight: 700; font-size: .875rem; text-decoration: none;
+        transition: all .18s ease; white-space: nowrap;
+    }
+    .join-btn:hover { background: var(--brand-blue-dark); transform: translateY(-1px); }
+
+    /* ── Location card ── */
+    .location-card {
+        background: linear-gradient(135deg, #FFFBEB, #FEF3C7);
+        border: 1px solid #FDE68A;
+        border-radius: 14px; padding: 1.25rem;
+        margin-bottom: 1rem;
+    }
+    .location-card h4 {
+        font-family: 'Sora', sans-serif; font-weight: 700;
+        font-size: .95rem; color: #92400E; margin-bottom: .75rem;
+        display: flex; align-items: center; gap: .4rem;
+    }
+    .location-detail {
+        display: grid; grid-template-columns: auto 1fr;
+        gap: .3rem .75rem; font-size: .875rem;
+    }
+    .location-label { color: #92400E; font-weight: 600; }
+    .location-value { color: #78350F; }
 
     /* ── Lecture list ── */
     .lecture-item {
@@ -80,12 +152,55 @@
         flex-shrink: 0; margin-right: .75rem;
     }
     .lecture-info { flex: 1; }
-    .lecture-title {
-        font-size: .88rem; font-weight: 600; color: var(--text-primary);
-        margin-bottom: .15rem;
-    }
-    .lecture-meta { font-size: .75rem; color: var(--text-muted); }
+    .lecture-title { font-size: .88rem; font-weight: 600; color: var(--text-primary); margin-bottom: .15rem; }
+    .lecture-meta  { font-size: .75rem; color: var(--text-muted); }
     .lecture-action { flex-shrink: 0; margin-left: .75rem; }
+
+    /* ── Coming soon boxes ── */
+    .coming-soon-box {
+        border: 1.5px dashed var(--border-mid);
+        border-radius: 12px; padding: 2rem;
+        text-align: center; color: var(--text-muted);
+    }
+    .coming-soon-box .cs-icon { font-size: 2rem; margin-bottom: .5rem; }
+    .coming-soon-box h4 {
+        font-family: 'Sora', sans-serif; font-weight: 700;
+        font-size: .95rem; color: var(--text-secondary);
+        margin-bottom: .35rem;
+    }
+    .coming-soon-box p { font-size: .82rem; margin: 0; }
+
+    /* ── Certificate section ── */
+    .cert-section {
+        background: linear-gradient(135deg, #ECFDF5, #D1FAE5);
+        border: 1px solid #A7F3D0; border-radius: 14px;
+        padding: 1.25rem; margin-bottom: 1rem;
+        display: flex; align-items: center; justify-content: space-between;
+        gap: 1rem; flex-wrap: wrap;
+    }
+    .cert-section-left { display: flex; align-items: center; gap: .75rem; }
+    .cert-icon {
+        width: 44px; height: 44px; border-radius: 12px;
+        background: linear-gradient(135deg, #059669, #047857);
+        display: flex; align-items: center; justify-content: center;
+        font-size: 1.2rem; flex-shrink: 0;
+    }
+    .cert-title { font-weight: 700; font-size: .95rem; color: #065F46; }
+    .cert-sub   { font-size: .78rem; color: #6B7280; margin-top: .1rem; }
+    .cert-dl-btn {
+        display: inline-flex; align-items: center; gap: .4rem;
+        padding: .55rem 1.25rem; border-radius: 8px;
+        background: linear-gradient(135deg, #059669, #047857);
+        color: white; font-weight: 700; font-size: .875rem;
+        text-decoration: none; transition: all .18s ease;
+    }
+    .cert-dl-btn:hover { opacity: .9; transform: translateY(-1px); }
+
+    .cert-pending {
+        background: var(--surface-2); border: 1px solid var(--border-mid);
+        border-radius: 14px; padding: 1.25rem;
+        text-align: center; color: var(--text-muted); font-size: .875rem;
+    }
 
     /* ── Sidebar ── */
     .sidebar-card {
@@ -94,19 +209,15 @@
         border-radius: 16px; overflow: hidden;
         position: sticky; top: calc(var(--nav-height) + 1rem);
     }
-
-    /* Thumbnail */
     .sidebar-thumb {
         width: 100%; height: 160px;
-        display: flex; align-items: center; justify-content: center;
-        font-size: 3.5rem;
+        display: flex; align-items: center; justify-content: center; font-size: 3.5rem;
     }
     .thumb-beginner     { background: linear-gradient(135deg,#EBF2FF,#C7DCFF); }
     .thumb-intermediate { background: linear-gradient(135deg,#ECFDF5,#A7F3D0); }
     .thumb-advanced     { background: linear-gradient(135deg,#F5F3FF,#DDD6FE); }
 
     .sidebar-body { padding: 1.25rem; }
-
     .sidebar-section-title {
         font-family: 'Sora', sans-serif; font-size: .8rem;
         font-weight: 700; text-transform: uppercase;
@@ -114,90 +225,66 @@
         margin-bottom: .85rem;
     }
 
-    /* Tier pricing cards */
+    /* Tier pricing */
     .tier-cards { display: flex; flex-direction: column; gap: .5rem; margin-bottom: 1.25rem; }
     .tier-card {
-        border: 1.5px solid var(--border-light);
-        border-radius: 10px; padding: .75rem 1rem;
-        cursor: pointer; transition: all .18s ease;
-        display: flex; align-items: center; justify-content: space-between;
+        border: 1.5px solid var(--border-light); border-radius: 10px;
+        padding: .75rem 1rem; display: flex; align-items: center;
+        justify-content: space-between;
     }
-    .tier-card:hover { border-color: var(--brand-blue); background: var(--brand-blue-light); }
-    .tier-card.selected { border-color: var(--brand-blue); background: var(--brand-blue-light); }
     .tier-card-left { display: flex; align-items: center; gap: .5rem; }
     .tier-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
     .dot-short    { background: #10B981; }
     .dot-standard { background: #3B82F6; }
     .dot-intensive{ background: #EF4444; }
-    .tier-name { font-size: .85rem; font-weight: 700; color: var(--text-primary); }
+    .tier-name   { font-size: .85rem; font-weight: 700; color: var(--text-primary); }
     .tier-months { font-size: .72rem; color: var(--text-muted); }
     .tier-price-block { text-align: right; }
-    .tier-pkr { font-family: 'Sora', sans-serif; font-size: .9rem; font-weight: 800; color: var(--brand-blue); }
-    .tier-usd { font-size: .7rem; color: var(--text-muted); }
+    .tier-pkr { font-family:'Sora',sans-serif; font-size:.9rem; font-weight:800; color:var(--brand-blue); }
+    .tier-usd { font-size:.7rem; color:var(--text-muted); }
 
-    /* Divider */
-    .sidebar-divider { height: 1px; background: var(--border-light); margin: 1.1rem 0; }
+    .sidebar-divider { height:1px; background:var(--border-light); margin:1.1rem 0; }
 
-    /* Course info list */
-    .course-info-list { display: flex; flex-direction: column; gap: .55rem; }
+    /* Course info */
+    .course-info-list { display:flex; flex-direction:column; gap:.55rem; }
     .course-info-row {
-        display: flex; align-items: center; justify-content: space-between;
-        font-size: .85rem;
+        display:flex; align-items:center; justify-content:space-between; font-size:.85rem;
     }
-    .course-info-label { color: var(--text-muted); }
-    .course-info-value { font-weight: 600; color: var(--text-primary); }
+    .course-info-label { color:var(--text-muted); }
+    .course-info-value { font-weight:600; color:var(--text-primary); }
 
     /* Enrolled banner */
     .enrolled-banner {
-        background: #ECFDF5; border: 1px solid #A7F3D0;
-        border-radius: 10px; padding: .85rem 1rem;
-        margin-bottom: 1rem;
-        display: flex; align-items: center; gap: .6rem;
+        background:#ECFDF5; border:1px solid #A7F3D0;
+        border-radius:10px; padding:.85rem 1rem; margin-bottom:1rem;
+        display:flex; align-items:center; gap:.6rem;
     }
-    .enrolled-banner strong { font-size: .9rem; color: #065F46; display: block; }
-    .enrolled-banner span { font-size: .78rem; color: #6B7280; }
+    .enrolled-banner strong { font-size:.9rem; color:#065F46; display:block; }
+    .enrolled-banner span   { font-size:.78rem; color:#6B7280; }
 
-    /* CTA button */
     .enroll-cta {
-        display: block; width: 100%; text-align: center;
-        padding: .85rem; border-radius: 10px;
-        font-family: 'DM Sans', sans-serif; font-weight: 700;
-        font-size: .95rem; text-decoration: none;
-        background: var(--brand-blue); color: white;
-        border: none; cursor: pointer;
-        box-shadow: 0 4px 14px rgba(0,86,210,.3);
-        transition: all .2s ease;
+        display:block; width:100%; text-align:center;
+        padding:.85rem; border-radius:10px;
+        font-family:'DM Sans',sans-serif; font-weight:700;
+        font-size:.95rem; text-decoration:none;
+        background:var(--brand-blue); color:white; border:none; cursor:pointer;
+        box-shadow:0 4px 14px rgba(0,86,210,.3); transition:all .2s ease;
     }
-    .enroll-cta:hover {
-        background: var(--brand-blue-dark);
-        box-shadow: 0 6px 20px rgba(0,86,210,.4);
-        transform: translateY(-1px);
-    }
+    .enroll-cta:hover { background:var(--brand-blue-dark); transform:translateY(-1px); }
     .enroll-cta-ghost {
-        display: block; width: 100%; text-align: center;
-        padding: .85rem; border-radius: 10px;
-        font-family: 'DM Sans', sans-serif; font-weight: 700;
-        font-size: .95rem; text-decoration: none;
-        background: transparent; color: var(--brand-blue);
-        border: 1.5px solid var(--brand-blue);
-        transition: all .2s ease;
+        display:block; width:100%; text-align:center;
+        padding:.85rem; border-radius:10px;
+        font-family:'DM Sans',sans-serif; font-weight:700;
+        font-size:.95rem; text-decoration:none;
+        background:transparent; color:var(--brand-blue);
+        border:1.5px solid var(--brand-blue); transition:all .2s ease;
     }
-    .enroll-cta-ghost:hover { background: var(--brand-blue-light); }
+    .enroll-cta-ghost:hover { background:var(--brand-blue-light); }
+    .enroll-note { font-size:.75rem; color:var(--text-muted); text-align:center; margin-top:.6rem; }
 
-    .enroll-note {
-        font-size: .75rem; color: var(--text-muted);
-        text-align: center; margin-top: .6rem;
-    }
-
-    /* Level badge */
-    .level-beginner     { background: #ECFDF5; color: #065F46; }
-    .level-intermediate { background: #FFFBEB; color: #92400E; }
-    .level-advanced     { background: #FEF2F2; color: #991B1B; }
-
-    /* Responsive */
-    @media (max-width: 900px) {
-        .detail-wrap { grid-template-columns: 1fr; }
-        .sidebar-card { position: static; }
+    @media (max-width:900px) {
+        .detail-wrap { grid-template-columns:1fr; }
+        .sidebar-card { position:static; }
     }
 </style>
 {% endblock %}
@@ -220,24 +307,260 @@
 
     <!-- ── MAIN CONTENT ── -->
     <div>
+
+        {% if is_enrolled and enrollment %}
+        {# ════════════════════════════════════════
+           ENROLLED VIEW — show all course content
+           ════════════════════════════════════════ #}
+
+        {# ── Learning mode banner ── #}
+        {% set mode = enrollment.learning_mode %}
+        {% if mode == 'live_online' %}
+        <div class="access-banner live">
+            <div class="access-banner-icon">🎥</div>
+            <div>
+                <div class="access-banner-title">Live Online — Zoom / Teams / Google Meet</div>
+                <div class="access-banner-desc">
+                    Your instructor will share the meeting link below before each session.
+                    Check your email or this page for updates.
+                </div>
+            </div>
+        </div>
+        {% elif mode and mode.startswith('face_to_face') %}
+        <div class="access-banner face">
+            <div class="access-banner-icon">🏫</div>
+            <div>
+                <div class="access-banner-title">Face to Face — {{ enrollment.preferred_city or ('Lahore' if 'lahore' in mode else 'Faisalabad') }}</div>
+                <div class="access-banner-desc">
+                    Classes are held in person. Your schedule details are shown below.
+                    The instructor will confirm the exact venue via email.
+                </div>
+            </div>
+        </div>
+        {% elif mode == 'self_paced' %}
+        <div class="access-banner recorded">
+            <div class="access-banner-icon">📹</div>
+            <div>
+                <div class="access-banner-title">Self-Paced — Recorded Lectures</div>
+                <div class="access-banner-desc">
+                    Watch lectures below at your own pace. New recordings are added regularly.
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        {# ── Meeting / Zoom link (live online) ── #}
+        {% if mode == 'live_online' %}
+        <div class="detail-card">
+            <h2>🎥 Meeting Link</h2>
+            {% set room = course.discussion_room %}
+            {% if room and room.sessions %}
+                {% set live_sessions = room.sessions.all() %}
+                {% if live_sessions %}
+                    {% for session in live_sessions %}
+                    <div class="meeting-card">
+                        <div class="meeting-card-left">
+                            <div class="meeting-icon">📹</div>
+                            <div>
+                                <div class="meeting-title">{{ session.title }}</div>
+                                <div class="meeting-subtitle">
+                                    {{ session.meeting_platform }} ·
+                                    {{ session.scheduled_at.strftime('%b %d, %Y at %I:%M %p') }}
+                                    {% if session.meeting_password %}· Password: <strong>{{ session.meeting_password }}</strong>{% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        {% if session.meeting_link %}
+                        <a href="{{ session.meeting_link }}" target="_blank" class="join-btn">
+                            Join Session →
+                        </a>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                {% else %}
+                <div class="coming-soon-box">
+                    <div class="cs-icon">📅</div>
+                    <h4>No Sessions Scheduled Yet</h4>
+                    <p>Your instructor will schedule sessions soon. Check back here or watch your email.</p>
+                </div>
+                {% endif %}
+            {% else %}
+            <div class="coming-soon-box">
+                <div class="cs-icon">📅</div>
+                <h4>Sessions Coming Soon</h4>
+                <p>Your instructor will add meeting links here before each session.</p>
+            </div>
+            {% endif %}
+        </div>
+        {% endif %}
+
+        {# ── Location info (face-to-face) ── #}
+        {% if mode and mode.startswith('face_to_face') %}
+        <div class="detail-card">
+            <h2>🏫 Your Class Schedule</h2>
+            <div class="location-card">
+                <h4>📍 Location & Schedule Details</h4>
+                <div class="location-detail">
+                    <span class="location-label">City</span>
+                    <span class="location-value">{{ enrollment.preferred_city or ('Lahore' if 'lahore' in mode else 'Faisalabad') }}</span>
+
+                    <span class="location-label">Preferred Days</span>
+                    <span class="location-value">{{ enrollment.preferred_days or 'To be confirmed' }}</span>
+
+                    <span class="location-label">Preferred Time</span>
+                    <span class="location-value">{{ enrollment.preferred_time or 'To be confirmed' }}</span>
+
+                    {% if enrollment.schedule_notes %}
+                    <span class="location-label">Notes</span>
+                    <span class="location-value">{{ enrollment.schedule_notes }}</span>
+                    {% endif %}
+                </div>
+            </div>
+            <div style="font-size:.85rem; color:var(--text-muted); margin-top:.75rem; padding:.75rem 1rem; background:var(--surface-1); border-radius:10px;">
+                📩 Your instructor will contact you via email to confirm the exact venue and final schedule.
+                {% if mode == 'face_to_face_lahore' %}
+                Classes are held at a mutually agreed location in <strong>Lahore</strong>.
+                {% else %}
+                Classes are held at a mutually agreed location in <strong>Faisalabad</strong>.
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+
+        {# ── Lectures ── #}
+        <div class="detail-card">
+            <h2>📚 Course Lectures
+                <span style="font-size:.8rem;font-weight:400;color:var(--text-muted);">
+                    {{ lectures|length }} lecture{{ 's' if lectures|length != 1 else '' }}
+                </span>
+            </h2>
+            {% if lectures %}
+                {% for lecture in lectures %}
+                <div class="lecture-item">
+                    <div class="lecture-num">{{ loop.index }}</div>
+                    <div class="lecture-info">
+                        <div class="lecture-title">{{ lecture.title }}</div>
+                        <div class="lecture-meta">
+                            {% if lecture.duration_minutes %}{{ lecture.duration_minutes }} min · {% endif %}
+                            {% if lecture.is_free %}
+                                <span style="color:#10B981;font-weight:600;">Free preview</span>
+                            {% else %}
+                                Enrolled access
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="lecture-action">
+                        <a href="{{ url_for('courses.lecture', slug=course.slug, lecture_id=lecture.id) }}"
+                           class="btn btn-primary" style="font-size:.78rem;height:32px;padding:0 .8rem;">
+                            ▶ Watch
+                        </a>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+            <div class="coming-soon-box">
+                <div class="cs-icon">🎬</div>
+                <h4>Lectures Coming Soon</h4>
+                <p>Your instructor is preparing the course content. Check back soon.</p>
+            </div>
+            {% endif %}
+        </div>
+
+        {# ── Materials ── #}
+        <div class="detail-card">
+            <h2>📄 Course Materials</h2>
+            <div class="coming-soon-box">
+                <div class="cs-icon">📎</div>
+                <h4>Materials Coming Soon</h4>
+                <p>Slides, PDFs, and reading materials will appear here once uploaded by your instructor.</p>
+            </div>
+        </div>
+
+        {# ── Tests ── #}
+        <div class="detail-card">
+            <h2>📝 Tests & Assessments</h2>
+            <div class="coming-soon-box">
+                <div class="cs-icon">✏️</div>
+                <h4>Tests Coming Soon</h4>
+                <p>Quizzes and assessments will be available here as the course progresses.</p>
+            </div>
+        </div>
+
+        {# ── Certificate ── #}
+        <div class="detail-card">
+            <h2>🎓 Certificate of Completion</h2>
+            {% if enrollment.is_completed %}
+                <div class="cert-section">
+                    <div class="cert-section-left">
+                        <div class="cert-icon">🎓</div>
+                        <div>
+                            <div class="cert-title">Certificate Earned!</div>
+                            <div class="cert-sub">
+                                Completed {{ enrollment.completed_at.strftime('%B %d, %Y') if enrollment.completed_at else '' }}
+                                {% if enrollment.certificate_id %}· ID: {{ enrollment.certificate_id }}{% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    <a href="{{ url_for('dashboard.download_certificate', enrollment_id=enrollment.id) }}"
+                       class="cert-dl-btn">⬇ Download PDF</a>
+                </div>
+            {% else %}
+                <div class="cert-pending">
+                    <div style="font-size:2rem;margin-bottom:.5rem;">🏆</div>
+                    <strong style="display:block;margin-bottom:.3rem;color:var(--text-secondary);">
+                        Complete the course to earn your certificate
+                    </strong>
+                    Your instructor will issue the certificate upon successful completion.
+                </div>
+            {% endif %}
+        </div>
+
+        {% else %}
+        {# ════════════════════════════════════════
+           NOT ENROLLED VIEW
+           ════════════════════════════════════════ #}
+
         <!-- About -->
         <div class="detail-card">
             <h2>About This Course</h2>
             {% if course.detailed_description %}
-                <div style="line-height:1.8; color:var(--text-secondary); font-size:.95rem;">
+                <div style="line-height:1.8;color:var(--text-secondary);font-size:.95rem;">
                     {{ course.detailed_description | safe }}
                 </div>
             {% else %}
-                <p style="color:var(--text-muted); line-height:1.7;">{{ course.description }}</p>
+                <p style="color:var(--text-muted);line-height:1.7;">{{ course.description }}</p>
             {% endif %}
         </div>
 
-        <!-- Lectures -->
+        <!-- What you'll get -->
+        <div class="detail-card">
+            <h2>📦 What's Included</h2>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem;">
+                {% for item in [
+                    ('📚','Recorded Lectures','Watch anytime, at your own pace'),
+                    ('🎥','Live Sessions','Optional live online sessions'),
+                    ('🏫','Face to Face','In-person classes in Lahore or Faisalabad'),
+                    ('📄','Course Materials','Slides, PDFs and reading resources'),
+                    ('✏️','Assessments','Quizzes and exercises'),
+                    ('🎓','Certificate','Issued on course completion'),
+                ] %}
+                <div style="display:flex;align-items:flex-start;gap:.6rem;padding:.75rem;background:var(--surface-1);border-radius:10px;">
+                    <span style="font-size:1.25rem;flex-shrink:0;">{{ item[0] }}</span>
+                    <div>
+                        <div style="font-weight:700;font-size:.85rem;color:var(--text-primary);">{{ item[1] }}</div>
+                        <div style="font-size:.78rem;color:var(--text-muted);">{{ item[2] }}</div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Free preview lectures -->
         {% if lectures %}
         <div class="detail-card">
-            <h2>Course Content
-                <span style="font-size:.8rem; font-weight:400; color:var(--text-muted); margin-left:.5rem;">
-                    {{ lectures | length }} lecture{{ 's' if lectures | length != 1 else '' }}
+            <h2>📚 Course Content
+                <span style="font-size:.8rem;font-weight:400;color:var(--text-muted);">
+                    {{ lectures|length }} lecture{{ 's' if lectures|length != 1 else '' }}
                 </span>
             </h2>
             {% for lecture in lectures %}
@@ -247,23 +570,23 @@
                     <div class="lecture-title">{{ lecture.title }}</div>
                     <div class="lecture-meta">
                         {% if lecture.duration_minutes %}{{ lecture.duration_minutes }} min · {% endif %}
-                        {% if lecture.is_free %}<span style="color:#10B981;font-weight:600;">Free preview</span>{% else %}Enrolled access{% endif %}
+                        {% if lecture.is_free %}<span style="color:#10B981;font-weight:600;">Free preview</span>
+                        {% else %}🔒 Enroll to unlock{% endif %}
                     </div>
                 </div>
                 <div class="lecture-action">
                     {% if lecture.is_free %}
                         <a href="{{ url_for('courses.lecture', slug=course.slug, lecture_id=lecture.id) }}"
                            class="btn btn-outline" style="font-size:.78rem;height:32px;padding:0 .8rem;">Preview</a>
-                    {% elif is_enrolled %}
-                        <a href="{{ url_for('courses.lecture', slug=course.slug, lecture_id=lecture.id) }}"
-                           class="btn btn-primary" style="font-size:.78rem;height:32px;padding:0 .8rem;">Watch</a>
                     {% else %}
-                        <span style="font-size:.78rem; color:var(--text-muted);">🔒 Locked</span>
+                        <span style="font-size:.78rem;color:var(--text-muted);">🔒 Locked</span>
                     {% endif %}
                 </div>
             </div>
             {% endfor %}
         </div>
+        {% endif %}
+
         {% endif %}
     </div>
 
@@ -289,102 +612,97 @@
 
             <div class="sidebar-body">
 
-                <!-- Tier pricing -->
+                {% if is_enrolled and enrollment %}
+                <!-- Enrolled state -->
+                <div class="enrolled-banner">
+                    <span style="font-size:1.2rem;">✅</span>
+                    <div>
+                        <strong>You're Enrolled!</strong>
+                        {% if enrollment.expires_at %}
+                        <span>Valid until: {{ enrollment.expires_at.strftime('%B %d, %Y') }}</span>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Mode summary -->
+                <div class="sidebar-section-title">Your Plan</div>
+                <div style="font-size:.85rem;display:flex;flex-direction:column;gap:.4rem;margin-bottom:1rem;">
+                    <div style="display:flex;justify-content:space-between;">
+                        <span style="color:var(--text-muted);">Plan</span>
+                        <span style="font-weight:600;">
+                            {% if enrollment.enrollment_type == 'short' %}🟢 Short
+                            {% elif enrollment.enrollment_type == 'standard' %}🔵 Standard
+                            {% elif enrollment.enrollment_type == 'intensive' %}🔴 Intensive
+                            {% else %}Custom{% endif %}
+                        </span>
+                    </div>
+                    <div style="display:flex;justify-content:space-between;">
+                        <span style="color:var(--text-muted);">Mode</span>
+                        <span style="font-weight:600;">
+                            {% set mode = enrollment.learning_mode %}
+                            {% if mode == 'self_paced' %}📹 Self-Paced
+                            {% elif mode == 'live_online' %}🎥 Live Online
+                            {% elif mode == 'face_to_face_lahore' %}🏫 F2F Lahore
+                            {% elif mode == 'face_to_face_faisalabad' %}🏫 F2F Faisalabad
+                            {% else %}—{% endif %}
+                        </span>
+                    </div>
+                    <div style="display:flex;justify-content:space-between;">
+                        <span style="color:var(--text-muted);">Duration</span>
+                        <span style="font-weight:600;">{{ enrollment.total_days }} days</span>
+                    </div>
+                </div>
+
+                <a href="{{ url_for('dashboard.my_enrollments') }}" class="enroll-cta-ghost">
+                    My Enrollments →
+                </a>
+
+                {% else %}
+                <!-- Not enrolled — show pricing tiers -->
                 <div class="sidebar-section-title">Choose Your Plan</div>
                 <div class="tier-cards">
-                    <!-- Short -->
                     <div class="tier-card">
                         <div class="tier-card-left">
                             <div class="tier-dot dot-short"></div>
-                            <div>
-                                <div class="tier-name">Short</div>
-                                <div class="tier-months">1 month · 30 days</div>
-                            </div>
+                            <div><div class="tier-name">Short</div><div class="tier-months">1 month · 30 days</div></div>
                         </div>
                         <div class="tier-price-block">
-                            {% if course.level == 'beginner' %}
-                                <div class="tier-pkr">Rs. 4,000</div>
-                                <div class="tier-usd">$30</div>
-                            {% elif course.level == 'intermediate' %}
-                                <div class="tier-pkr">Rs. 6,000</div>
-                                <div class="tier-usd">$45</div>
-                            {% else %}
-                                <div class="tier-pkr">Rs. 8,000</div>
-                                <div class="tier-usd">$60</div>
-                            {% endif %}
+                            {% if course.level == 'beginner' %}<div class="tier-pkr">Rs. 4,000</div><div class="tier-usd">$30</div>
+                            {% elif course.level == 'intermediate' %}<div class="tier-pkr">Rs. 6,000</div><div class="tier-usd">$45</div>
+                            {% else %}<div class="tier-pkr">Rs. 8,000</div><div class="tier-usd">$60</div>{% endif %}
                         </div>
                     </div>
-
-                    <!-- Standard -->
                     <div class="tier-card">
                         <div class="tier-card-left">
                             <div class="tier-dot dot-standard"></div>
-                            <div>
-                                <div class="tier-name">Standard</div>
-                                <div class="tier-months">2 months · 60 days</div>
-                            </div>
+                            <div><div class="tier-name">Standard</div><div class="tier-months">2 months · 60 days</div></div>
                         </div>
                         <div class="tier-price-block">
-                            {% if course.level == 'beginner' %}
-                                <div class="tier-pkr">Rs. 8,000</div>
-                                <div class="tier-usd">$60</div>
-                            {% elif course.level == 'intermediate' %}
-                                <div class="tier-pkr">Rs. 11,000</div>
-                                <div class="tier-usd">$85</div>
-                            {% else %}
-                                <div class="tier-pkr">Rs. 15,000</div>
-                                <div class="tier-usd">$120</div>
-                            {% endif %}
+                            {% if course.level == 'beginner' %}<div class="tier-pkr">Rs. 8,000</div><div class="tier-usd">$60</div>
+                            {% elif course.level == 'intermediate' %}<div class="tier-pkr">Rs. 11,000</div><div class="tier-usd">$85</div>
+                            {% else %}<div class="tier-pkr">Rs. 15,000</div><div class="tier-usd">$120</div>{% endif %}
                         </div>
                     </div>
-
-                    <!-- Intensive -->
                     <div class="tier-card">
                         <div class="tier-card-left">
                             <div class="tier-dot dot-intensive"></div>
-                            <div>
-                                <div class="tier-name">Intensive</div>
-                                <div class="tier-months">3 months · 90 days</div>
-                            </div>
+                            <div><div class="tier-name">Intensive</div><div class="tier-months">3 months · 90 days</div></div>
                         </div>
                         <div class="tier-price-block">
-                            {% if course.level == 'beginner' %}
-                                <div class="tier-pkr">Rs. 15,000</div>
-                                <div class="tier-usd">$120</div>
-                            {% elif course.level == 'intermediate' %}
-                                <div class="tier-pkr">Rs. 22,000</div>
-                                <div class="tier-usd">$170</div>
-                            {% else %}
-                                <div class="tier-pkr">Rs. 35,000</div>
-                                <div class="tier-usd">$250</div>
-                            {% endif %}
+                            {% if course.level == 'beginner' %}<div class="tier-pkr">Rs. 15,000</div><div class="tier-usd">$120</div>
+                            {% elif course.level == 'intermediate' %}<div class="tier-pkr">Rs. 22,000</div><div class="tier-usd">$170</div>
+                            {% else %}<div class="tier-pkr">Rs. 35,000</div><div class="tier-usd">$250</div>{% endif %}
                         </div>
                     </div>
                 </div>
 
                 <div class="sidebar-divider"></div>
 
-                <!-- Enroll / Enrolled -->
                 {% if current_user.is_authenticated %}
-                    {% if is_enrolled %}
-                        <div class="enrolled-banner">
-                            <span style="font-size:1.2rem;">✅</span>
-                            <div>
-                                <strong>You're Enrolled!</strong>
-                                {% if enrollment.expires_at %}
-                                <span>Valid until: {{ enrollment.expires_at.strftime('%B %d, %Y') }}</span>
-                                {% endif %}
-                            </div>
-                        </div>
-                        <a href="{{ url_for('dashboard.my_enrollments') }}" class="enroll-cta-ghost">
-                            Go to My Enrollments
-                        </a>
-                    {% else %}
-                        <a href="{{ url_for('courses.enroll', slug=course.slug) }}" class="enroll-cta">
-                            Enroll Now →
-                        </a>
-                        <p class="enroll-note">Pick your plan on the next step. Multiple payment options available.</p>
-                    {% endif %}
+                    <a href="{{ url_for('courses.enroll', slug=course.slug) }}" class="enroll-cta">
+                        Enroll Now →
+                    </a>
+                    <p class="enroll-note">Pick your plan and mode on the next step.</p>
                 {% else %}
                     <a href="{{ url_for('auth.login') }}?next={{ url_for('courses.detail', slug=course.slug) }}"
                        class="enroll-cta">Login to Enroll</a>
@@ -392,6 +710,7 @@
                         No account?
                         <a href="{{ url_for('auth.register') }}" style="color:var(--brand-blue);font-weight:600;">Register free</a>
                     </p>
+                {% endif %}
                 {% endif %}
 
                 <div class="sidebar-divider"></div>
@@ -401,10 +720,7 @@
                 <div class="course-info-list">
                     <div class="course-info-row">
                         <span class="course-info-label">Level</span>
-                        <span class="course-info-value" style="font-size:.78rem;padding:.2rem .6rem;border-radius:999px;"
-                              class="level-{{ course.level }}">
-                            {{ course.level | capitalize }}
-                        </span>
+                        <span class="course-info-value">{{ course.level | capitalize }}</span>
                     </div>
                     {% if course.duration_estimate %}
                     <div class="course-info-row">
@@ -414,11 +730,11 @@
                     {% endif %}
                     <div class="course-info-row">
                         <span class="course-info-label">Lectures</span>
-                        <span class="course-info-value">{{ lectures | length if lectures else 'Coming soon' }}</span>
+                        <span class="course-info-value">{{ lectures|length if lectures else 'Coming soon' }}</span>
                     </div>
                     <div class="course-info-row">
-                        <span class="course-info-label">Access</span>
-                        <span class="course-info-value">Flexible period</span>
+                        <span class="course-info-label">Modes</span>
+                        <span class="course-info-value" style="font-size:.78rem;">📹 🎥 🏫</span>
                     </div>
                     <div class="course-info-row">
                         <span class="course-info-label">Certificate</span>
