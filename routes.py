@@ -165,12 +165,24 @@ def detail(slug):
 
     duration_tiers = current_app.config.get('DURATION_TIERS', {})
 
+    from models import CourseMaterial, CourseTest
+
+    materials = CourseMaterial.query.filter_by(
+        course_id=course.id, is_active=True
+    ).order_by(CourseMaterial.order_number).all()
+
+    tests = CourseTest.query.filter_by(
+        course_id=course.id, is_active=True
+    ).order_by(CourseTest.order_number).all()
+
     return render_template('courses/course_detail.html',
-                           course=course,
-                           lectures=lectures,
-                           is_enrolled=is_enrolled,
-                           enrollment=active_enrollment,
-                           duration_tiers=duration_tiers)
+                        course=course,
+                        lectures=lectures,
+                        is_enrolled=is_enrolled,
+                        enrollment=active_enrollment,
+                        duration_tiers=duration_tiers,
+                        materials=materials,
+                        tests=tests)
 
 
 @course_bp.route('/<slug>/enroll', methods=['GET', 'POST'])
