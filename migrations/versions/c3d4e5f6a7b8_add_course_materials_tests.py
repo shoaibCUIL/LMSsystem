@@ -15,38 +15,44 @@ depends_on    = None
 
 
 def upgrade():
-    op.create_table(
-        'course_materials',
-        sa.Column('id',           sa.Integer(),     nullable=False),
-        sa.Column('course_id',    sa.Integer(),     nullable=False),
-        sa.Column('title',        sa.String(200),   nullable=False),
-        sa.Column('description',  sa.Text(),        nullable=True),
-        sa.Column('file_path',    sa.String(500),   nullable=False),
-        sa.Column('file_type',    sa.String(20),    nullable=True),
-        sa.Column('file_size_kb', sa.Integer(),     nullable=True),
-        sa.Column('order_number', sa.Integer(),     nullable=True),
-        sa.Column('is_active',    sa.Boolean(),     nullable=True),
-        sa.Column('created_at',   sa.DateTime(),    nullable=True),
-        sa.ForeignKeyConstraint(['course_id'], ['courses.id'], ondelete='CASCADE'),
-        sa.PrimaryKeyConstraint('id'),
-    )
+    conn = op.get_bind()
+    inspector = sa.inspect(conn)
+    existing_tables = inspector.get_table_names()
 
-    op.create_table(
-        'course_tests',
-        sa.Column('id',           sa.Integer(),     nullable=False),
-        sa.Column('course_id',    sa.Integer(),     nullable=False),
-        sa.Column('title',        sa.String(200),   nullable=False),
-        sa.Column('description',  sa.Text(),        nullable=True),
-        sa.Column('test_type',    sa.String(20),    nullable=True),
-        sa.Column('test_link',    sa.String(500),   nullable=True),
-        sa.Column('file_path',    sa.String(500),   nullable=True),
-        sa.Column('order_number', sa.Integer(),     nullable=True),
-        sa.Column('is_active',    sa.Boolean(),     nullable=True),
-        sa.Column('due_date',     sa.DateTime(),    nullable=True),
-        sa.Column('created_at',   sa.DateTime(),    nullable=True),
-        sa.ForeignKeyConstraint(['course_id'], ['courses.id'], ondelete='CASCADE'),
-        sa.PrimaryKeyConstraint('id'),
-    )
+    if 'course_materials' not in existing_tables:
+        op.create_table(
+            'course_materials',
+            sa.Column('id',           sa.Integer(),     nullable=False),
+            sa.Column('course_id',    sa.Integer(),     nullable=False),
+            sa.Column('title',        sa.String(200),   nullable=False),
+            sa.Column('description',  sa.Text(),        nullable=True),
+            sa.Column('file_path',    sa.String(500),   nullable=False),
+            sa.Column('file_type',    sa.String(20),    nullable=True),
+            sa.Column('file_size_kb', sa.Integer(),     nullable=True),
+            sa.Column('order_number', sa.Integer(),     nullable=True),
+            sa.Column('is_active',    sa.Boolean(),     nullable=True),
+            sa.Column('created_at',   sa.DateTime(),    nullable=True),
+            sa.ForeignKeyConstraint(['course_id'], ['courses.id'], ondelete='CASCADE'),
+            sa.PrimaryKeyConstraint('id'),
+        )
+
+    if 'course_tests' not in existing_tables:
+        op.create_table(
+            'course_tests',
+            sa.Column('id',           sa.Integer(),     nullable=False),
+            sa.Column('course_id',    sa.Integer(),     nullable=False),
+            sa.Column('title',        sa.String(200),   nullable=False),
+            sa.Column('description',  sa.Text(),        nullable=True),
+            sa.Column('test_type',    sa.String(20),    nullable=True),
+            sa.Column('test_link',    sa.String(500),   nullable=True),
+            sa.Column('file_path',    sa.String(500),   nullable=True),
+            sa.Column('order_number', sa.Integer(),     nullable=True),
+            sa.Column('is_active',    sa.Boolean(),     nullable=True),
+            sa.Column('due_date',     sa.DateTime(),    nullable=True),
+            sa.Column('created_at',   sa.DateTime(),    nullable=True),
+            sa.ForeignKeyConstraint(['course_id'], ['courses.id'], ondelete='CASCADE'),
+            sa.PrimaryKeyConstraint('id'),
+        )
 
 
 def downgrade():
