@@ -448,6 +448,184 @@ def toggle_active(user_id):
 
 
 # ================================
+# COURSE MATERIALS MANAGEMENT
+# Add these routes to admin_routes.py
+# before the Discussion Management section
+# ================================
+
+@admin_bp.route('/courses/<int:course_id>/materials')
+@login_required
+@admin_required
+def course_materials(course_id):
+    from models import CourseMaterial
+    course    = Course.query.get_or_404(course_id)
+    materials = CourseMaterial.query.filter_by(course_id=course_id).order_by(
+        CourseMaterial.order_number
+    ).all()
+    return render_template('admin/course_materials.html', course=course, materials=materials)
+
+
+@admin_bp.route('/courses/<int:course_id>/materials/upload', methods=['GET', 'POST'])
+@login_required
+@admin_required
+def upload_material(course_id):
+    from models import CourseMaterial
+    import os
+    course = Course.query.get_or_404(course_id)
+
+    if request.method == 'POST':
+        title       = request.form.get('title', '').strip()
+        description = request.form.get('description', '').strip()
+        order_num   = int(request.form.get('order_number', 0))
+        file        = request.files.get('material_file')
+
+        if not title:
+            flash('Title is required.', 'danger')
+        elif not file or file.filename == '':
+            flash('Please select a file.', 'danger')
+        else:
+            try:
+                from werkzeug.utils import secure_filename
+                import time
+                ext      = os.path.splitext(file.filename)[1].lower().lstrip('.')
+                filename = f"material_{course_id}_{int(time.time())}_{secure_filename(file.filename)}"
+                save_dir = os.path.join(current_app.config['UPLOAD_FOLDER'], 'materials')
+                os.makedirs(save_dir, exist_ok=True)
+                filepath = os.path.join(save_dir, filename)
+                file.save(filepath)
+                size_kb = os.path.getsize(filepath) // 1024
+
+                material = CourseMaterial(
+                    course_id    = course_id,
+                    title        = title,
+                    description  = description,
+                    file_path    = filename,
+                    file_type    = ext,
+                    file_size_kb = size_kb,
+                    order_number = order_num,
+                    is_active    = True,
+                )
+                db.session.add(material)
+                db.session.commit()
+                flash(f'Material "{title}" uploaded successfully!', 'success')
+                return redirect(url_for('admin.course_materials', course_id=course_id))
+            except Exception as e:
+                db.session.rollback()
+                current_app.logger.error(f'Material upload error: {str(e)}')
+                flash('Upload failed. Please try again.', 'danger')
+
+    return render_template('admin/upload_material.html', course=course)
+
+
+@admin_bp.route('/materials/<int:material_id>/delete', methods=['POST'])
+@login_required
+@admin_required
+def delete_material(material_id):
+    from models import CourseMaterial
+    material  = CourseMaterial.query.get_or_404(material_id)
+    course_id = material.course_id
+    try:
+        db.session.delete(material)
+        db.session.commit()
+        flash('Material deleted.', 'info')
+    except Exception as e:
+        db.session.rollback()
+        flash('Error deleting material.', 'danger')
+    return redirect(url_for('admin.course_materials', course_id=course_id))
+
+
+# ================================
+# COURSE TESTS MANAGEMENT
+# ================================
+
+@admin_bp.route('/courses/<int:course_id>/tests')
+@login_required
+@admin_required
+def course_tests(course_id):
+    from models import CourseTest
+    course = Course.query.get_or_404(course_id)
+    tests  = CourseTest.query.filter_by(course_id=course_id).order_by(CourseTest.order_number).all()
+    return render_template('admin/course_tests.html', course=course, tests=tests)
+
+
+@admin_bp.route('/courses/<int:course_id>/tests/create', methods=['GET', 'POST'])
+@login_required
+@admin_required
+def create_test(course_id):
+    from models import CourseTest
+    import os
+    course = Course.query.get_or_404(course_id)
+
+    if request.method == 'POST':
+        title       = request.form.get('title', '').strip()
+        description = request.form.get('description', '').strip()
+        test_type   = request.form.get('test_type', 'link')
+        test_link   = request.form.get('test_link', '').strip()
+        order_num   = int(request.form.get('order_number', 0))
+        due_str     = request.form.get('due_date', '').strip()
+        due_date    = None
+        if due_str:
+            try:
+                due_date = datetime.strptime(due_str, '%Y-%m-%dT%H:%M')
+            except Exception:
+                pass
+
+        if not title:
+            flash('Title is required.', 'danger')
+        else:
+            try:
+                file_path = None
+                if test_type == 'file':
+                    file = request.files.get('test_file')
+                    if file and file.filename:
+                        from werkzeug.utils import secure_filename
+                        import time
+                        filename  = f"test_{course_id}_{int(time.time())}_{secure_filename(file.filename)}"
+                        save_dir  = os.path.join(current_app.config['UPLOAD_FOLDER'], 'tests')
+                        os.makedirs(save_dir, exist_ok=True)
+                        file.save(os.path.join(save_dir, filename))
+                        file_path = filename
+
+                test = CourseTest(
+                    course_id    = course_id,
+                    title        = title,
+                    description  = description,
+                    test_type    = test_type,
+                    test_link    = test_link if test_type == 'link' else None,
+                    file_path    = file_path,
+                    order_number = order_num,
+                    due_date     = due_date,
+                    is_active    = True,
+                )
+                db.session.add(test)
+                db.session.commit()
+                flash(f'Test "{title}" created!', 'success')
+                return redirect(url_for('admin.course_tests', course_id=course_id))
+            except Exception as e:
+                db.session.rollback()
+                current_app.logger.error(f'Test create error: {str(e)}')
+                flash('Error creating test.', 'danger')
+
+    return render_template('admin/create_test.html', course=course)
+
+
+@admin_bp.route('/tests/<int:test_id>/delete', methods=['POST'])
+@login_required
+@admin_required
+def delete_test(test_id):
+    from models import CourseTest
+    test      = CourseTest.query.get_or_404(test_id)
+    course_id = test.course_id
+    try:
+        db.session.delete(test)
+        db.session.commit()
+        flash('Test deleted.', 'info')
+    except Exception as e:
+        db.session.rollback()
+        flash('Error deleting test.', 'danger')
+    return redirect(url_for('admin.course_tests', course_id=course_id))
+
+# ================================
 # DISCUSSION MANAGEMENT
 # ================================
 

@@ -11,22 +11,19 @@ class User(UserMixin, db.Model):
     email         = db.Column(db.String(120), unique=True, nullable=False, index=True)
     password_hash = db.Column(db.String(255), nullable=False)
 
-    # Extended registration fields
-    first_name   = db.Column(db.String(100), nullable=False)
-    last_name    = db.Column(db.String(100), nullable=False)
-    designation  = db.Column(db.String(100), nullable=False)
-    city         = db.Column(db.String(100), nullable=False)
-    country      = db.Column(db.String(100), nullable=False)
-    education    = db.Column(db.String(200), nullable=False)
-    university   = db.Column(db.String(200), nullable=False)
+    first_name  = db.Column(db.String(100), nullable=False)
+    last_name   = db.Column(db.String(100), nullable=False)
+    designation = db.Column(db.String(100), nullable=False)
+    city        = db.Column(db.String(100), nullable=False)
+    country     = db.Column(db.String(100), nullable=False)
+    education   = db.Column(db.String(200), nullable=False)
+    university  = db.Column(db.String(200), nullable=False)
 
-    # Account metadata
     is_active  = db.Column(db.Boolean, default=True)
     is_admin   = db.Column(db.Boolean, default=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
-    # Relationships
     enrollments = db.relationship(
         'Enrollment', backref='student', lazy='dynamic', cascade='all, delete-orphan'
     )
@@ -50,9 +47,9 @@ class Course(db.Model):
     description          = db.Column(db.Text)
     detailed_description = db.Column(db.Text)
 
-    level            = db.Column(db.String(50), default='beginner')
-    hourly_rate_pkr  = db.Column(db.Integer, default=800)
-    hourly_rate_usd  = db.Column(db.Integer, default=6)
+    level           = db.Column(db.String(50), default='beginner')
+    hourly_rate_pkr = db.Column(db.Integer, default=800)
+    hourly_rate_usd = db.Column(db.Integer, default=6)
 
     thumbnail         = db.Column(db.String(500))
     is_active         = db.Column(db.Boolean, default=True)
@@ -61,16 +58,17 @@ class Course(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
-    # Relationships
-    lectures    = db.relationship('Lecture',    backref='course', lazy='dynamic', cascade='all, delete-orphan')
-    enrollments = db.relationship('Enrollment', backref='course', lazy='dynamic', cascade='all, delete-orphan')
+    lectures    = db.relationship('Lecture',        backref='course', lazy='dynamic', cascade='all, delete-orphan')
+    enrollments = db.relationship('Enrollment',     backref='course', lazy='dynamic', cascade='all, delete-orphan')
+    materials   = db.relationship('CourseMaterial', backref='course', lazy='dynamic', cascade='all, delete-orphan')
+    tests       = db.relationship('CourseTest',     backref='course', lazy='dynamic', cascade='all, delete-orphan')
 
     def get_package_price(self, package_type, currency='pkr'):
         from flask import current_app
         pricing = current_app.config['PACKAGE_PRICING']
         if package_type not in pricing:
             return 0
-        package      = pricing[package_type]
+        package       = pricing[package_type]
         level_pricing = package.get(self.level, {})
         return level_pricing.get(currency, 0)
 
@@ -78,22 +76,19 @@ class Course(db.Model):
         base_rates = {'beginner': 250, 'intermediate': 350, 'advanced': 500}
         rate       = base_rates.get(level.lower(), 250)
         base_price = rate * days
-
         if days >= 10:   discount = 0.15
         elif days >= 5:  discount = 0.10
         elif days >= 3:  discount = 0.05
         else:            discount = 0
-
         final_price = base_price * (1 - discount)
         if country != 'Pakistan':
             final_price *= 2
-
         return {
-            'base_price':      base_price,
+            'base_price':       base_price,
             'discount_percent': int(discount * 100),
-            'discount_amount': base_price * discount,
-            'final_price':     round(final_price),
-            'rate_per_day':    rate,
+            'discount_amount':  base_price * discount,
+            'final_price':      round(final_price),
+            'rate_per_day':     rate,
         }
 
     def calculate_custom_price(self, hours, currency='pkr'):
@@ -111,8 +106,8 @@ class Course(db.Model):
 class Lecture(db.Model):
     __tablename__ = 'lectures'
 
-    id          = db.Column(db.Integer, primary_key=True)
-    course_id   = db.Column(db.Integer, db.ForeignKey('courses.id'), nullable=False)
+    id        = db.Column(db.Integer, primary_key=True)
+    course_id = db.Column(db.Integer, db.ForeignKey('courses.id'), nullable=False)
 
     title            = db.Column(db.String(200), nullable=False)
     description      = db.Column(db.Text)
@@ -129,6 +124,50 @@ class Lecture(db.Model):
         return f'<Lecture {self.title}>'
 
 
+class CourseMaterial(db.Model):
+    """PDFs, slides, and other downloadable resources uploaded by admin."""
+    __tablename__ = 'course_materials'
+
+    id        = db.Column(db.Integer, primary_key=True)
+    course_id = db.Column(db.Integer, db.ForeignKey('courses.id'), nullable=False)
+
+    title        = db.Column(db.String(200), nullable=False)
+    description  = db.Column(db.Text)
+    file_path    = db.Column(db.String(500), nullable=False)   # stored filename
+    file_type    = db.Column(db.String(20))                    # pdf / pptx / docx / other
+    file_size_kb = db.Column(db.Integer)
+    order_number = db.Column(db.Integer, default=0)
+    is_active    = db.Column(db.Boolean, default=True)
+
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    def __repr__(self):
+        return f'<CourseMaterial {self.title}>'
+
+
+class CourseTest(db.Model):
+    """Tests and assessments for a course."""
+    __tablename__ = 'course_tests'
+
+    id        = db.Column(db.Integer, primary_key=True)
+    course_id = db.Column(db.Integer, db.ForeignKey('courses.id'), nullable=False)
+
+    title        = db.Column(db.String(200), nullable=False)
+    description  = db.Column(db.Text)
+    # Can be a Google Form link, external quiz link, or uploaded PDF
+    test_type    = db.Column(db.String(20), default='link')  # link / file
+    test_link    = db.Column(db.String(500))   # Google Form / external URL
+    file_path    = db.Column(db.String(500))   # uploaded test file
+    order_number = db.Column(db.Integer, default=0)
+    is_active    = db.Column(db.Boolean, default=True)
+    due_date     = db.Column(db.DateTime, nullable=True)
+
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    def __repr__(self):
+        return f'<CourseTest {self.title}>'
+
+
 class Enrollment(db.Model):
     __tablename__ = 'enrollments'
 
@@ -136,39 +175,32 @@ class Enrollment(db.Model):
     user_id   = db.Column(db.Integer, db.ForeignKey('users.id'),   nullable=False)
     course_id = db.Column(db.Integer, db.ForeignKey('courses.id'), nullable=False)
 
-    # Enrollment details
-    enrollment_type = db.Column(db.String(20))   # short / standard / intensive
+    enrollment_type = db.Column(db.String(20))
     duration_value  = db.Column(db.Integer)
     total_days      = db.Column(db.Integer, nullable=False)
 
-    # Payment
-    price_paid_pkr  = db.Column(db.Float,       nullable=False)
-    currency        = db.Column(db.String(10),   default='PKR')
-    payment_method  = db.Column(db.String(50),   nullable=False)
-    payment_receipt = db.Column(db.String(500),  nullable=False)
+    price_paid_pkr  = db.Column(db.Float,      nullable=False)
+    currency        = db.Column(db.String(10),  default='PKR')
+    payment_method  = db.Column(db.String(50),  nullable=False)
+    payment_receipt = db.Column(db.String(500), nullable=False)
 
-    # Status
-    status      = db.Column(db.String(20), default='pending')  # pending/approved/rejected
+    status      = db.Column(db.String(20), default='pending')
     admin_notes = db.Column(db.Text)
 
-    # Dates
     enrolled_at = db.Column(db.DateTime, default=datetime.utcnow)
     approved_at = db.Column(db.DateTime)
     expires_at  = db.Column(db.DateTime)
 
-    # Completion & certificate
-    is_completed   = db.Column(db.Boolean, default=False, nullable=False)
-    completed_at   = db.Column(db.DateTime, nullable=True)
+    is_completed   = db.Column(db.Boolean,    default=False, nullable=False)
+    completed_at   = db.Column(db.DateTime,   nullable=True)
     certificate_id = db.Column(db.String(64), nullable=True, unique=True)
 
-    # Learning mode fields
-    learning_mode  = db.Column(db.String(50),  nullable=True)   # self_paced / live_online / face_to_face_lahore / face_to_face_faisalabad
-    preferred_city = db.Column(db.String(100), nullable=True)   # Lahore / Faisalabad
-    preferred_days = db.Column(db.String(200), nullable=True)   # free text e.g. "Mon & Wed"
-    preferred_time = db.Column(db.String(200), nullable=True)   # free text e.g. "10am-12pm"
-    schedule_notes = db.Column(db.Text,        nullable=True)   # any extra notes
+    learning_mode  = db.Column(db.String(50),  nullable=True)
+    preferred_city = db.Column(db.String(100), nullable=True)
+    preferred_days = db.Column(db.String(200), nullable=True)
+    preferred_time = db.Column(db.String(200), nullable=True)
+    schedule_notes = db.Column(db.Text,        nullable=True)
 
-    # Indexes
     __table_args__ = (
         db.Index('idx_user_course', 'user_id', 'course_id'),
         db.Index('idx_status',      'status'),
@@ -257,7 +289,6 @@ class DiscussionRoom(db.Model):
     is_active   = db.Column(db.Boolean, default=True)
     created_at  = db.Column(db.DateTime, default=datetime.utcnow)
 
-    # Relationships
     course        = db.relationship('Course', backref='discussion_room', uselist=False)
     sessions      = db.relationship('DiscussionSession',      backref='room', lazy='dynamic', cascade='all, delete-orphan')
     messages      = db.relationship('DiscussionMessage',      backref='room', lazy='dynamic', cascade='all, delete-orphan')
@@ -277,11 +308,9 @@ class DiscussionSession(db.Model):
     description = db.Column(db.Text)
     topic       = db.Column(db.String(300))
 
-    # Scheduling
     scheduled_at     = db.Column(db.DateTime, nullable=False)
     duration_minutes = db.Column(db.Integer, default=60)
 
-    # Meeting
     meeting_link     = db.Column(db.String(500))
     meeting_password = db.Column(db.String(100))
     meeting_platform = db.Column(db.String(50), default='Zoom')
@@ -305,13 +334,13 @@ class DiscussionSubscription(db.Model):
     __tablename__ = 'discussion_subscriptions'
 
     id      = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id'),         nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'),            nullable=False)
     room_id = db.Column(db.Integer, db.ForeignKey('discussion_rooms.id'), nullable=False)
 
-    topic        = db.Column(db.String(300), nullable=False)
-    duration_days = db.Column(db.Integer,   nullable=False)
-    hours_per_day = db.Column(db.Integer,   nullable=False)
-    total_hours   = db.Column(db.Integer,   nullable=False)
+    topic         = db.Column(db.String(300), nullable=False)
+    duration_days = db.Column(db.Integer,     nullable=False)
+    hours_per_day = db.Column(db.Integer,     nullable=False)
+    total_hours   = db.Column(db.Integer,     nullable=False)
 
     price_per_hour = db.Column(db.Integer, nullable=False)
     total_price    = db.Column(db.Float,   nullable=False)
