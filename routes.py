@@ -462,6 +462,18 @@ def uploaded_file(folder, filename):
     return send_from_directory(os.path.join(upload_folder, folder), filename)
 
 
+@main_bp.route('/verify/<cert_id>')
+def verify_certificate(cert_id):
+    from models import Enrollment
+    enrollment = Enrollment.query.filter_by(certificate_id=cert_id).first()
+    if not enrollment:
+        return render_template('public/verify_certificate.html', valid=False, cert_id=cert_id)
+    return render_template('public/verify_certificate.html',
+                           valid=True,
+                           student_name=f"{enrollment.student.first_name} {enrollment.student.last_name}",
+                           course_name=enrollment.course.title,
+                           completed_at=enrollment.completed_at,
+                           cert_id=cert_id)
 # Add this route to routes.py alongside the existing uploaded_file route
 # It serves materials and test files uploaded by admin
 
