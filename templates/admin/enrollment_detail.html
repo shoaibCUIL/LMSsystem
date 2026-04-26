@@ -1,269 +1,459 @@
 {% extends "base.html" %}
-{% block title %}Enrollment #{{ enrollment.id }} - {{ app_name }}{% endblock %}
+{% block title %}Enrollment #{{ enrollment.id }} — Admin{% endblock %}
+
+{% block extra_head %}
+<style>
+    body { background: #0f1117; }
+    .detail-wrap {
+        max-width: 1100px; margin: 0 auto;
+        padding: 2rem 1.5rem 4rem;
+    }
+    .page-header {
+        display: flex; align-items: center;
+        justify-content: space-between;
+        margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;
+    }
+    .page-header h1 {
+        font-family: 'Sora', sans-serif; font-size: 1.5rem;
+        font-weight: 800; color: #fff; margin: 0;
+    }
+    .back-link {
+        display: inline-flex; align-items: center; gap: .4rem;
+        font-size: .85rem; font-weight: 600; color: rgba(255,255,255,.6);
+        text-decoration: none; padding: .4rem .9rem; border-radius: 8px;
+        border: 1px solid rgba(255,255,255,.12);
+        transition: all .18s ease;
+    }
+    .back-link:hover { color: #fff; border-color: rgba(255,255,255,.3); }
+
+    /* Status banner */
+    .status-banner {
+        border-radius: 12px; padding: 1rem 1.25rem;
+        display: flex; align-items: center; gap: .75rem;
+        margin-bottom: 1.5rem; font-weight: 600; font-size: .95rem;
+    }
+    .status-approved { background: rgba(16,185,129,.12); border: 1px solid rgba(16,185,129,.25); color: #34D399; }
+    .status-pending  { background: rgba(245,158,11,.12);  border: 1px solid rgba(245,158,11,.25);  color: #FCD34D; }
+    .status-rejected { background: rgba(239,68,68,.12);   border: 1px solid rgba(239,68,68,.25);   color: #F87171; }
+
+    /* Grid layout */
+    .detail-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1.25rem;
+    }
+
+    /* Cards */
+    .d-card {
+        background: #1a1d27;
+        border: 1px solid rgba(255,255,255,.07);
+        border-radius: 16px; overflow: hidden;
+        margin-bottom: 1.25rem;
+    }
+    .d-card-header {
+        padding: .9rem 1.25rem;
+        border-bottom: 1px solid rgba(255,255,255,.06);
+        font-family: 'Sora', sans-serif; font-size: .8rem;
+        font-weight: 700; text-transform: uppercase;
+        letter-spacing: .07em; color: rgba(255,255,255,.4);
+        display: flex; align-items: center; gap: .5rem;
+    }
+    .d-card-body { padding: 1.1rem 1.25rem; }
+
+    /* Table rows */
+    .d-row {
+        display: flex; padding: .5rem 0;
+        border-bottom: 1px solid rgba(255,255,255,.04);
+        font-size: .875rem;
+    }
+    .d-row:last-child { border-bottom: none; }
+    .d-label { color: rgba(255,255,255,.4); width: 42%; flex-shrink: 0; }
+    .d-value { color: rgba(255,255,255,.85); font-weight: 500; }
+
+    /* Mode highlight */
+    .mode-badge {
+        display: inline-flex; align-items: center; gap: .35rem;
+        padding: .3rem .8rem; border-radius: 8px;
+        font-size: .82rem; font-weight: 700;
+    }
+    .mode-self-paced  { background: rgba(99,102,241,.15); color: #A78BFA; }
+    .mode-live        { background: rgba(59,130,246,.15); color: #60A5FA; }
+    .mode-face        { background: rgba(245,158,11,.15); color: #FCD34D; }
+
+    /* FTF schedule box */
+    .ftf-box {
+        background: rgba(245,158,11,.07);
+        border: 1px solid rgba(245,158,11,.2);
+        border-radius: 10px; padding: 1rem;
+        margin-top: .75rem;
+    }
+    .ftf-box h4 {
+        font-size: .8rem; font-weight: 700;
+        color: #FCD34D; text-transform: uppercase;
+        letter-spacing: .06em; margin-bottom: .75rem;
+    }
+
+    /* Admin action buttons */
+    .action-card {
+        background: #1a1d27;
+        border: 1px solid rgba(255,255,255,.07);
+        border-radius: 16px; padding: 1.5rem;
+    }
+    .action-card h3 {
+        font-family: 'Sora', sans-serif; font-size: .9rem;
+        font-weight: 700; color: rgba(255,255,255,.5);
+        text-transform: uppercase; letter-spacing: .07em;
+        margin-bottom: 1.25rem;
+    }
+    .btn-approve {
+        display: block; width: 100%; padding: .85rem;
+        border-radius: 10px; border: none; cursor: pointer;
+        font-family: 'DM Sans', sans-serif; font-weight: 700;
+        font-size: .95rem; margin-bottom: 1rem;
+        background: linear-gradient(135deg, #059669, #047857);
+        color: white; transition: opacity .2s;
+    }
+    .btn-approve:hover { opacity: .9; }
+    .btn-reject {
+        display: block; width: 100%; padding: .85rem;
+        border-radius: 10px; border: none; cursor: pointer;
+        font-family: 'DM Sans', sans-serif; font-weight: 700;
+        font-size: .95rem;
+        background: rgba(239,68,68,.15);
+        border: 1px solid rgba(239,68,68,.3);
+        color: #F87171; transition: all .2s;
+    }
+    .btn-reject:hover { background: rgba(239,68,68,.25); }
+    .btn-complete {
+        display: block; width: 100%; padding: .85rem;
+        border-radius: 10px; border: none; cursor: pointer;
+        font-family: 'DM Sans', sans-serif; font-weight: 700;
+        font-size: .95rem; margin-top: 1rem;
+        background: linear-gradient(135deg, #0056D2, #003E99);
+        color: white; transition: opacity .2s;
+    }
+    .btn-complete:hover { opacity: .9; }
+
+    .reject-notes {
+        width: 100%; padding: .65rem .9rem; margin-bottom: .75rem;
+        background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.1);
+        border-radius: 8px; color: rgba(255,255,255,.8);
+        font-family: 'DM Sans', sans-serif; font-size: .875rem;
+        resize: vertical;
+    }
+    .reject-notes:focus { outline: none; border-color: rgba(239,68,68,.4); }
+    .reject-notes::placeholder { color: rgba(255,255,255,.25); }
+
+    .divider { height: 1px; background: rgba(255,255,255,.06); margin: 1rem 0; }
+
+    .receipt-btn {
+        display: inline-flex; align-items: center; gap: .4rem;
+        padding: .45rem 1rem; border-radius: 8px;
+        font-size: .82rem; font-weight: 600; text-decoration: none;
+        background: rgba(79,168,255,.12); color: #4FA8FF;
+        border: 1px solid rgba(79,168,255,.2);
+        transition: all .18s ease;
+    }
+    .receipt-btn:hover { background: rgba(79,168,255,.22); color: #fff; }
+
+    .completed-badge {
+        display: inline-flex; align-items: center; gap: .4rem;
+        padding: .4rem .9rem; border-radius: 8px;
+        background: rgba(16,185,129,.12); color: #34D399;
+        border: 1px solid rgba(16,185,129,.2);
+        font-size: .82rem; font-weight: 700;
+    }
+
+    @media (max-width: 800px) {
+        .detail-grid { grid-template-columns: 1fr; }
+    }
+</style>
+{% endblock %}
 
 {% block content %}
-<div class="container my-5">
+<div class="detail-wrap">
 
     <!-- Header -->
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1>
-            <i class="fas fa-file-invoice text-primary"></i> Enrollment #{{ enrollment.id }}
-        </h1>
-        <a href="{{ url_for('admin.enrollments') }}" class="btn btn-outline-secondary">
-            <i class="fas fa-arrow-left"></i> Back to Enrollments
-        </a>
+    <div class="page-header">
+        <h1>⚙️ Enrollment #{{ enrollment.id }}</h1>
+        <a href="{{ url_for('admin.enrollments') }}" class="back-link">← Back to Enrollments</a>
     </div>
 
     <!-- Status Banner -->
-    <div class="alert 
-        {% if enrollment.status == 'approved' %}alert-success
-        {% elif enrollment.status == 'rejected' %}alert-danger
-        {% else %}alert-warning{% endif %} mb-4">
-        <div class="d-flex align-items-center gap-2">
-            <i class="fas 
-                {% if enrollment.status == 'approved' %}fa-check-circle
-                {% elif enrollment.status == 'rejected' %}fa-times-circle
-                {% else %}fa-hourglass-half{% endif %} fa-lg"></i>
-            <strong>Status: {{ enrollment.status | capitalize }}</strong>
-            {% if enrollment.status == 'approved' %}
-                &mdash; Approved on {{ enrollment.approved_at.strftime('%B %d, %Y') if enrollment.approved_at else 'N/A' }}
-            {% elif enrollment.status == 'rejected' %}
-                &mdash; This enrollment was rejected
-            {% else %}
-                &mdash; Awaiting your review
-            {% endif %}
-        </div>
+    <div class="status-banner status-{{ enrollment.status }}">
+        {% if enrollment.status == 'approved' %}✅ Approved
+            {% if enrollment.approved_at %} on {{ enrollment.approved_at.strftime('%B %d, %Y') }}{% endif %}
+        {% elif enrollment.status == 'rejected' %}❌ Rejected
+        {% else %}⏳ Pending — Awaiting your review
+        {% endif %}
     </div>
 
-    <div class="row">
+    <div class="detail-grid">
 
-        <!-- LEFT COLUMN: Student + Course info -->
-        <div class="col-md-6 mb-4">
+        <!-- LEFT COLUMN -->
+        <div>
 
             <!-- Student Info -->
-            <div class="card shadow-sm mb-4">
-                <div class="card-header bg-dark text-white">
-                    <h5 class="mb-0"><i class="fas fa-user"></i> Student Information</h5>
-                </div>
-                <div class="card-body">
-                    <table class="table table-sm table-borderless mb-0">
-                        <tr>
-                            <td class="text-muted" style="width:40%">Full Name</td>
-                            <td><strong>{{ enrollment.student.first_name }} {{ enrollment.student.last_name }}</strong></td>
-                        </tr>
-                        <tr>
-                            <td class="text-muted">Email</td>
-                            <td>{{ enrollment.student.email }}</td>
-                        </tr>
-                        <tr>
-                            <td class="text-muted">Designation</td>
-                            <td>{{ enrollment.student.designation }}</td>
-                        </tr>
-                        <tr>
-                            <td class="text-muted">Education</td>
-                            <td>{{ enrollment.student.education }}</td>
-                        </tr>
-                        <tr>
-                            <td class="text-muted">University</td>
-                            <td>{{ enrollment.student.university }}</td>
-                        </tr>
-                        <tr>
-                            <td class="text-muted">Location</td>
-                            <td>{{ enrollment.student.city }}, {{ enrollment.student.country }}</td>
-                        </tr>
-                        <tr>
-                            <td class="text-muted">Account Status</td>
-                            <td>
-                                {% if enrollment.student.is_active %}
-                                    <span class="badge bg-success">Active</span>
-                                {% else %}
-                                    <span class="badge bg-warning text-dark">Inactive</span>
-                                {% endif %}
-                            </td>
-                        </tr>
-                    </table>
+            <div class="d-card">
+                <div class="d-card-header">👤 Student</div>
+                <div class="d-card-body">
+                    <div class="d-row">
+                        <span class="d-label">Name</span>
+                        <span class="d-value">{{ enrollment.student.first_name }} {{ enrollment.student.last_name }}</span>
+                    </div>
+                    <div class="d-row">
+                        <span class="d-label">Email</span>
+                        <span class="d-value">{{ enrollment.student.email }}</span>
+                    </div>
+                    <div class="d-row">
+                        <span class="d-label">Designation</span>
+                        <span class="d-value">{{ enrollment.student.designation }}</span>
+                    </div>
+                    <div class="d-row">
+                        <span class="d-label">Education</span>
+                        <span class="d-value">{{ enrollment.student.education }}</span>
+                    </div>
+                    <div class="d-row">
+                        <span class="d-label">University</span>
+                        <span class="d-value">{{ enrollment.student.university }}</span>
+                    </div>
+                    <div class="d-row">
+                        <span class="d-label">Location</span>
+                        <span class="d-value">{{ enrollment.student.city }}, {{ enrollment.student.country }}</span>
+                    </div>
+                    <div class="d-row">
+                        <span class="d-label">Account</span>
+                        <span class="d-value">
+                            {% if enrollment.student.is_active %}
+                                <span style="color:#34D399;">● Active</span>
+                            {% else %}
+                                <span style="color:#F59E0B;">● Inactive</span>
+                            {% endif %}
+                        </span>
+                    </div>
                 </div>
             </div>
 
             <!-- Course Info -->
-            <div class="card shadow-sm">
-                <div class="card-header bg-dark text-white">
-                    <h5 class="mb-0"><i class="fas fa-book"></i> Course Information</h5>
-                </div>
-                <div class="card-body">
-                    <table class="table table-sm table-borderless mb-0">
-                        <tr>
-                            <td class="text-muted" style="width:40%">Course</td>
-                            <td><strong>{{ enrollment.course.title }}</strong></td>
-                        </tr>
-                        <tr>
-                            <td class="text-muted">Level</td>
-                            <td>
-                                <span class="badge 
-                                    {% if enrollment.course.level == 'beginner' %}bg-success
-                                    {% elif enrollment.course.level == 'intermediate' %}bg-warning text-dark
-                                    {% else %}bg-danger{% endif %}">
-                                    {{ enrollment.course.level | capitalize }}
-                                </span>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td class="text-muted">Duration Estimate</td>
-                            <td>{{ enrollment.course.duration_estimate or 'N/A' }}</td>
-                        </tr>
-                        <tr>
-                            <td class="text-muted">Hourly Rate (PKR)</td>
-                            <td>Rs. {{ enrollment.course.hourly_rate_pkr }}/hr</td>
-                        </tr>
-                        <tr>
-                            <td class="text-muted">Hourly Rate (USD)</td>
-                            <td>${{ enrollment.course.hourly_rate_usd }}/hr</td>
-                        </tr>
-                    </table>
+            <div class="d-card">
+                <div class="d-card-header">📚 Course</div>
+                <div class="d-card-body">
+                    <div class="d-row">
+                        <span class="d-label">Title</span>
+                        <span class="d-value">{{ enrollment.course.title }}</span>
+                    </div>
+                    <div class="d-row">
+                        <span class="d-label">Level</span>
+                        <span class="d-value">{{ enrollment.course.level | capitalize }}</span>
+                    </div>
+                    <div class="d-row">
+                        <span class="d-label">Duration</span>
+                        <span class="d-value">{{ enrollment.course.duration_estimate or 'N/A' }}</span>
+                    </div>
                 </div>
             </div>
+
+            <!-- Learning Mode -->
+            <div class="d-card">
+                <div class="d-card-header">🎓 Learning Mode</div>
+                <div class="d-card-body">
+                    <div class="d-row">
+                        <span class="d-label">Mode</span>
+                        <span class="d-value">
+                            {% if enrollment.learning_mode == 'self_paced' %}
+                                <span class="mode-badge mode-self-paced">📹 Self-Paced (Recorded)</span>
+                            {% elif enrollment.learning_mode == 'live_online' %}
+                                <span class="mode-badge mode-live">🎥 Live Online</span>
+                            {% elif enrollment.learning_mode == 'face_to_face_lahore' %}
+                                <span class="mode-badge mode-face">🏫 Face to Face — Lahore</span>
+                            {% elif enrollment.learning_mode == 'face_to_face_faisalabad' %}
+                                <span class="mode-badge mode-face">🏫 Face to Face — Faisalabad</span>
+                            {% else %}
+                                <span style="color:rgba(255,255,255,.5);">Not specified</span>
+                            {% endif %}
+                        </span>
+                    </div>
+
+                    {% if enrollment.learning_mode and enrollment.learning_mode.startswith('face_to_face') %}
+                    <div class="ftf-box">
+                        <h4>📅 Schedule Preferences</h4>
+                        <div class="d-row" style="border:none;padding:.3rem 0;">
+                            <span class="d-label">City</span>
+                            <span class="d-value">{{ enrollment.preferred_city or '—' }}</span>
+                        </div>
+                        <div class="d-row" style="border:none;padding:.3rem 0;">
+                            <span class="d-label">Preferred Days</span>
+                            <span class="d-value">{{ enrollment.preferred_days or '—' }}</span>
+                        </div>
+                        <div class="d-row" style="border:none;padding:.3rem 0;">
+                            <span class="d-label">Preferred Time</span>
+                            <span class="d-value">{{ enrollment.preferred_time or '—' }}</span>
+                        </div>
+                        {% if enrollment.schedule_notes %}
+                        <div class="d-row" style="border:none;padding:.3rem 0;">
+                            <span class="d-label">Notes</span>
+                            <span class="d-value">{{ enrollment.schedule_notes }}</span>
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
         </div>
 
-        <!-- RIGHT COLUMN: Payment + Enrollment details -->
-        <div class="col-md-6 mb-4">
+        <!-- RIGHT COLUMN -->
+        <div>
 
             <!-- Enrollment Details -->
-            <div class="card shadow-sm mb-4">
-                <div class="card-header bg-dark text-white">
-                    <h5 class="mb-0"><i class="fas fa-graduation-cap"></i> Enrollment Details</h5>
-                </div>
-                <div class="card-body">
-                    <table class="table table-sm table-borderless mb-0">
-                        <tr>
-                            <td class="text-muted" style="width:40%">Enrollment ID</td>
-                            <td>#{{ enrollment.id }}</td>
-                        </tr>
-                        <tr>
-                            <td class="text-muted">Package Type</td>
-                            <td>{{ enrollment.enrollment_type | capitalize if enrollment.enrollment_type else 'Custom' }}</td>
-                        </tr>
-                        <tr>
-                            <td class="text-muted">Total Days</td>
-                            <td>{{ enrollment.total_days }} days</td>
-                        </tr>
-                        <tr>
-                            <td class="text-muted">Amount Paid</td>
-                            <td><strong class="text-success">Rs. {{ "{:,.0f}".format(enrollment.price_paid_pkr) }}</strong></td>
-                        </tr>
-                        <tr>
-                            <td class="text-muted">Currency</td>
-                            <td>{{ enrollment.currency }}</td>
-                        </tr>
-                        <tr>
-                            <td class="text-muted">Enrolled On</td>
-                            <td>{{ enrollment.enrolled_at.strftime('%B %d, %Y at %I:%M %p') }}</td>
-                        </tr>
-                        {% if enrollment.status == 'approved' %}
-                        <tr>
-                            <td class="text-muted">Approved On</td>
-                            <td>{{ enrollment.approved_at.strftime('%B %d, %Y') if enrollment.approved_at else '-' }}</td>
-                        </tr>
-                        <tr>
-                            <td class="text-muted">Expires On</td>
-                            <td>
-                                {% if enrollment.expires_at %}
-                                    {% if enrollment.is_active() %}
-                                        <span class="text-success">
-                                            <i class="fas fa-check-circle"></i>
-                                            {{ enrollment.expires_at.strftime('%B %d, %Y') }}
-                                        </span>
-                                    {% else %}
-                                        <span class="text-danger">
-                                            <i class="fas fa-times-circle"></i>
-                                            Expired ({{ enrollment.expires_at.strftime('%B %d, %Y') }})
-                                        </span>
-                                    {% endif %}
-                                {% else %}
-                                    -
-                                {% endif %}
-                            </td>
-                        </tr>
-                        {% endif %}
-                        {% if enrollment.admin_notes %}
-                        <tr>
-                            <td class="text-muted">Admin Notes</td>
-                            <td class="text-danger">{{ enrollment.admin_notes }}</td>
-                        </tr>
-                        {% endif %}
-                    </table>
+            <div class="d-card">
+                <div class="d-card-header">📋 Enrollment Details</div>
+                <div class="d-card-body">
+                    <div class="d-row">
+                        <span class="d-label">ID</span>
+                        <span class="d-value">#{{ enrollment.id }}</span>
+                    </div>
+                    <div class="d-row">
+                        <span class="d-label">Plan</span>
+                        <span class="d-value">
+                            {% if enrollment.enrollment_type == 'short' %}🟢 Short (1 Month)
+                            {% elif enrollment.enrollment_type == 'standard' %}🔵 Standard (2 Months)
+                            {% elif enrollment.enrollment_type == 'intensive' %}🔴 Intensive (3 Months)
+                            {% else %}{{ enrollment.enrollment_type | capitalize if enrollment.enrollment_type else 'Custom' }}{% endif %}
+                        </span>
+                    </div>
+                    <div class="d-row">
+                        <span class="d-label">Total Days</span>
+                        <span class="d-value">{{ enrollment.total_days }} days</span>
+                    </div>
+                    <div class="d-row">
+                        <span class="d-label">Amount Paid</span>
+                        <span class="d-value" style="color:#34D399;font-family:'Sora',sans-serif;font-weight:800;">
+                            Rs. {{ "{:,.0f}".format(enrollment.price_paid_pkr) }}
+                        </span>
+                    </div>
+                    <div class="d-row">
+                        <span class="d-label">Currency</span>
+                        <span class="d-value">{{ enrollment.currency }}</span>
+                    </div>
+                    <div class="d-row">
+                        <span class="d-label">Enrolled On</span>
+                        <span class="d-value">{{ enrollment.enrolled_at.strftime('%b %d, %Y · %I:%M %p') }}</span>
+                    </div>
+                    {% if enrollment.status == 'approved' %}
+                    <div class="d-row">
+                        <span class="d-label">Approved On</span>
+                        <span class="d-value">{{ enrollment.approved_at.strftime('%b %d, %Y') if enrollment.approved_at else '—' }}</span>
+                    </div>
+                    <div class="d-row">
+                        <span class="d-label">Expires On</span>
+                        <span class="d-value" style="color:{% if enrollment.is_active() %}#34D399{% else %}#F87171{% endif %};">
+                            {% if enrollment.expires_at %}
+                                {{ enrollment.expires_at.strftime('%b %d, %Y') }}
+                                {% if not enrollment.is_active() %} (Expired){% endif %}
+                            {% else %}—{% endif %}
+                        </span>
+                    </div>
+                    {% endif %}
+                    {% if enrollment.admin_notes %}
+                    <div class="d-row">
+                        <span class="d-label">Admin Notes</span>
+                        <span class="d-value" style="color:#F87171;">{{ enrollment.admin_notes }}</span>
+                    </div>
+                    {% endif %}
+                    {% if enrollment.is_completed %}
+                    <div class="d-row">
+                        <span class="d-label">Completed</span>
+                        <span class="d-value">
+                            <span class="completed-badge">
+                                ✅ {{ enrollment.completed_at.strftime('%b %d, %Y') if enrollment.completed_at else 'Yes' }}
+                            </span>
+                        </span>
+                    </div>
+                    <div class="d-row">
+                        <span class="d-label">Certificate ID</span>
+                        <span class="d-value" style="font-family:monospace;font-size:.8rem;color:#A78BFA;">
+                            {{ enrollment.certificate_id or '—' }}
+                        </span>
+                    </div>
+                    {% endif %}
                 </div>
             </div>
 
             <!-- Payment Info -->
-            <div class="card shadow-sm mb-4">
-                <div class="card-header bg-dark text-white">
-                    <h5 class="mb-0"><i class="fas fa-credit-card"></i> Payment Information</h5>
-                </div>
-                <div class="card-body">
-                    <table class="table table-sm table-borderless mb-0">
-                        <tr>
-                            <td class="text-muted" style="width:40%">Payment Method</td>
-                            <td>
-                                <span class="badge bg-info">{{ enrollment.payment_method | upper }}</span>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td class="text-muted">Receipt File</td>
-                            <td>
-                                {% if enrollment.payment_receipt %}
-                                    <a href="{{ url_for('main.uploaded_file', folder='receipts', filename=enrollment.payment_receipt) }}"
-                                       target="_blank" class="btn btn-sm btn-outline-primary">
-                                        <i class="fas fa-eye"></i> View Receipt
-                                    </a>
-                                {% else %}
-                                    <span class="text-muted">No receipt uploaded</span>
-                                {% endif %}
-                            </td>
-                        </tr>
-                    </table>
+            <div class="d-card">
+                <div class="d-card-header">💳 Payment</div>
+                <div class="d-card-body">
+                    <div class="d-row">
+                        <span class="d-label">Method</span>
+                        <span class="d-value">{{ enrollment.payment_method | upper }}</span>
+                    </div>
+                    <div class="d-row">
+                        <span class="d-label">Receipt</span>
+                        <span class="d-value">
+                            {% if enrollment.payment_receipt %}
+                                <a href="{{ url_for('main.uploaded_file', folder='receipts', filename=enrollment.payment_receipt) }}"
+                                   target="_blank" class="receipt-btn">
+                                    👁 View Receipt
+                                </a>
+                            {% else %}
+                                <span style="color:rgba(255,255,255,.3);">No receipt</span>
+                            {% endif %}
+                        </span>
+                    </div>
                 </div>
             </div>
 
-            <!-- Admin Actions (only shown for pending) -->
-            {% if enrollment.status == 'pending' %}
-            <div class="card shadow-sm border-warning">
-                <div class="card-header bg-warning text-dark">
-                    <h5 class="mb-0"><i class="fas fa-gavel"></i> Admin Actions</h5>
-                </div>
-                <div class="card-body">
+            <!-- Admin Actions -->
+            <div class="action-card">
+                <h3>Admin Actions</h3>
 
+                {% if enrollment.status == 'pending' %}
                     <!-- Approve -->
                     <form method="POST"
                           action="{{ url_for('admin.approve_enrollment', enrollment_id=enrollment.id) }}"
-                          onsubmit="return confirm('Approve this enrollment? This will activate the student\'s access.')">
-                        <button type="submit" class="btn btn-success w-100 mb-3">
-                            <i class="fas fa-check-circle"></i> Approve Enrollment
+                          onsubmit="return confirm('Approve this enrollment and activate the student\'s access?')">
+                        <button type="submit" class="btn-approve">
+                            ✅ Approve Enrollment
                         </button>
                     </form>
 
-                    <hr>
+                    <div class="divider"></div>
 
                     <!-- Reject -->
                     <form method="POST"
                           action="{{ url_for('admin.reject_enrollment', enrollment_id=enrollment.id) }}"
                           onsubmit="return confirm('Reject this enrollment?')">
-                        <div class="mb-3">
-                            <label class="form-label text-muted small">
-                                Rejection reason (shown to student)
-                            </label>
-                            <textarea name="admin_notes"
-                                      class="form-control"
-                                      rows="3"
-                                      placeholder="e.g. Payment receipt unclear, please resubmit..."></textarea>
-                        </div>
-                        <button type="submit" class="btn btn-danger w-100">
-                            <i class="fas fa-times-circle"></i> Reject Enrollment
+                        <textarea name="admin_notes" class="reject-notes" rows="3"
+                                  placeholder="Rejection reason shown to student (e.g. Receipt unclear)..."></textarea>
+                        <button type="submit" class="btn-reject">
+                            ❌ Reject Enrollment
                         </button>
                     </form>
 
-                </div>
+                {% elif enrollment.status == 'approved' and not enrollment.is_completed %}
+                    <p style="font-size:.85rem;color:rgba(255,255,255,.45);margin-bottom:1rem;">
+                        Mark this enrollment as completed to issue the student their certificate.
+                    </p>
+                    <form method="POST"
+                          action="{{ url_for('admin.mark_completed', enrollment_id=enrollment.id) }}"
+                          onsubmit="return confirm('Issue certificate of completion for this student?')">
+                        <button type="submit" class="btn-complete">
+                            🎓 Mark as Completed & Issue Certificate
+                        </button>
+                    </form>
+
+                {% elif enrollment.is_completed %}
+                    <div class="completed-badge" style="width:100%;justify-content:center;padding:.75rem;">
+                        🎓 Certificate Already Issued
+                    </div>
+
+                {% else %}
+                    <p style="font-size:.85rem;color:rgba(255,255,255,.3);text-align:center;">
+                        No actions available for this enrollment.
+                    </p>
+                {% endif %}
             </div>
-            {% endif %}
 
         </div>
     </div>

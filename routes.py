@@ -12,10 +12,10 @@ import io
 import uuid
 
 # Blueprints
-auth_bp     = Blueprint('auth',      __name__, url_prefix='/auth')
-course_bp   = Blueprint('courses',   __name__, url_prefix='/courses')
+auth_bp      = Blueprint('auth',      __name__, url_prefix='/auth')
+course_bp    = Blueprint('courses',   __name__, url_prefix='/courses')
 dashboard_bp = Blueprint('dashboard', __name__, url_prefix='/dashboard')
-main_bp     = Blueprint('main',      __name__)
+main_bp      = Blueprint('main',      __name__)
 
 
 # ================================
@@ -151,7 +151,7 @@ def detail(slug):
     course = Course.query.filter_by(slug=slug, is_active=True).first_or_404()
     lectures = course.lectures.order_by(Lecture.order_number).all()
 
-    is_enrolled      = False
+    is_enrolled       = False
     active_enrollment = None
 
     if current_user.is_authenticated:
@@ -163,7 +163,6 @@ def detail(slug):
         if active_enrollment and active_enrollment.is_active():
             is_enrolled = True
 
-    # Pass duration tiers for the pricing display on detail page
     duration_tiers = current_app.config.get('DURATION_TIERS', {})
 
     return render_template('courses/course_detail.html',
@@ -177,7 +176,7 @@ def detail(slug):
 @course_bp.route('/<slug>/enroll', methods=['GET', 'POST'])
 @login_required
 def enroll(slug):
-    """Course enrollment with duration-tier pricing."""
+    """Course enrollment with duration-tier + learning mode pricing."""
     course = Course.query.filter_by(slug=slug, is_active=True).first_or_404()
     duration_tiers = current_app.config.get('DURATION_TIERS', {})
 
@@ -198,8 +197,8 @@ def enroll(slug):
 
     if request.method == 'POST':
         try:
-            # ── Read tier selection ──────────────────────────
-            tier_key = request.form.get('duration_tier', 'short')   # short / standard / intensive
+            # ── Duration tier ─────────────────────────────────
+            tier_key = request.form.get('duration_tier', 'short')
             tier     = duration_tiers.get(tier_key)
 
             if not tier:
@@ -209,24 +208,49 @@ def enroll(slug):
                                        duration_tiers=duration_tiers,
                                        user=current_user)
 
-            # ── Determine price from course level ────────────
-            course_level = course.level.lower()   # beginner / intermediate / advanced
+            # ── Learning mode ──────────────────────────────────
+            learning_mode  = request.form.get('learning_mode', '').strip()
+            preferred_city = request.form.get('preferred_city', '').strip()
+            preferred_days = request.form.get('preferred_days', '').strip()
+            preferred_time = request.form.get('preferred_time', '').strip()
+            schedule_notes = request.form.get('schedule_notes', '').strip()
+
+            if not learning_mode:
+                flash('Please select a learning mode.', 'danger')
+                return render_template('courses/enroll.html',
+                                       form=form, course=course,
+                                       duration_tiers=duration_tiers,
+                                       user=current_user)
+
+            is_face_to_face = learning_mode.startswith('face_to_face')
+
+            # Face-to-face requires schedule fields
+            if is_face_to_face and (not preferred_days or not preferred_time):
+                flash('Please fill in your preferred days and time for face-to-face classes.', 'danger')
+                return render_template('courses/enroll.html',
+                                       form=form, course=course,
+                                       duration_tiers=duration_tiers,
+                                       user=current_user)
+
+            # ── Price calculation ──────────────────────────────
+            course_level     = course.level.lower()
             is_international = current_user.country != 'Pakistan'
-            currency_key = 'usd' if is_international else 'pkr'
 
             level_prices = tier.get(course_level, tier.get('beginner', {}))
-            price = level_prices.get(currency_key, 0)
+            base_price_pkr = level_prices.get('pkr', 0)
 
-            # For PKR storage we convert USD→PKR for international users
+            # Apply 3× for face-to-face
+            price_pkr = base_price_pkr * 3 if is_face_to_face else base_price_pkr
+
+            # Apply 2× for international
             if is_international:
-                price_pkr = round(price / current_app.config['CURRENCY_RATES']['USD'])
-            else:
-                price_pkr = price
+                price_pkr = price_pkr * 2
 
+            price_pkr  = round(price_pkr)
             total_days = tier['total_days']
 
-            # ── Payment method ───────────────────────────────
-            payment_method = request.form.get('payment_method', '')
+            # ── Payment method ─────────────────────────────────
+            payment_method = request.form.get('payment_method', '').strip()
             if not payment_method:
                 flash('Please select a payment method.', 'danger')
                 return render_template('courses/enroll.html',
@@ -234,7 +258,7 @@ def enroll(slug):
                                        duration_tiers=duration_tiers,
                                        user=current_user)
 
-            # ── Receipt upload ───────────────────────────────
+            # ── Receipt upload ─────────────────────────────────
             receipt_file = request.files.get('payment_receipt')
             if not receipt_file or receipt_file.filename == '':
                 flash('Please upload a payment receipt.', 'danger')
@@ -251,7 +275,7 @@ def enroll(slug):
                                        duration_tiers=duration_tiers,
                                        user=current_user)
 
-            # ── Create enrollment ────────────────────────────
+            # ── Create enrollment ──────────────────────────────
             enrollment = Enrollment(
                 user_id=current_user.id,
                 course_id=course.id,
@@ -262,20 +286,33 @@ def enroll(slug):
                 currency='USD' if is_international else 'PKR',
                 payment_method=payment_method,
                 payment_receipt=receipt_filename,
-                status='pending'
+                status='pending',
+                # New learning mode fields
+                learning_mode=learning_mode,
+                preferred_city=preferred_city if is_face_to_face else None,
+                preferred_days=preferred_days if is_face_to_face else None,
+                preferred_time=preferred_time if is_face_to_face else None,
+                schedule_notes=schedule_notes if is_face_to_face else None,
             )
 
             db.session.add(enrollment)
             db.session.commit()
 
+            mode_label = {
+                'self_paced':              'Self-Paced (Recorded)',
+                'live_online':             'Live Online',
+                'face_to_face_lahore':     'Face to Face — Lahore',
+                'face_to_face_faisalabad': 'Face to Face — Faisalabad',
+            }.get(learning_mode, learning_mode)
+
             current_app.logger.info(
                 f'Enrollment: User={current_user.id}, Course={course.id}, '
-                f'Tier={tier_key}, Days={total_days}, Price=Rs.{price_pkr}'
+                f'Tier={tier_key}, Mode={learning_mode}, Days={total_days}, Price=Rs.{price_pkr}'
             )
 
             flash(
-                f'Enrollment submitted! You selected the {tier["label"]} plan '
-                f'for {course.title}. Awaiting admin approval.',
+                f'Enrollment submitted! {tier["label"]} plan · {mode_label} · '
+                f'Rs. {price_pkr:,}. Awaiting admin approval.',
                 'success'
             )
             return redirect(url_for('dashboard.my_enrollments'))
