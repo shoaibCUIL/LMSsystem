@@ -8,13 +8,10 @@
     /* ── Hero ── */
     .courses-hero {
         background: linear-gradient(135deg, #050E27 0%, #0D2461 60%, #1a3a6e 100%);
-        padding: 3.5rem 0 3rem;
-        position: relative;
-        overflow: hidden;
+        padding: 3.5rem 0 3rem; position: relative; overflow: hidden;
     }
     .courses-hero::before {
-        content: '';
-        position: absolute; inset: 0;
+        content: ''; position: absolute; inset: 0;
         background-image:
             linear-gradient(rgba(255,255,255,.025) 1px, transparent 1px),
             linear-gradient(90deg, rgba(255,255,255,.025) 1px, transparent 1px);
@@ -27,14 +24,11 @@
     .courses-hero h1 {
         font-family: 'Sora', sans-serif;
         font-size: clamp(1.8rem, 3vw, 2.6rem);
-        font-weight: 800; color: #fff;
-        letter-spacing: -.03em; margin-bottom: .75rem;
+        font-weight: 800; color: #fff; letter-spacing: -.03em; margin-bottom: .75rem;
     }
-    .courses-hero p {
-        color: rgba(255,255,255,.6); font-size: 1rem; margin: 0;
-    }
+    .courses-hero p { color: rgba(255,255,255,.6); font-size: 1rem; margin: 0; }
 
-    /* ── Filter tabs ── */
+    /* ── Filter bar ── */
     .filter-bar {
         background: var(--surface-0);
         border-bottom: 1px solid var(--border-light);
@@ -53,20 +47,16 @@
         transition: all .18s ease;
     }
     .filter-btn:hover, .filter-btn.active {
-        background: var(--brand-blue);
-        border-color: var(--brand-blue);
-        color: white;
+        background: var(--brand-blue); border-color: var(--brand-blue); color: white;
     }
 
-    /* ── Main layout ── */
+    /* ── Main wrap ── */
     .courses-wrap {
         max-width: 1280px; margin: 0 auto;
         padding: 2.5rem 1.5rem 4rem;
     }
-
     .courses-count {
-        font-size: .85rem; color: var(--text-muted);
-        margin-bottom: 1.5rem;
+        font-size: .85rem; color: var(--text-muted); margin-bottom: 1.5rem;
     }
     .courses-count strong { color: var(--text-primary); }
 
@@ -84,23 +74,25 @@
         border-radius: 20px;
         overflow: hidden;
         display: flex; flex-direction: column;
-        transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease;
         text-decoration: none;
+        position: relative;
+        transition: transform .25s ease, box-shadow .25s ease, border-color .25s ease;
+        cursor: pointer;
     }
     .course-card:hover {
-        transform: translateY(-5px);
+        transform: translateY(-6px);
         box-shadow: var(--shadow-lg);
-        border-color: rgba(0,86,210,.2);
+        border-color: rgba(0,86,210,.25);
     }
 
     /* Thumbnail */
     .course-thumb {
-        height: 150px;
+        height: 160px;
         display: flex; align-items: center; justify-content: center;
-        font-size: 3rem; position: relative; overflow: hidden;
-        flex-shrink: 0;
+        font-size: 3.5rem; position: relative; overflow: hidden; flex-shrink: 0;
+        transition: height .3s ease;
     }
-    .course-thumb img { width: 100%; height: 100%; object-fit: cover; }
+    .course-card:hover .course-thumb { height: 120px; }
 
     .thumb-gl  { background: linear-gradient(135deg,#EBF2FF,#C7DCFF); }
     .thumb-py  { background: linear-gradient(135deg,#FFF7ED,#FED7AA); }
@@ -109,17 +101,15 @@
     .thumb-ai  { background: linear-gradient(135deg,#F0FDF4,#BBF7D0); }
     .thumb-cpl { background: linear-gradient(135deg,#F5F3FF,#DDD6FE); }
     .thumb-st  { background: linear-gradient(135deg,#FEF2F2,#FECACA); }
+    .thumb-ce  { background: linear-gradient(135deg,#F0F9FF,#BAE6FD); }
     .thumb-def { background: linear-gradient(135deg,#667eea,#764ba2); }
 
     /* Body */
     .course-body {
         padding: 1.25rem 1.25rem .75rem;
-        display: flex; flex-direction: column; gap: .6rem; flex: 1;
+        display: flex; flex-direction: column; gap: .5rem; flex: 1;
     }
-
-    .course-meta {
-        display: flex; align-items: center; gap: .4rem; flex-wrap: wrap;
-    }
+    .course-meta { display: flex; align-items: center; gap: .4rem; flex-wrap: wrap; }
 
     .badge-level {
         font-size: .68rem; font-weight: 700; padding: .2rem .55rem;
@@ -131,79 +121,100 @@
 
     .badge-duration {
         font-size: .68rem; font-weight: 600; padding: .2rem .55rem;
-        border-radius: 999px; background: var(--surface-2);
-        color: var(--text-secondary);
+        border-radius: 999px; background: var(--surface-2); color: var(--text-secondary);
     }
 
     .course-title {
-        font-family: 'Sora', sans-serif;
-        font-size: .97rem; font-weight: 700;
+        font-family: 'Sora', sans-serif; font-weight: 700; font-size: 1rem;
         color: var(--text-primary); line-height: 1.35; margin: 0;
     }
-
     .course-desc {
-        font-size: .82rem; color: var(--text-muted);
-        line-height: 1.55; margin: 0;
-        display: -webkit-box;
-        -webkit-line-clamp: 3;
-        -webkit-box-orient: vertical;
+        font-size: .82rem; color: var(--text-muted); line-height: 1.55; margin: 0;
+        display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+        transition: all .25s ease;
+    }
+    .course-card:hover .course-desc { -webkit-line-clamp: 1; }
+
+    /* ── HOVER PRICING OVERLAY ── */
+    .pricing-overlay {
+        position: absolute;
+        bottom: 0; left: 0; right: 0;
+        background: white;
+        border-top: 2px solid rgba(0,86,210,.15);
+        padding: 0 1.25rem;
+        max-height: 0;
         overflow: hidden;
+        transition: max-height .35s cubic-bezier(.4,0,.2,1),
+                    padding .35s ease,
+                    opacity .25s ease;
+        opacity: 0;
+        border-radius: 0 0 20px 20px;
+    }
+    .course-card:hover .pricing-overlay {
+        max-height: 260px;
+        padding: 1rem 1.25rem;
+        opacity: 1;
     }
 
-    /* Pricing tiers inside card */
-    .tier-pricing {
-        display: flex; flex-direction: column; gap: .35rem;
-        padding: .75rem; background: var(--surface-1);
-        border-radius: 12px; margin-top: auto;
+    .pricing-overlay-title {
+        font-size: .7rem; font-weight: 700; text-transform: uppercase;
+        letter-spacing: .08em; color: var(--text-muted);
+        margin-bottom: .6rem;
     }
 
     .tier-row {
         display: flex; align-items: center;
-        justify-content: space-between; gap: .5rem;
+        justify-content: space-between;
+        padding: .35rem 0;
+        border-bottom: 1px solid var(--border-light);
+        font-size: .82rem;
     }
+    .tier-row:last-of-type { border-bottom: none; }
 
-    .tier-label {
-        font-size: .72rem; font-weight: 700;
-        color: var(--text-muted); text-transform: uppercase;
-        letter-spacing: .05em; white-space: nowrap;
+    .tier-left { display: flex; align-items: center; gap: .5rem; }
+    .tier-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+    .dot-short    { background: #10B981; }
+    .dot-standard { background: #3B82F6; }
+    .dot-intensive{ background: #EF4444; }
+    .tier-name { font-weight: 600; color: var(--text-primary); }
+    .tier-months { font-size: .7rem; color: var(--text-muted); }
+
+    .tier-price {
+        font-family: 'Sora', sans-serif; font-weight: 800;
+        font-size: .9rem; color: var(--brand-blue);
     }
+    .tier-usd { font-size: .7rem; color: var(--text-muted); margin-left: .25rem; }
 
-    .tier-prices {
-        display: flex; align-items: center; gap: .5rem;
+    .overlay-cta {
+        display: block; width: 100%; text-align: center;
+        padding: .55rem; border-radius: 8px; margin-top: .75rem;
+        background: var(--brand-blue); color: white;
+        font-weight: 700; font-size: .85rem; text-decoration: none;
+        transition: background .18s ease;
     }
+    .overlay-cta:hover { background: var(--brand-blue-dark); }
 
-    .tier-pkr {
-        font-family: 'Sora', sans-serif;
-        font-size: .82rem; font-weight: 700; color: var(--brand-blue);
-    }
-
-    .tier-usd {
-        font-size: .72rem; color: var(--text-muted);
-    }
-
-    .tier-divider {
-        height: 1px; background: var(--border-light); margin: .1rem 0;
-    }
-
-    /* Footer */
+    /* Static footer (visible before hover) */
     .course-footer {
         padding: .85rem 1.25rem;
         border-top: 1px solid var(--border-light);
         display: flex; align-items: center; justify-content: space-between;
+        transition: opacity .2s ease;
+    }
+    .course-card:hover .course-footer { opacity: 0; pointer-events: none; }
+
+    .from-label { font-size: .68rem; color: var(--text-muted); margin-bottom: .1rem; }
+    .from-price {
+        font-family: 'Sora', sans-serif; font-weight: 800;
+        font-size: .9rem; color: var(--brand-blue);
+    }
+    .enroll-arrow {
+        font-size: .78rem; font-weight: 700; color: var(--brand-blue);
+        display: flex; align-items: center; gap: .25rem;
+        transition: gap .18s ease;
     }
 
-    .enroll-btn {
-        display: inline-flex; align-items: center; gap: .35rem;
-        font-size: .8rem; font-weight: 700; color: var(--brand-blue);
-        text-decoration: none; transition: gap .18s ease;
-    }
-    .course-card:hover .enroll-btn { gap: .55rem; }
-
-    .intl-note {
-        font-size: .7rem; color: var(--text-muted);
-    }
-
-    /* Empty state */
+    /* Empty / CTA */
     .empty-state {
         text-align: center; padding: 4rem 2rem;
         background: var(--surface-0); border-radius: 20px;
@@ -212,12 +223,9 @@
     .empty-state h3 { font-family: 'Sora', sans-serif; color: var(--text-secondary); margin-bottom: .5rem; }
     .empty-state p  { color: var(--text-muted); font-size: .9rem; }
 
-    /* CTA banner */
     .cta-strip {
-        background: var(--surface-0);
-        border: 1px solid var(--border-light);
-        border-radius: 20px; padding: 2rem;
-        text-align: center; margin-top: 3rem;
+        background: var(--surface-0); border: 1px solid var(--border-light);
+        border-radius: 20px; padding: 2rem; text-align: center; margin-top: 3rem;
     }
     .cta-strip h3 {
         font-family: 'Sora', sans-serif; font-weight: 700;
@@ -237,7 +245,7 @@
 <div class="courses-hero">
     <div class="courses-hero-inner">
         <h1>Explore Our Courses</h1>
-        <p>Comprehensive linguistics courses for all skill levels</p>
+        <p>Comprehensive linguistics &amp; tech courses for all skill levels</p>
     </div>
 </div>
 
@@ -255,42 +263,62 @@
 <div class="courses-wrap">
 
     {% if courses %}
-
     <p class="courses-count">
-        Showing <strong>{{ courses | length }}</strong> course{{ 's' if courses | length != 1 else '' }}
+        Showing <strong id="visibleCount">{{ courses | length }}</strong>
+        course{{ 's' if courses | length != 1 else '' }}
     </p>
 
     <div class="courses-grid" id="coursesGrid">
         {% for course in courses %}
 
-        {# Pick thumb class by slug #}
+        {# Thumb class & icon #}
         {% if course.slug == 'general-linguistics' %}
-            {% set thumb_cls = 'thumb-gl' %}{% set thumb_icon = '🔤' %}
+            {% set tc = 'thumb-gl' %}{% set ti = '🔤' %}
         {% elif 'python-for' in course.slug %}
-            {% set thumb_cls = 'thumb-py' %}{% set thumb_icon = '🐍' %}
+            {% set tc = 'thumb-py' %}{% set ti = '🐍' %}
         {% elif course.slug == 'corpus-linguistics' %}
-            {% set thumb_cls = 'thumb-cl' %}{% set thumb_icon = '📊' %}
+            {% set tc = 'thumb-cl' %}{% set ti = '📊' %}
         {% elif 'python-full' in course.slug %}
-            {% set thumb_cls = 'thumb-pf' %}{% set thumb_icon = '💻' %}
-        {% elif 'coding-with' in course.slug %}
-            {% set thumb_cls = 'thumb-ai' %}{% set thumb_icon = '🤖' %}
+            {% set tc = 'thumb-pf' %}{% set ti = '💻' %}
+        {% elif 'vibe' in course.slug or 'coding-with' in course.slug %}
+            {% set tc = 'thumb-ai' %}{% set ti = '✨' %}
         {% elif 'computational' in course.slug %}
-            {% set thumb_cls = 'thumb-cpl' %}{% set thumb_icon = '🧠' %}
+            {% set tc = 'thumb-cpl' %}{% set ti = '🧠' %}
         {% elif 'stats' in course.slug %}
-            {% set thumb_cls = 'thumb-st' %}{% set thumb_icon = '📈' %}
+            {% set tc = 'thumb-st' %}{% set ti = '📈' %}
+        {% elif 'computer-essentials' in course.slug %}
+            {% set tc = 'thumb-ce' %}{% set ti = '🖥️' %}
         {% else %}
-            {% set thumb_cls = 'thumb-def' %}{% set thumb_icon = '📖' %}
+            {% set tc = 'thumb-def' %}{% set ti = '📖' %}
+        {% endif %}
+
+        {# Prices by level #}
+        {% if course.level == 'beginner' %}
+            {% set p_short = ('4,000', '30') %}
+            {% set p_std   = ('8,000', '60') %}
+            {% set p_int   = ('15,000', '120') %}
+            {% set p_from  = '4,000' %}
+        {% elif course.level == 'intermediate' %}
+            {% set p_short = ('6,000', '45') %}
+            {% set p_std   = ('11,000', '85') %}
+            {% set p_int   = ('22,000', '170') %}
+            {% set p_from  = '6,000' %}
+        {% else %}
+            {% set p_short = ('8,000', '60') %}
+            {% set p_std   = ('15,000', '120') %}
+            {% set p_int   = ('35,000', '250') %}
+            {% set p_from  = '8,000' %}
         {% endif %}
 
         <div class="course-card" data-level="{{ course.level }}">
 
             <!-- Thumbnail -->
-            <div class="course-thumb {{ thumb_cls }}">
+            <div class="course-thumb {{ tc }}">
                 {% if course.thumbnail %}
                     <img src="{{ url_for('main.uploaded_file', folder='thumbnails', filename=course.thumbnail) }}"
-                         alt="{{ course.title }}">
+                         alt="{{ course.title }}" style="width:100%;height:100%;object-fit:cover;">
                 {% else %}
-                    {{ thumb_icon }}
+                    {{ ti }}
                 {% endif %}
             </div>
 
@@ -302,71 +330,73 @@
                     <span class="badge-duration">{{ course.duration_estimate }}</span>
                     {% endif %}
                 </div>
-
                 <h3 class="course-title">{{ course.title }}</h3>
                 <p class="course-desc">{{ course.description }}</p>
-
-                <!-- Duration-tier pricing -->
-                <div class="tier-pricing">
-                    <div class="tier-row">
-                        <span class="tier-label">🟢 Short (1 mo)</span>
-                        <div class="tier-prices">
-                            {% if course.level == 'beginner' %}
-                                <span class="tier-pkr">Rs. 4,000</span>
-                                <span class="tier-usd">/ $30</span>
-                            {% elif course.level == 'intermediate' %}
-                                <span class="tier-pkr">Rs. 6,000</span>
-                                <span class="tier-usd">/ $45</span>
-                            {% else %}
-                                <span class="tier-pkr">Rs. 8,000</span>
-                                <span class="tier-usd">/ $60</span>
-                            {% endif %}
-                        </div>
-                    </div>
-                    <div class="tier-divider"></div>
-                    <div class="tier-row">
-                        <span class="tier-label">🔵 Standard (2 mo)</span>
-                        <div class="tier-prices">
-                            {% if course.level == 'beginner' %}
-                                <span class="tier-pkr">Rs. 8,000</span>
-                                <span class="tier-usd">/ $60</span>
-                            {% elif course.level == 'intermediate' %}
-                                <span class="tier-pkr">Rs. 11,000</span>
-                                <span class="tier-usd">/ $85</span>
-                            {% else %}
-                                <span class="tier-pkr">Rs. 15,000</span>
-                                <span class="tier-usd">/ $120</span>
-                            {% endif %}
-                        </div>
-                    </div>
-                    <div class="tier-divider"></div>
-                    <div class="tier-row">
-                        <span class="tier-label">🔴 Intensive (3 mo)</span>
-                        <div class="tier-prices">
-                            {% if course.level == 'beginner' %}
-                                <span class="tier-pkr">Rs. 15,000</span>
-                                <span class="tier-usd">/ $120</span>
-                            {% elif course.level == 'intermediate' %}
-                                <span class="tier-pkr">Rs. 22,000</span>
-                                <span class="tier-usd">/ $170</span>
-                            {% else %}
-                                <span class="tier-pkr">Rs. 35,000</span>
-                                <span class="tier-usd">/ $250</span>
-                            {% endif %}
-                        </div>
-                    </div>
-                </div>
             </div>
 
-            <!-- Footer -->
+            <!-- Static footer (before hover) -->
             <div class="course-footer">
-                <span class="intl-note">International rates in USD</span>
-                <a href="{{ url_for('courses.detail', slug=course.slug) }}" class="enroll-btn">
+                <div>
+                    <div class="from-label">From</div>
+                    <div class="from-price">Rs. {{ p_from }}</div>
+                </div>
+                <span class="enroll-arrow">
                     View & Enroll
                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
                          stroke="currentColor" stroke-width="2.5">
                         <path d="M5 12h14"/><path d="m12 5 7 7-7 7"/>
                     </svg>
+                </span>
+            </div>
+
+            <!-- Hover pricing overlay -->
+            <div class="pricing-overlay">
+                <div class="pricing-overlay-title">Choose Your Plan</div>
+
+                <div class="tier-row">
+                    <div class="tier-left">
+                        <div class="tier-dot dot-short"></div>
+                        <div>
+                            <div class="tier-name">Short</div>
+                            <div class="tier-months">1 month</div>
+                        </div>
+                    </div>
+                    <div>
+                        <span class="tier-price">Rs. {{ p_short[0] }}</span>
+                        <span class="tier-usd">/ ${{ p_short[1] }}</span>
+                    </div>
+                </div>
+
+                <div class="tier-row">
+                    <div class="tier-left">
+                        <div class="tier-dot dot-standard"></div>
+                        <div>
+                            <div class="tier-name">Standard</div>
+                            <div class="tier-months">2 months</div>
+                        </div>
+                    </div>
+                    <div>
+                        <span class="tier-price">Rs. {{ p_std[0] }}</span>
+                        <span class="tier-usd">/ ${{ p_std[1] }}</span>
+                    </div>
+                </div>
+
+                <div class="tier-row">
+                    <div class="tier-left">
+                        <div class="tier-dot dot-intensive"></div>
+                        <div>
+                            <div class="tier-name">Intensive</div>
+                            <div class="tier-months">3 months</div>
+                        </div>
+                    </div>
+                    <div>
+                        <span class="tier-price">Rs. {{ p_int[0] }}</span>
+                        <span class="tier-usd">/ ${{ p_int[1] }}</span>
+                    </div>
+                </div>
+
+                <a href="{{ url_for('courses.detail', slug=course.slug) }}" class="overlay-cta">
+                    View Course & Enroll →
                 </a>
             </div>
 
@@ -384,7 +414,7 @@
     {% if not current_user.is_authenticated %}
     <div class="cta-strip">
         <h3>New to EduLearn?</h3>
-        <p>Create a free account to access course details and enroll in any course.</p>
+        <p>Create a free account to enroll in any course.</p>
         <a href="{{ url_for('auth.register') }}"
            class="btn btn-primary" style="height:44px;padding:0 1.75rem;font-size:.9rem;">
             Create Free Account →
@@ -399,25 +429,18 @@
 {% block extra_js %}
 <script>
 function filterCourses(level, btn) {
-    // Update active button
     document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
 
-    // Show/hide cards
+    let visible = 0;
     document.querySelectorAll('.course-card').forEach(card => {
-        if (level === 'all' || card.dataset.level === level) {
-            card.style.display = '';
-        } else {
-            card.style.display = 'none';
-        }
+        const show = level === 'all' || card.dataset.level === level;
+        card.style.display = show ? '' : 'none';
+        if (show) visible++;
     });
 
-    // Update count
-    const visible = document.querySelectorAll('.course-card:not([style*="display: none"])').length;
-    const countEl = document.querySelector('.courses-count');
-    if (countEl) {
-        countEl.innerHTML = `Showing <strong>${visible}</strong> course${visible !== 1 ? 's' : ''}`;
-    }
+    const countEl = document.getElementById('visibleCount');
+    if (countEl) countEl.textContent = visible;
 }
 </script>
 {% endblock %}
