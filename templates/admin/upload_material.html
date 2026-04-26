@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% block title %}Upload Material — {{ course.title }}{% endblock %}
+{% block extra_head %}
+<style>
+    body { background:#0f1117; }
+    .wrap { max-width:640px; margin:0 auto; padding:2rem 1.5rem 4rem; }
+    .page-header { margin-bottom:2rem; }
+    .page-header h1 { font-family:'Sora',sans-serif; font-size:1.4rem; font-weight:800; color:#fff; margin:0 0 .25rem; }
+    .page-header p  { color:rgba(255,255,255,.4); font-size:.85rem; margin:0; }
+    .form-card { background:#1a1d27; border:1px solid rgba(255,255,255,.07); border-radius:16px; padding:1.75rem; }
+    .field { margin-bottom:1.25rem; }
+    .field label { display:block; font-size:.85rem; font-weight:600; color:rgba(255,255,255,.7); margin-bottom:.4rem; }
+    .field input, .field textarea, .field select {
+        width:100%; padding:.65rem .9rem;
+        background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.1);
+        border-radius:8px; color:rgba(255,255,255,.85);
+        font-family:'DM Sans',sans-serif; font-size:.9rem;
+        transition:border-color .18s;
+    }
+    .field input:focus, .field textarea:focus {
+        outline:none; border-color:#0056D2;
+        box-shadow:0 0 0 3px rgba(0,86,210,.15);
+    }
+    .field input[type="file"] { padding:.5rem; cursor:pointer; }
+    .btn-submit { width:100%; padding:.9rem; border:none; border-radius:10px; cursor:pointer; font-family:'DM Sans',sans-serif; font-weight:700; font-size:.95rem; background:linear-gradient(135deg,#0056D2,#003E99); color:white; transition:opacity .2s; }
+    .btn-submit:hover { opacity:.9; }
+    .back-link { display:inline-flex; align-items:center; gap:.4rem; font-size:.85rem; color:rgba(255,255,255,.5); text-decoration:none; margin-bottom:1.5rem; }
+    .back-link:hover { color:#fff; }
+</style>
+{% endblock %}
+{% block content %}
+<div class="wrap">
+    <a href="{{ url_for('admin.course_materials', course_id=course.id) }}" class="back-link">← Back to Materials</a>
+    <div class="page-header">
+        <h1>📄 Upload Material</h1>
+        <p>{{ course.title }}</p>
+    </div>
+    <div class="form-card">
+        <form method="POST" enctype="multipart/form-data">
+            <div class="field">
+                <label>Title <span style="color:#F87171;">*</span></label>
+                <input type="text" name="title" placeholder="e.g. Week 1 Slides" required>
+            </div>
+            <div class="field">
+                <label>Description (optional)</label>
+                <textarea name="description" rows="2" placeholder="Brief description of this material..."></textarea>
+            </div>
+            <div class="field">
+                <label>File <span style="color:#F87171;">*</span></label>
+                <input type="file" name="material_file" accept=".pdf,.pptx,.ppt,.docx,.doc,.xlsx,.zip,.txt" required>
+                <div style="font-size:.75rem;color:rgba(255,255,255,.3);margin-top:.3rem;">
+                    Accepted: PDF, PPTX, DOCX, XLSX, ZIP, TXT · Max 16MB
+                </div>
+            </div>
+            <div class="field">
+                <label>Order Number</label>
+                <input type="number" name="order_number" value="0" min="0">
+            </div>
+            <button type="submit" class="btn-submit">Upload Material →</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

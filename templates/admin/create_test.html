@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+{% block title %}Add Test — {{ course.title }}{% endblock %}
+{% block extra_head %}
+<style>
+    body { background:#0f1117; }
+    .wrap { max-width:640px; margin:0 auto; padding:2rem 1.5rem 4rem; }
+    .page-header { margin-bottom:2rem; }
+    .page-header h1 { font-family:'Sora',sans-serif; font-size:1.4rem; font-weight:800; color:#fff; margin:0 0 .25rem; }
+    .page-header p  { color:rgba(255,255,255,.4); font-size:.85rem; margin:0; }
+    .form-card { background:#1a1d27; border:1px solid rgba(255,255,255,.07); border-radius:16px; padding:1.75rem; }
+    .field { margin-bottom:1.25rem; }
+    .field label { display:block; font-size:.85rem; font-weight:600; color:rgba(255,255,255,.7); margin-bottom:.4rem; }
+    .field input, .field textarea, .field select {
+        width:100%; padding:.65rem .9rem;
+        background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.1);
+        border-radius:8px; color:rgba(255,255,255,.85);
+        font-family:'DM Sans',sans-serif; font-size:.9rem;
+    }
+    .field input:focus, .field textarea:focus, .field select:focus {
+        outline:none; border-color:#0056D2;
+    }
+    .field select option { background:#1a1d27; }
+    .type-toggle { display:flex; gap:0; border:1px solid rgba(255,255,255,.1); border-radius:8px; overflow:hidden; margin-bottom:1rem; }
+    .type-btn { flex:1; padding:.6rem; text-align:center; cursor:pointer; font-weight:600; font-size:.875rem; background:transparent; color:rgba(255,255,255,.5); border:none; transition:all .18s; }
+    .type-btn.active { background:#0056D2; color:white; }
+    .btn-submit { width:100%; padding:.9rem; border:none; border-radius:10px; cursor:pointer; font-family:'DM Sans',sans-serif; font-weight:700; font-size:.95rem; background:linear-gradient(135deg,#0056D2,#003E99); color:white; }
+    .back-link { display:inline-flex; align-items:center; gap:.4rem; font-size:.85rem; color:rgba(255,255,255,.5); text-decoration:none; margin-bottom:1.5rem; }
+    .hint { font-size:.75rem; color:rgba(255,255,255,.3); margin-top:.3rem; }
+</style>
+{% endblock %}
+{% block content %}
+<div class="wrap">
+    <a href="{{ url_for('admin.course_tests', course_id=course.id) }}" class="back-link">← Back to Tests</a>
+    <div class="page-header">
+        <h1>✏️ Add Test / Assessment</h1>
+        <p>{{ course.title }}</p>
+    </div>
+    <div class="form-card">
+        <form method="POST" enctype="multipart/form-data" id="testForm">
+
+            <div class="field">
+                <label>Title <span style="color:#F87171;">*</span></label>
+                <input type="text" name="title" placeholder="e.g. Week 1 Quiz, Midterm Test" required>
+            </div>
+
+            <div class="field">
+                <label>Description (optional)</label>
+                <textarea name="description" rows="2"
+                          placeholder="Instructions or details about this test..."></textarea>
+            </div>
+
+            <div class="field">
+                <label>Test Type</label>
+                <div class="type-toggle">
+                    <button type="button" class="type-btn active" id="btnLink" onclick="setType('link')">
+                        🔗 External Link (Google Form, etc.)
+                    </button>
+                    <button type="button" class="type-btn" id="btnFile" onclick="setType('file')">
+                        📄 Upload File
+                    </button>
+                </div>
+                <input type="hidden" name="test_type" id="testType" value="link">
+            </div>
+
+            <!-- Link section -->
+            <div class="field" id="linkSection">
+                <label>Test Link</label>
+                <input type="url" name="test_link"
+                       placeholder="https://forms.google.com/...">
+                <div class="hint">Paste your Google Form, Typeform, or any quiz link here.</div>
+            </div>
+
+            <!-- File section -->
+            <div class="field" id="fileSection" style="display:none;">
+                <label>Test File</label>
+                <input type="file" name="test_file" accept=".pdf,.docx,.doc,.xlsx">
+                <div class="hint">PDF or Word document containing the test questions.</div>
+            </div>
+
+            <div class="field">
+                <label>Due Date (optional)</label>
+                <input type="datetime-local" name="due_date">
+            </div>
+
+            <div class="field">
+                <label>Order Number</label>
+                <input type="number" name="order_number" value="0" min="0">
+            </div>
+
+            <button type="submit" class="btn-submit">Create Test →</button>
+        </form>
+    </div>
+</div>
+<script>
+function setType(type) {
+    document.getElementById('testType').value = type;
+    document.getElementById('btnLink').classList.toggle('active', type === 'link');
+    document.getElementById('btnFile').classList.toggle('active', type === 'file');
+    document.getElementById('linkSection').style.display = type === 'link' ? '' : 'none';
+    document.getElementById('fileSection').style.display = type === 'file' ? '' : 'none';
+}
+</script>
+{% endblock %}

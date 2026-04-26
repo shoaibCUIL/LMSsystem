@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% block title %}Materials — {{ course.title }}{% endblock %}
+{% block extra_head %}
+<style>
+    body { background: #0f1117; }
+    .wrap { max-width: 900px; margin: 0 auto; padding: 2rem 1.5rem 4rem; }
+    .page-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:2rem; flex-wrap:wrap; gap:1rem; }
+    .page-header h1 { font-family:'Sora',sans-serif; font-size:1.4rem; font-weight:800; color:#fff; margin:0; }
+    .back-link { font-size:.85rem; color:rgba(255,255,255,.5); text-decoration:none; border:1px solid rgba(255,255,255,.12); padding:.4rem .9rem; border-radius:8px; transition:all .18s; }
+    .back-link:hover { color:#fff; border-color:rgba(255,255,255,.3); }
+    .upload-btn { display:inline-flex; align-items:center; gap:.4rem; padding:.5rem 1.1rem; border-radius:8px; background:#0056D2; color:white; font-weight:700; font-size:.875rem; text-decoration:none; transition:all .18s; }
+    .upload-btn:hover { background:#003E99; }
+    .mat-card { background:#1a1d27; border:1px solid rgba(255,255,255,.07); border-radius:14px; padding:1.25rem 1.5rem; margin-bottom:.85rem; display:flex; align-items:center; justify-content:space-between; gap:1rem; flex-wrap:wrap; }
+    .mat-icon { width:40px; height:40px; border-radius:10px; background:rgba(0,86,210,.2); display:flex; align-items:center; justify-content:center; font-size:1.1rem; flex-shrink:0; }
+    .mat-info { flex:1; }
+    .mat-title { font-weight:700; font-size:.95rem; color:#fff; margin-bottom:.2rem; }
+    .mat-meta  { font-size:.78rem; color:rgba(255,255,255,.4); }
+    .del-btn { font-size:.78rem; color:#F87171; background:rgba(239,68,68,.1); border:1px solid rgba(239,68,68,.2); padding:.3rem .75rem; border-radius:6px; cursor:pointer; transition:all .18s; }
+    .del-btn:hover { background:rgba(239,68,68,.2); }
+    .empty { text-align:center; padding:3rem; color:rgba(255,255,255,.3); font-size:.9rem; }
+</style>
+{% endblock %}
+{% block content %}
+<div class="wrap">
+    <div class="page-header">
+        <div>
+            <h1>📄 Course Materials</h1>
+            <p style="color:rgba(255,255,255,.4);font-size:.85rem;margin:.25rem 0 0;">{{ course.title }}</p>
+        </div>
+        <div style="display:flex;gap:.75rem;flex-wrap:wrap;">
+            <a href="{{ url_for('admin.courses') }}" class="back-link">← Courses</a>
+            <a href="{{ url_for('admin.upload_material', course_id=course.id) }}" class="upload-btn">+ Upload Material</a>
+        </div>
+    </div>
+
+    {% if materials %}
+        {% for mat in materials %}
+        <div class="mat-card">
+            <div class="mat-icon">
+                {% if mat.file_type == 'pdf' %}📄
+                {% elif mat.file_type in ['pptx','ppt'] %}📊
+                {% elif mat.file_type in ['docx','doc'] %}📝
+                {% else %}📎{% endif %}
+            </div>
+            <div class="mat-info">
+                <div class="mat-title">{{ mat.title }}</div>
+                <div class="mat-meta">
+                    {{ mat.file_type | upper if mat.file_type else 'FILE' }}
+                    {% if mat.file_size_kb %} · {{ mat.file_size_kb }} KB{% endif %}
+                    {% if mat.description %} · {{ mat.description[:60] }}{% endif %}
+                </div>
+            </div>
+            <div style="display:flex;gap:.5rem;align-items:center;">
+                <a href="{{ url_for('main.uploaded_file', folder='materials', filename=mat.file_path) }}"
+                   target="_blank"
+                   style="font-size:.78rem;color:#4FA8FF;text-decoration:none;padding:.3rem .75rem;background:rgba(79,168,255,.1);border:1px solid rgba(79,168,255,.2);border-radius:6px;">
+                    👁 Preview
+                </a>
+                <form method="POST" action="{{ url_for('admin.delete_material', material_id=mat.id) }}"
+                      onsubmit="return confirm('Delete this material?')">
+                    <button type="submit" class="del-btn">🗑 Delete</button>
+                </form>
+            </div>
+        </div>
+        {% endfor %}
+    {% else %}
+        <div class="empty">
+            <div style="font-size:2.5rem;margin-bottom:.75rem;">📂</div>
+            No materials uploaded yet.
+            <a href="{{ url_for('admin.upload_material', course_id=course.id) }}"
+               style="color:#4FA8FF;display:block;margin-top:.5rem;">Upload the first material →</a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
