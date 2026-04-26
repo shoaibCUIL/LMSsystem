@@ -448,3 +448,21 @@ def download_certificate(enrollment_id):
 def uploaded_file(folder, filename):
     upload_folder = current_app.config['UPLOAD_FOLDER']
     return send_from_directory(os.path.join(upload_folder, folder), filename)
+
+
+# Add this route to routes.py alongside the existing uploaded_file route
+# It serves materials and test files uploaded by admin
+
+@main_bp.route('/uploads/materials/<filename>')
+def material_file(filename):
+    """Serve course material files."""
+    import os
+    folder = os.path.join(current_app.config['UPLOAD_FOLDER'], 'materials')
+    return send_from_directory(folder, filename)
+
+@main_bp.route('/uploads/tests/<filename>')
+def test_file(filename):
+    """Serve course test files."""
+    import os
+    folder = os.path.join(current_app.config['UPLOAD_FOLDER'], 'tests')
+    return send_from_directory(folder, filename)
