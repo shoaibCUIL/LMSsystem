@@ -491,12 +491,37 @@
         </a>
 
         <div class="action-card ac-teal" style="opacity:.5; cursor:not-allowed;">
-            <div class="action-card-icon">✍️</div>
-            <h3>Blog Management</h3>
-            <p>Create and manage blog posts</p>
-            <span class="action-card-arrow" style="color:#22D3EE;">Coming Soon</span>
-        </div>
-    </div>
+                    <div class="action-card-icon">✍️</div>
+                    <h3>Blog Management</h3>
+                    <p>Create and manage blog posts</p>
+                    <span class="action-card-arrow" style="color:#22D3EE;">Coming Soon</span>
+                </div>
+            </div>
+
+            <!-- Course Content Management -->
+            <div class="section-heading">📦 Course Content Management</div>
+            <div class="actions-grid">
+                <a href="{{ url_for('admin.courses') }}" class="action-card ac-green">
+                    <div class="action-card-icon">🎬</div>
+                    <h3>Lecture Management</h3>
+                    <p>Add and organize video lectures per course</p>
+                    <span class="action-card-arrow">Manage Lectures →</span>
+                </a>
+
+                <a href="{{ url_for('admin.courses') }}" class="action-card ac-blue">
+                    <div class="action-card-icon">📄</div>
+                    <h3>Course Materials</h3>
+                    <p>Upload PDFs, slides and reading materials</p>
+                    <span class="action-card-arrow">Manage Materials →</span>
+                </a>
+
+                <a href="{{ url_for('admin.courses') }}" class="action-card ac-amber">
+                    <div class="action-card-icon">📝</div>
+                    <h3>Tests & Assessments</h3>
+                    <p>Create quizzes and upload test files</p>
+                    <span class="action-card-arrow">Manage Tests →</span>
+                </a>
+            </div>
 
     <!-- Discussion Management -->
     <div class="section-heading">💬 Discussion Management</div>
