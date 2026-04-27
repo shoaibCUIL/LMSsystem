@@ -48,9 +48,7 @@
         color:var(--text-primary); margin-bottom:1.25rem;
         display:flex; align-items:center; gap:.5rem;
     }
-    .section-count {
-        font-size:.78rem; font-weight:400; color:var(--text-muted);
-    }
+    .section-count { font-size:.78rem; font-weight:400; color:var(--text-muted); }
 
     /* ── Mode banners ── */
     .mode-banner {
@@ -60,7 +58,7 @@
     .banner-live     { background:linear-gradient(135deg,#EBF2FF,#DBEAFE); border:1px solid #BFDBFE; }
     .banner-face     { background:linear-gradient(135deg,#FFFBEB,#FEF3C7); border:1px solid #FDE68A; }
     .banner-recorded { background:linear-gradient(135deg,#F5F3FF,#EDE9FE); border:1px solid #DDD6FE; }
-    .banner-icon { font-size:1.75rem; flex-shrink:0; }
+    .banner-icon  { font-size:1.75rem; flex-shrink:0; }
     .banner-title { font-family:'Sora',sans-serif; font-weight:700; font-size:.95rem; margin-bottom:.2rem; color:var(--text-primary); }
     .banner-desc  { font-size:.82rem; color:var(--text-secondary); line-height:1.5; }
 
@@ -168,12 +166,10 @@
     }
     .test-btn:hover { background:#6366F1; color:white; }
 
-    /* Due date badge */
     .due-badge {
         display:inline-flex; align-items:center; gap:.25rem;
         font-size:.7rem; font-weight:700; padding:.18rem .5rem;
-        border-radius:999px; background:#FEF3C7; color:#92400E;
-        margin-left:.5rem;
+        border-radius:999px; background:#FEF3C7; color:#92400E; margin-left:.5rem;
     }
 
     /* ── Certificate ── */
@@ -194,8 +190,7 @@
         display:inline-flex; align-items:center; gap:.4rem;
         padding:.5rem 1.1rem; border-radius:8px;
         background:linear-gradient(135deg,#059669,#047857);
-        color:white; font-weight:700; font-size:.82rem; text-decoration:none;
-        transition:all .18s;
+        color:white; font-weight:700; font-size:.82rem; text-decoration:none; transition:all .18s;
     }
     .cert-dl-btn:hover { opacity:.9; transform:translateY(-1px); }
     .cert-pending {
@@ -256,7 +251,6 @@
     .sb-btn-ghost:hover { background:var(--brand-blue-light); }
     .sb-note { font-size:.73rem; color:var(--text-muted); text-align:center; margin-top:.5rem; }
 
-    /* Tier pricing (not enrolled) */
     .tier-card {
         border:1.5px solid var(--border-light); border-radius:10px;
         padding:.7rem .9rem; margin-bottom:.45rem;
@@ -295,9 +289,7 @@
 
 <div class="detail-wrap">
 
-    <!-- ═══════════════════════════════════
-         MAIN CONTENT
-         ═══════════════════════════════════ -->
+    <!-- ═══════════════════ MAIN CONTENT ═══════════════════ -->
     <div>
 
     {% if is_enrolled and enrollment %}
@@ -338,7 +330,6 @@
         <h2>🎥 Live Sessions</h2>
         {% set room = course.discussion_room %}
         {% if room %}
-            {% set sessions = room.sessions.order_by_desc_scheduled() if room.sessions else [] %}
             {% set all_sessions = room.sessions.all() %}
             {% if all_sessions %}
                 {% for session in all_sessions %}
@@ -360,9 +351,7 @@
                         </div>
                     </div>
                     {% if session.meeting_link %}
-                    <a href="{{ session.meeting_link }}" target="_blank" class="join-btn">
-                        Join →
-                    </a>
+                    <a href="{{ session.meeting_link }}" target="_blank" class="join-btn">Join →</a>
                     {% else %}
                     <span style="font-size:.78rem;color:var(--text-muted);">Link coming soon</span>
                     {% endif %}
@@ -416,7 +405,7 @@
     <div class="detail-card">
         <h2>
             📚 Course Lectures
-            <span class="section-count">{{ lectures | length }} lecture{{ 's' if lectures|length != 1 else '' }}</span>
+            <span class="section-count">{{ lectures|length }} lecture{{ 's' if lectures|length != 1 else '' }}</span>
         </h2>
         {% if lectures %}
             {% for lec in lectures %}
@@ -430,9 +419,7 @@
                     </div>
                 </div>
                 <a href="{{ url_for('courses.lecture', slug=course.slug, lecture_id=lec.id) }}"
-                   class="join-btn" style="font-size:.78rem;">
-                    ▶ Watch
-                </a>
+                   class="join-btn" style="font-size:.78rem;">▶ Watch</a>
             </div>
             {% endfor %}
         {% else %}
@@ -448,7 +435,7 @@
     <div class="detail-card">
         <h2>
             📄 Course Materials
-            {% if materials %}<span class="section-count">{{ materials | length }} file{{ 's' if materials|length != 1 else '' }}</span>{% endif %}
+            {% if materials %}<span class="section-count">{{ materials|length }} file{{ 's' if materials|length != 1 else '' }}</span>{% endif %}
         </h2>
         {% if materials %}
             {% for mat in materials %}
@@ -470,9 +457,7 @@
                     </div>
                 </div>
                 <a href="{{ url_for('main.uploaded_file', folder='materials', filename=mat.file_path) }}"
-                   target="_blank" class="dl-btn">
-                    ⬇ Download
-                </a>
+                   target="_blank" class="dl-btn">⬇ Download</a>
             </div>
             {% endfor %}
         {% else %}
@@ -488,7 +473,7 @@
     <div class="detail-card">
         <h2>
             ✏️ Tests & Assessments
-            {% if tests %}<span class="section-count">{{ tests | length }} test{{ 's' if tests|length != 1 else '' }}</span>{% endif %}
+            {% if tests %}<span class="section-count">{{ tests|length }} test{{ 's' if tests|length != 1 else '' }}</span>{% endif %}
         </h2>
         {% if tests %}
             {% for test in tests %}
@@ -509,14 +494,10 @@
                     </div>
                 </div>
                 {% if test.test_type == 'link' and test.test_link %}
-                <a href="{{ test.test_link }}" target="_blank" class="test-btn">
-                    Start Test →
-                </a>
+                <a href="{{ test.test_link }}" target="_blank" class="test-btn">Start Test →</a>
                 {% elif test.file_path %}
                 <a href="{{ url_for('main.uploaded_file', folder='tests', filename=test.file_path) }}"
-                   target="_blank" class="test-btn">
-                    ⬇ Download
-                </a>
+                   target="_blank" class="test-btn">⬇ Download</a>
                 {% endif %}
             </div>
             {% endfor %}
@@ -625,9 +606,7 @@
     {% endif %}
     </div>
 
-    <!-- ═══════════════════════════════════
-         SIDEBAR
-         ═══════════════════════════════════ -->
+    <!-- ═══════════════════ SIDEBAR ═══════════════════ -->
     <div>
         <div class="sidebar-card">
 
@@ -649,7 +628,6 @@
             <div class="sidebar-body">
 
                 {% if is_enrolled and enrollment %}
-                <!-- Enrolled -->
                 <div class="enrolled-banner">
                     <span style="font-size:1.1rem;">✅</span>
                     <div>
@@ -691,7 +669,6 @@
                 </a>
 
                 {% else %}
-                <!-- Not enrolled — pricing tiers -->
                 <div class="sb-title">Choose Your Plan</div>
 
                 <div class="tier-card">
